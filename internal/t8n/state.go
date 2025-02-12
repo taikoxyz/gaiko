@@ -79,12 +79,8 @@ func (g *GuestInput) makePreState() (*preState, error) {
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
 			value, err := getStorage(&g.ParentStateTrie, key)
-			if err != nil {
-				if err == ErrNotFound {
-					continue
-				} else {
-					return nil, err
-				}
+			if err != nil && err != ErrNotFound {
+				return nil, err
 			}
 			statedb.SetState(addr, key, value)
 		}
