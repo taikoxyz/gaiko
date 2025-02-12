@@ -19,7 +19,6 @@ import (
 )
 
 func (g *GuestInput) Oneshot() error {
-	vmConfig := vm.Config{}
 	chainConfig, err := g.chainConfig()
 	if err != nil {
 		return err
@@ -28,7 +27,7 @@ func (g *GuestInput) Oneshot() error {
 	if err != nil {
 		return err
 	}
-	statedb, err := g.apply(vmConfig, preState.statedb, preState.getHash, chainConfig)
+	statedb, err := g.apply(vm.Config{}, preState.statedb, preState.getHash, chainConfig)
 	if err != nil {
 		return err
 	}
