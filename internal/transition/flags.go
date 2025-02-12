@@ -1,4 +1,4 @@
-package t8n
+package transition
 
 import "github.com/urfave/cli/v2"
 

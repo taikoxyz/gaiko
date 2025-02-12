@@ -1,4 +1,4 @@
-package t8n
+package transition
 
 import (
 	"sync"
