@@ -1,9 +1,11 @@
 package t8n
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -16,9 +18,15 @@ import (
 	"github.com/holiman/uint256"
 	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/rpc"
+	"github.com/urfave/cli/v2"
 )
 
-func (g *GuestInput) Oneshot() error {
+func Oneshot(ctx *cli.Context) error {
+	var g GuestInput
+	err := json.NewDecoder(os.Stdin).Decode(&g)
+	if err != nil {
+		return err
+	}
 	chainConfig, err := g.chainConfig()
 	if err != nil {
 		return err
