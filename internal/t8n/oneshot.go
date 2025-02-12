@@ -195,7 +195,7 @@ func (g *GuestInput) decodeTxs() types.Transactions {
 	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
 	txListBytes := g.Taiko.TxData
 	blobUsed := g.Taiko.BlockProposed.BlobUsed()
-	isPacaya := g.Taiko.BlockProposed.IsPacaya()
+	isPacaya := g.Taiko.BlockProposed.HardFork() == PacayaHardFork
 	txs := decompressor.TryDecompress(chainID, txListBytes, blobUsed, isPacaya)
 	return append([]*types.Transaction{g.Taiko.AnchorTx}, txs...)
 }

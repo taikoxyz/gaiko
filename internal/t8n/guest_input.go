@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
+	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
 type StorageEntry struct {
@@ -53,14 +54,33 @@ type TxSlicePosition struct {
 	Length uint
 }
 
+type hardFork string
+
+const (
+	HeklaHardFork  hardFork = "Hekla"
+	OntakeHardFork hardFork = "Ontake"
+	PacayaHardFork hardFork = "Pacaya"
+)
+
 type BlockProposedFork interface {
-	BlobUsed() bool
 	BlockNumber() uint64
 	BlockTimestamp() uint64
-	BaseFeeConfig() LibSharedDataBaseFeeConfig
+	BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig
 	BlobTxSliceParam() *TxSlicePosition
 	BlobHash() common.Hash
-	IsPacaya() bool
+	BlobUsed() bool
+	HardFork() hardFork
+	MinTier() uint16
+	ParentMetaHash() [32]byte
+	Sender() common.Address
+	Difficulty() [32]byte
+	Proposer() common.Address
+	LivenessBond() *big.Int
+	ProposedAt() uint64
+	ProposedIn() uint64
+	BlobTxListOffset() uint32
+	BlobTxListLength() uint32
+	BlobIndex() uint8
 }
 
 //go:generate go run github.com/fjl/gencodec -type TaikoL1BlockProposed -field-override taikoL1BlockProposedMarshaling -out gen_taiko_l1_block_proposed.go
@@ -90,8 +110,8 @@ func (b *TaikoL1BlockProposed) BlockTimestamp() uint64 {
 	return b.Meta.Timestamp
 }
 
-func (b *TaikoL1BlockProposed) BaseFeeConfig() LibSharedDataBaseFeeConfig {
-	return LibSharedDataBaseFeeConfig{}
+func (b *TaikoL1BlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig {
+	return ontake.LibSharedDataBaseFeeConfig{}
 }
 
 func (b *TaikoL1BlockProposed) BlobTxSliceParam() *TxSlicePosition {
@@ -124,7 +144,7 @@ func (b *TaikoL1BlockProposedV2) BlockTimestamp() uint64 {
 	return b.Meta.Timestamp
 }
 
-func (b *TaikoL1BlockProposedV2) BaseFeeConfig() LibSharedDataBaseFeeConfig {
+func (b *TaikoL1BlockProposedV2) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig {
 	return b.Meta.BaseFeeConfig
 }
 
@@ -163,7 +183,7 @@ type TaikoDataBlockMetadataV2 struct {
 	BlobTxListOffset uint32
 	BlobTxListLength uint32
 	BlobIndex        uint8
-	BaseFeeConfig    LibSharedDataBaseFeeConfig
+	BaseFeeConfig    ontake.LibSharedDataBaseFeeConfig
 }
 
 type TaikoDataEthDeposit struct {
@@ -195,16 +215,12 @@ type taikoDataBlockMetadataMarshaling struct {
 	LivenessBond *hexutil.Big
 }
 
-type LibSharedDataBaseFeeConfig struct {
-	AdjustmentQuotient     uint8
-	SharingPctg            uint8
-	GasIssuancePerSecond   uint32
-	MinGasExcess           uint64
-	MaxGasIssuancePerBlock uint32
-}
-
 type SpecId = uint8
 type ProofType = uint8
+
+const (
+	SgxProofType ProofType = 2
+)
 
 type ChainSpec struct {
 	Name                 string
@@ -220,6 +236,33 @@ type ChainSpec struct {
 	GenesisTime          uint64
 	SecondsPerSlot       uint64
 	IsTaiko              bool
+}
+
+// pub fn get_fork_verifier_address(
+// 	&self,
+// 	block_num: u64,
+// 	proof_type: ProofType,
+// ) -> Result<Address> {
+// 	// fall down to the first fork that is active as default
+// 	for (spec_id, fork) in self.hard_forks.iter().rev() {
+// 		if fork.active(block_num, 0u64) {
+// 			if let Some(fork_verifier) = self.verifier_address_forks.get(spec_id) {
+// 				return fork_verifier
+// 					.get(&proof_type)
+// 					.ok_or_else(|| anyhow!("Verifier type not found"))
+// 					.and_then(|address| {
+// 						address.ok_or_else(|| anyhow!("Verifier address not found"))
+// 					});
+// 			}
+// 		}
+// 	}
+
+// 	Err(anyhow!("fork verifier is not active"))
+// }
+
+func (c *ChainSpec) getForkVerifierAddress(blockNum uint64) (common.Address, error) {
+	// TODO: Implement this function
+	return common.Address{}, nil
 }
 
 type ForkCondition interface {

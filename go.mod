@@ -121,7 +121,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/supranational/blst v0.3.13 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
-	github.com/taikoxyz/taiko-mono v0.0.0-20250211074854-c047077e6cac // indirect
+	github.com/taikoxyz/taiko-mono v0.0.0-20250212022044-13969114dd98 // indirect
 	github.com/tdewolff/minify/v2 v2.20.14 // indirect
 	github.com/tdewolff/parse/v2 v2.7.8 // indirect
 	github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e // indirect

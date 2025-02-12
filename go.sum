@@ -521,6 +521,8 @@ github.com/taikoxyz/taiko-geth v1.12.1-0.20250210044710-a0b97be30cc0 h1:LEn6wBmE
 github.com/taikoxyz/taiko-geth v1.12.1-0.20250210044710-a0b97be30cc0/go.mod h1:+l/fr42Mma+xBnhefL/+z11/hcmJ2egl+ScIVPjhc7E=
 github.com/taikoxyz/taiko-mono v0.0.0-20250211074854-c047077e6cac h1:87N9HMRlAm3GfOuAEwINP9rW9+i19PDfhTaP2cAoiQM=
 github.com/taikoxyz/taiko-mono v0.0.0-20250211074854-c047077e6cac/go.mod h1:bH0X/fYuPGGZaMiEFYT6gFCKUpS/i7PEWuTodVOWr7c=
+github.com/taikoxyz/taiko-mono v0.0.0-20250212022044-13969114dd98 h1:qM//cbOmhNzbaPB+Rr1jU2pDmYsPfaVMFVyYm70clXI=
+github.com/taikoxyz/taiko-mono v0.0.0-20250212022044-13969114dd98/go.mod h1:bH0X/fYuPGGZaMiEFYT6gFCKUpS/i7PEWuTodVOWr7c=
 github.com/tdewolff/minify/v2 v2.20.14 h1:sktSuVixRwk0ryQjqvKBu/uYS+MWmkwEFMEWtFZ+TdE=
 github.com/tdewolff/minify/v2 v2.20.14/go.mod h1:qnIJbnG2dSzk7LIa/UUwgN2OjS8ir6RRlqc0T/1q2xY=
 github.com/tdewolff/parse/v2 v2.7.8 h1:1cnVqa8L63xFkc2vfRsZTM6Qy35nJpTvQ2Uvdv3vbvs=
