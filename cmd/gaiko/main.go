@@ -26,7 +26,7 @@ func NewApp(usage string) *cli.App {
 	app.EnableBashCompletion = true
 	app.Version = params.VersionWithCommit(git.Commit, git.Date)
 	app.Usage = usage
-	app.Copyright = "Copyright 2013-2024 The go-ethereum Authors"
+	app.Copyright = "Copyright 2013-2024 The gaiko Authors"
 	return app
 }
 
