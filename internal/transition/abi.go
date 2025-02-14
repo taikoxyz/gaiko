@@ -187,6 +187,25 @@ var (
 			},
 		},
 	}
+
+	batchMetaDataComponents = []abi.ArgumentMarshaling{
+		{
+			Name: "infoHash",
+			Type: "bytes32",
+		},
+		{
+			Name: "proposer",
+			Type: "address",
+		},
+		{
+			Name: "batchId",
+			Type: "uint64",
+		},
+		{
+			Name: "proposedAt",
+			Type: "uint64",
+		},
+	}
 	transitionComponentsType, _ = abi.NewType("tuple", "TaikoData.Transition", transitionComponents)
 	publicInputsType            = abi.Arguments{
 		{Name: "VERIFY_PROOF", Type: stringTy},
@@ -196,8 +215,9 @@ var (
 		{Name: "_newInstance", Type: addressTy},
 		{Name: "_metaHash", Type: byte32Ty},
 	}
-	blockMetadataComponentsType, _   = abi.NewType("tuple", "TaikoData.BlockMetadata", blockMetadataComponents)
-	blockMetadataV2ComponentsType, _ = abi.NewType("tuple", "TaikoData.BlockMetadataV2", blockMetadataV2Components)
-	blockMetadataComponentsArgs      = abi.Arguments{{Name: "TaikoData.BlockMetadata", Type: blockMetadataComponentsType}}
-	blockMetadataV2ComponentsArgs    = abi.Arguments{{Name: "TaikoData.BlockMetadataV2", Type: blockMetadataV2ComponentsType}}
+	blockMetadataComponentsType, _      = abi.NewType("tuple", "TaikoData.BlockMetadata", blockMetadataComponents)
+	blockMetadataV2ComponentsType, _    = abi.NewType("tuple", "TaikoData.BlockMetadataV2", blockMetadataV2Components)
+	blockMetadataComponentsArgs         = abi.Arguments{{Name: "TaikoData.BlockMetadata", Type: blockMetadataComponentsType}}
+	blockMetadataV2ComponentsArgs       = abi.Arguments{{Name: "TaikoData.BlockMetadataV2", Type: blockMetadataV2ComponentsType}}
+	batchMetaDataComponentsArrayType, _ = abi.NewType("tuple", "ITaikoInbox.BatchMetadata", batchMetaDataComponents)
 )

@@ -16,17 +16,6 @@ const (
 
 var emptyHash = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 
-type metaHash interface {
-	Hash() common.Hash
-}
-
-type BlockMetadataV1 struct{ *ontake.TaikoDataBlockMetadata }
-
-func (m *BlockMetadataV1) Hash() common.Hash {
-	b, _ := blockMetadataComponentsArgs.Pack(m.TaikoDataBlockMetadata)
-	return common.BytesToHash(keccak(b))
-}
-
 type BlockMetadataV2 struct {
 	*ontake.TaikoDataBlockMetadataV2
 }
@@ -38,7 +27,7 @@ func (m *BlockMetadataV2) Hash() common.Hash {
 
 type publicInputs struct {
 	transition     *ontake.TaikoDataTransition
-	block_metadata metaHash
+	block_metadata BlockMetaDataFork
 	verifier       common.Address
 	prover         common.Address
 	sgxInstance    common.Address
@@ -49,7 +38,7 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 	var (
 		reducedGasLimit uint32
 		txListHash      common.Hash
-		metadata        metaHash
+		metadata        BlockMetaDataFork
 	)
 	if g.ChainSpec.IsTaiko {
 		reducedGasLimit = anchorGasLimit
@@ -83,7 +72,7 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 
 	switch g.Taiko.BlockProposed.HardFork() {
 	case HeklaHardFork:
-		metadata = &BlockMetadataV1{
+		metadata = &HeklaBlockMetadata{
 			TaikoDataBlockMetadata: &ontake.TaikoDataBlockMetadata{
 				L1Hash:         g.Taiko.L1Header.Hash(),
 				Difficulty:     g.Taiko.BlockProposed.Difficulty(),
@@ -102,7 +91,7 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 			},
 		}
 	case OntakeHardFork:
-		metadata = &BlockMetadataV2{
+		metadata = &OntakeBlockMetadata{
 			TaikoDataBlockMetadataV2: &ontake.TaikoDataBlockMetadataV2{
 				AnchorBlockHash:  g.Taiko.L1Header.Hash(),
 				Difficulty:       g.Taiko.BlockProposed.Difficulty(),
