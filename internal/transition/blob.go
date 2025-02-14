@@ -31,10 +31,10 @@ func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 
 func verifyBlob(
 	blobProofType BlobProofType,
-	_blob [131072]byte,
+	_blob [blobSize]byte,
 	versionedHash common.Hash,
-	_commitment [48]byte,
-	_proof *[48]byte) error {
+	_commitment [commitmentSize]byte,
+	_proof *[proofSize]byte) error {
 	commitment := kzg4844.Commitment(_commitment)
 	blob := kzg4844.Blob(_blob)
 	switch blobProofType {
