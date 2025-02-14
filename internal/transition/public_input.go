@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
 const (
@@ -38,7 +37,7 @@ func (m *BlockMetadataV2) Hash() common.Hash {
 }
 
 type publicInputs struct {
-	transition     *pacaya.ITaikoInboxTransition
+	transition     *ontake.TaikoDataTransition
 	block_metadata metaHash
 	verifier       common.Address
 	prover         common.Address
@@ -138,10 +137,11 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 	}
 
 	pi := &publicInputs{
-		transition: &pacaya.ITaikoInboxTransition{
+		transition: &ontake.TaikoDataTransition{
 			ParentHash: g.ParentHeader.Hash(),
 			BlockHash:  g.Block.Hash(),
 			StateRoot:  g.Block.Root(),
+			Graffiti:   g.Taiko.ProverData.Graffiti,
 		},
 		block_metadata: metadata,
 		verifier:       verifierAddress,
