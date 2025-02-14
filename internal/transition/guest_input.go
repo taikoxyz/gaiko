@@ -25,14 +25,14 @@ type GuestInput struct {
 }
 
 type TaikoGuestInput struct {
-	L1Header       types.Header       `json:"l1_header"`
-	TxData         []byte             `json:"tx_data"`
-	AnchorTx       *types.Transaction `json:"anchor_tx"`
-	BlockProposed  BlockProposedFork  `json:"block_proposed"`
-	ProverData     TaikoProverData    `json:"prover_data"`
-	BlobCommitment *[]byte            `json:"blob_commitment"`
-	BlobProof      *[]byte            `json:"blob_proof"`
-	BlobProofType  BlobProofType      `json:"blob_proof_type"`
+	L1Header       types.Header          `json:"l1_header"`
+	TxData         []byte                `json:"tx_data"`
+	AnchorTx       *types.Transaction    `json:"anchor_tx"`
+	BlockProposed  BlockProposedFork     `json:"block_proposed"`
+	ProverData     TaikoProverData       `json:"prover_data"`
+	BlobCommitment *[commitmentSize]byte `json:"blob_commitment"`
+	BlobProof      *[proofSize]byte      `json:"blob_proof"`
+	BlobProofType  BlobProofType         `json:"blob_proof_type"`
 }
 
 type BlobProofType string

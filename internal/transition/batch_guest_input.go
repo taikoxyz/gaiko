@@ -3,7 +3,8 @@ package transition
 import "github.com/ethereum/go-ethereum/core/types"
 
 type BatchGuestInput struct {
-	inputs []GuestInput
+	Inputs []GuestInput
+	Taiko  TaikoGuestBatchInput
 }
 
 type TaikoGuestBatchInput struct {
@@ -13,8 +14,12 @@ type TaikoGuestBatchInput struct {
 	ChainSpec          ChainSpec
 	ProverData         TaikoProverData
 	TxDataFromCalldata []byte
-	TxDataFromBlob     [][]byte
-	BlobCommitments    *[][]byte
-	BlobProofs         *[][]byte
+	TxDataFromBlob     [][blobSize]byte
+	BlobCommitments    *[][commitmentSize]byte
+	BlobProofs         *[][proofSize]byte
 	BlobProofType      BlobProofType
+}
+
+func (g *BatchGuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
+	panic("unimplemented")
 }

@@ -25,13 +25,21 @@ func (m *BlockMetadataV2) Hash() common.Hash {
 	return common.BytesToHash(keccak(b))
 }
 
-type publicInputs struct {
+type publicInput struct {
 	transition     *ontake.TaikoDataTransition
 	block_metadata BlockMetaDataFork
 	verifier       common.Address
 	prover         common.Address
 	sgxInstance    common.Address
 	chainID        uint64
+}
+
+func (p *publicInput) hash() (common.Address, error) {
+	b, err := publicInputsType.Pack("VERIFY_PROOF", p.chainID, p.verifier, p.transition, p.sgxInstance, p.block_metadata.Hash())
+	if err != nil {
+		return common.Address{}, err
+	}
+	return common.Address(keccak(b)), nil
 }
 
 func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) BlobProofType {
@@ -47,7 +55,7 @@ func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) Blob
 	}
 }
 
-func (g *GuestInput) publicInputs(proofType ProofType) (*publicInputs, error) {
+func (g *GuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
 	var (
 		reducedGasLimit uint32
 		txListHash      common.Hash
@@ -62,25 +70,13 @@ func (g *GuestInput) publicInputs(proofType ProofType) (*publicInputs, error) {
 		if g.Taiko.BlobCommitment == nil {
 			return nil, fmt.Errorf("missing blob commitment")
 		}
-		var commitment kzg4844.Commitment
-		copy(commitment[:], *g.Taiko.BlobCommitment)
-		var blob kzg4844.Blob
-		copy(blob[:], g.Taiko.TxData)
-
+		commitment := kzg4844.Commitment(*g.Taiko.BlobCommitment)
 		txListHash = common.Hash(kzg4844.CalcBlobHashV1(sha256.New(), &commitment))
-		switch blobProofType {
-		case KzgVersionedHash:
-			got, err := kzg4844.BlobToCommitment(&blob)
-			if err != nil {
-				return nil, err
-			}
-			if got != commitment {
-				gotStr, _ := got.MarshalText()
-				wantStr, _ := commitment.MarshalText()
-				return nil, fmt.Errorf("commitment mismatch: got %v, want %v", string(gotStr), string(wantStr))
-			}
-		case ProofOfEquivalence:
-			panic("unsupported blob proof type")
+
+		var blob [blobSize]byte
+		copy(blob[:], g.Taiko.TxData)
+		if err := verifyBlob(blobProofType, blob, txListHash, *g.Taiko.BlobCommitment, g.Taiko.BlobProof); err != nil {
+			return nil, err
 		}
 	} else {
 		txListHash = common.BytesToHash(keccak(g.Taiko.TxData))
@@ -145,7 +141,7 @@ func (g *GuestInput) publicInputs(proofType ProofType) (*publicInputs, error) {
 		return nil, err
 	}
 
-	pi := &publicInputs{
+	pi := &publicInput{
 		transition: &ontake.TaikoDataTransition{
 			ParentHash: g.ParentHeader.Hash(),
 			BlockHash:  g.Block.Hash(),
@@ -163,12 +159,4 @@ func (g *GuestInput) publicInputs(proofType ProofType) (*publicInputs, error) {
 		return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", g.Taiko.BlockProposed, pi.block_metadata)
 	}
 	return pi, nil
-}
-
-func (p *publicInputs) hash() (common.Address, error) {
-	b, err := publicInputsType.Pack("VERIFY_PROOF", p.chainID, p.verifier, p.transition, p.sgxInstance, p.block_metadata.Hash())
-	if err != nil {
-		return common.Address{}, err
-	}
-	return common.Address(keccak(b)), nil
 }
