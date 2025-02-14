@@ -72,7 +72,9 @@ func (g *GuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
 		}
 		commitment := kzg4844.Commitment(*g.Taiko.BlobCommitment)
 		txListHash = common.Hash(kzg4844.CalcBlobHashV1(sha256.New(), &commitment))
-
+		if len(g.Taiko.TxData) != blobSize {
+			return nil, fmt.Errorf("invalid TxData length, expected: %d, got: %d", blobSize, len(g.Taiko.TxData))
+		}
 		var blob [blobSize]byte
 		copy(blob[:], g.Taiko.TxData)
 		if err := verifyBlob(blobProofType, blob, txListHash, *g.Taiko.BlobCommitment, g.Taiko.BlobProof); err != nil {
