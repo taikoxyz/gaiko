@@ -34,11 +34,25 @@ type publicInputs struct {
 	chainID        uint64
 }
 
-func (g *GuestInput) publicInputs() (*publicInputs, error) {
+func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) BlobProofType {
+	switch proofType {
+	case NativeProofType:
+		return blobProofTypeHint
+	case SgxProofType, GaikoSgxProofType:
+		return KzgVersionedHash
+	case Sp1ProofType, Risc0ProofType:
+		return ProofOfEquivalence
+	default:
+		panic("unreachable")
+	}
+}
+
+func (g *GuestInput) publicInputs(proofType ProofType) (*publicInputs, error) {
 	var (
 		reducedGasLimit uint32
 		txListHash      common.Hash
 		metadata        BlockMetaDataFork
+		blobProofType   = getBlobProofType(proofType, g.Taiko.BlobProofType)
 	)
 	if g.ChainSpec.IsTaiko {
 		reducedGasLimit = anchorGasLimit
@@ -54,14 +68,19 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 		copy(blob[:], g.Taiko.TxData)
 
 		txListHash = common.Hash(kzg4844.CalcBlobHashV1(sha256.New(), &commitment))
-		got, err := kzg4844.BlobToCommitment(&blob)
-		if err != nil {
-			return nil, err
-		}
-		if got != commitment {
-			gotStr, _ := got.MarshalText()
-			wantStr, _ := commitment.MarshalText()
-			return nil, fmt.Errorf("commitment mismatch: got %v, want %v", string(gotStr), string(wantStr))
+		switch blobProofType {
+		case KzgVersionedHash:
+			got, err := kzg4844.BlobToCommitment(&blob)
+			if err != nil {
+				return nil, err
+			}
+			if got != commitment {
+				gotStr, _ := got.MarshalText()
+				wantStr, _ := commitment.MarshalText()
+				return nil, fmt.Errorf("commitment mismatch: got %v, want %v", string(gotStr), string(wantStr))
+			}
+		case ProofOfEquivalence:
+			panic("unsupported blob proof type")
 		}
 	} else {
 		txListHash = common.BytesToHash(keccak(g.Taiko.TxData))
@@ -115,12 +134,13 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 				BaseFeeConfig:    g.Taiko.BlockProposed.BaseFeeConfig(),
 			},
 		}
-	// case PacayaHardFork:
+	case PacayaHardFork:
+		panic("unsupported hardfork")
 	default:
 		return nil, fmt.Errorf("unsupported hardfork: %v", g.Taiko.BlockProposed.HardFork())
 	}
 
-	verifierAddress, err := g.ChainSpec.getForkVerifierAddress(g.Taiko.BlockProposed.BlockNumber())
+	verifierAddress, err := g.ChainSpec.getForkVerifierAddress(g.Taiko.BlockProposed.BlockNumber(), proofType)
 	if err != nil {
 		return nil, err
 	}

@@ -8,12 +8,10 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
-type HardFork string
-
 const (
-	HeklaHardFork  HardFork = "Hekla"
-	OntakeHardFork HardFork = "Ontake"
-	PacayaHardFork HardFork = "Pacaya"
+	HeklaHardFork  string = "Hekla"
+	OntakeHardFork string = "Ontake"
+	PacayaHardFork string = "Pacaya"
 )
 
 type TxSlicePosition struct {
@@ -28,7 +26,7 @@ type BlockProposedFork interface {
 	BlobTxSliceParam() *TxSlicePosition
 	BlobHash() common.Hash
 	BlobUsed() bool
-	HardFork() HardFork
+	HardFork() string
 	MinTier() uint16
 	ParentMetaHash() [32]byte
 	Sender() common.Address
