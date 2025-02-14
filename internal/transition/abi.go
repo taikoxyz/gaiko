@@ -221,3 +221,7 @@ var (
 	blockMetadataV2ComponentsArgs       = abi.Arguments{{Name: "TaikoData.BlockMetadataV2", Type: blockMetadataV2ComponentsType}}
 	batchMetaDataComponentsArrayType, _ = abi.NewType("tuple", "ITaikoInbox.BatchMetadata", batchMetaDataComponents)
 )
+
+type AbiEncoder interface {
+	Encode() ([]byte, error)
+}
