@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
@@ -24,13 +23,19 @@ type metaHash interface {
 
 type BlockMetadataV1 struct{ *ontake.TaikoDataBlockMetadata }
 
-func (m *BlockMetadataV1) Hash() common.Hash { return m.BlobHash }
+func (m *BlockMetadataV1) Hash() common.Hash {
+	b, _ := blockMetadataComponentsArgs.Pack(m.TaikoDataBlockMetadata)
+	return common.BytesToHash(keccak(b))
+}
 
 type BlockMetadataV2 struct {
 	*ontake.TaikoDataBlockMetadataV2
 }
 
-func (m *BlockMetadataV2) Hash() common.Hash { return m.BlobHash }
+func (m *BlockMetadataV2) Hash() common.Hash {
+	b, _ := blockMetadataV2ComponentsArgs.Pack(m.TaikoDataBlockMetadataV2)
+	return common.BytesToHash(keccak(b))
+}
 
 type publicInputs struct {
 	transition     *pacaya.ITaikoInboxTransition
@@ -148,42 +153,8 @@ func (g *GuestInput) publicInputs() (*publicInputs, error) {
 	if g.ChainSpec.IsTaiko && !reflect.DeepEqual(pi.block_metadata, g.Taiko.BlockProposed) {
 		return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", g.Taiko.BlockProposed, pi.block_metadata)
 	}
-	return nil, nil
+	return pi, nil
 }
-
-var (
-	stringTy, _          = abi.NewType("string", "", nil)
-	uint64Ty, _          = abi.NewType("uint64", "", nil)
-	addressTy, _         = abi.NewType("address", "", nil)
-	byte32Ty, _          = abi.NewType("bytes32", "", nil)
-	transitionComponents = []abi.ArgumentMarshaling{
-		{
-			Name: "parentHash",
-			Type: "bytes32",
-		},
-		{
-			Name: "blockHash",
-			Type: "bytes32",
-		},
-		{
-			Name: "stateRoot",
-			Type: "bytes32",
-		},
-		{
-			Name: "graffiti",
-			Type: "bytes32",
-		},
-	}
-	transitionComponentsType, _ = abi.NewType("tuple", "TaikoData.Transition", transitionComponents)
-	publicInputsType            = abi.Arguments{
-		{Name: "VERIFY_PROOF", Type: stringTy},
-		{Name: "_chainId", Type: uint64Ty},
-		{Name: "_verifierContract", Type: addressTy},
-		{Name: "_transition", Type: transitionComponentsType},
-		{Name: "_newInstance", Type: addressTy},
-		{Name: "_metaHash", Type: byte32Ty},
-	}
-)
 
 func (p *publicInputs) hash() (common.Address, error) {
 	b, err := publicInputsType.Pack("VERIFY_PROOF", p.chainID, p.verifier, p.transition, p.sgxInstance, p.block_metadata.Hash())
