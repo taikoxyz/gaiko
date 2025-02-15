@@ -48,10 +48,12 @@ func (c *ChainSpec) getForkVerifierAddress(blockNum uint64, proofType ProofType)
 	for i := len(c.HardForks) - 1; i >= 0; i-- {
 		fork := c.HardForks[i]
 		if fork.Condition.Active(blockNum, 0) {
-			if verifierAddress, ok := c.VerifierAddressForks[fork.SpecID][proofType]; ok {
-				if verifierAddress != nil {
-					return *verifierAddress, nil
+			if verifierAddressFork, ok := c.VerifierAddressForks[fork.SpecID]; ok {
+				verifierAddress := verifierAddressFork[proofType]
+				if verifierAddress == nil {
+					return common.Address{}, fmt.Errorf("fork verifier for proof type %d is not active", proofType)
 				}
+				return *verifierAddress, nil
 			}
 		}
 	}
