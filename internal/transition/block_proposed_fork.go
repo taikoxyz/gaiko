@@ -45,6 +45,10 @@ type PacayaBlockProposed struct {
 	*pacaya.TaikoInboxClientBatchProposed
 }
 
+func (b *PacayaBlockProposed) ABIEncoder() ([]byte, error) {
+	return batchProposedEvent.Inputs.Pack(b.Info, b.Meta, b.TxList)
+}
+
 func (b *PacayaBlockProposed) BlockNumber() uint64 {
 	panic("not implemented") // TODO: Implement
 }
