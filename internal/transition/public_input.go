@@ -3,7 +3,7 @@ package transition
 import (
 	"crypto/sha256"
 	"fmt"
-	"reflect"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
@@ -55,7 +55,7 @@ func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) Blob
 	}
 }
 
-func (g *GuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
+func (g *GuestInput) publicInput(proofType ProofType) (*publicInput, error) {
 	var (
 		reducedGasLimit uint32
 		txListHash      common.Hash
@@ -160,7 +160,7 @@ func (g *GuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
 	if g.ChainSpec.IsTaiko {
 		got, _ := pi.block_metadata.Encode()
 		want, _ := g.Taiko.BlockProposed.Encode()
-		if !reflect.DeepEqual(got, want) {
+		if !slices.Equal(got, want) {
 			return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", g.Taiko.BlockProposed, pi.block_metadata)
 		}
 	}
