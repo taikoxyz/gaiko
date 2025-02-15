@@ -157,8 +157,12 @@ func (g *GuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
 		chainID:        g.ChainSpec.ChainId,
 	}
 
-	if g.ChainSpec.IsTaiko && !reflect.DeepEqual(pi.block_metadata, g.Taiko.BlockProposed) {
-		return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", g.Taiko.BlockProposed, pi.block_metadata)
+	if g.ChainSpec.IsTaiko {
+		got, _ := pi.block_metadata.Encode()
+		want, _ := g.Taiko.BlockProposed.Encode()
+		if !reflect.DeepEqual(got, want) {
+			return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", g.Taiko.BlockProposed, pi.block_metadata)
+		}
 	}
 	return pi, nil
 }

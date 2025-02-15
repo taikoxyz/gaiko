@@ -7,6 +7,7 @@ import (
 )
 
 type BlockMetaDataFork interface {
+	ABIEncoder
 	Hash() common.Hash
 }
 

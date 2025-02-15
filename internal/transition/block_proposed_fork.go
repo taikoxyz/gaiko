@@ -20,6 +20,7 @@ type TxSlicePosition struct {
 }
 
 type BlockProposedFork interface {
+	ABIEncoder
 	BlockNumber() uint64
 	BlockTimestamp() uint64
 	BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig

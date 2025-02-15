@@ -83,6 +83,6 @@ var (
 	batchMetaDataComponentsArrayType, _ = abi.NewType("tuple", "ITaikoInbox.BatchMetadata", encoding.BatchMetaDataComponents)
 )
 
-type AbiEncoder interface {
+type ABIEncoder interface {
 	Encode() ([]byte, error)
 }
