@@ -77,7 +77,7 @@ func (g *GuestInput) publicInput(proofType ProofType) (*publicInput, error) {
 		}
 		var blob [eth.BlobSize]byte
 		copy(blob[:], g.Taiko.TxData)
-		if err := verifyBlob(blobProofType, blob, txListHash, *g.Taiko.BlobCommitment, g.Taiko.BlobProof); err != nil {
+		if err := verifyBlob(blobProofType, blob, *g.Taiko.BlobCommitment, g.Taiko.BlobProof); err != nil {
 			return nil, err
 		}
 	} else {

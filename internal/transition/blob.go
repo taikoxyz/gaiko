@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 )
 
@@ -16,12 +15,10 @@ const (
 func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
 	for i := 0; i < len(g.Taiko.TxDataFromBlob); i++ {
-		blobData := g.Taiko.TxDataFromBlob[i]
+		_blob := g.Taiko.TxDataFromBlob[i]
 		_commitment := (*g.Taiko.BlobCommitments)[i]
 		_proof := (*g.Taiko.BlobProofs)[i]
-		commitment := kzg4844.Commitment(_commitment)
-		versionedHash := eth.KZGToVersionedHash(commitment)
-		if err := verifyBlob(blobProofType, blobData, versionedHash, _commitment, &_proof); err != nil {
+		if err := verifyBlob(blobProofType, _blob, _commitment, &_proof); err != nil {
 			return err
 		}
 	}
@@ -31,7 +28,6 @@ func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 func verifyBlob(
 	blobProofType BlobProofType,
 	_blob [eth.BlobSize]byte,
-	versionedHash common.Hash,
 	_commitment [commitmentSize]byte,
 	_proof *[proofSize]byte) error {
 	commitment := kzg4844.Commitment(_commitment)
