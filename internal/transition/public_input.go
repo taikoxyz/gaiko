@@ -154,7 +154,7 @@ func (g *GuestInput) publicInput(proofType ProofType) (*publicInput, error) {
 		verifier:       verifierAddress,
 		prover:         g.Taiko.ProverData.Prover,
 		sgxInstance:    common.Address{},
-		chainID:        g.ChainSpec.ChainId,
+		chainID:        g.ChainSpec.ChainID,
 	}
 
 	if g.ChainSpec.IsTaiko {

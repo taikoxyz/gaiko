@@ -204,7 +204,7 @@ func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, getHash f
 }
 
 func (g *GuestInput) decodeTxs() (types.Transactions, error) {
-	chainID := big.NewInt(int64(g.ChainSpec.ChainId))
+	chainID := big.NewInt(int64(g.ChainSpec.ChainID))
 	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
 	txListBytes := g.Taiko.TxData
 	blobUsed := g.Taiko.BlockProposed.BlobUsed()

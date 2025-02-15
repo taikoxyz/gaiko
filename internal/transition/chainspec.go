@@ -30,8 +30,8 @@ type HardFork struct {
 
 type ChainSpec struct {
 	Name                 string
-	ChainId              uint64
-	MaxSpecId            SpecID
+	ChainID              uint64
+	MaxSpecID            SpecID
 	HardForks            []HardFork
 	Eip1559Constants     Eip1559Constants
 	L1Contract           *common.Address

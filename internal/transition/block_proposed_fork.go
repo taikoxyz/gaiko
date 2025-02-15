@@ -40,7 +40,7 @@ type PacayaBlockProposed struct {
 	*pacaya.TaikoInboxClientBatchProposed
 }
 
-func (b *PacayaBlockProposed) ABIEncoder() ([]byte, error) {
+func (b *PacayaBlockProposed) Encode() ([]byte, error) {
 	return batchProposedEvent.Inputs.Pack(b.Info, b.Meta, b.TxList)
 }
 
