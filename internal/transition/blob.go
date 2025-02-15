@@ -15,23 +15,17 @@ const (
 func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
 	for i := 0; i < len(g.Taiko.TxDataFromBlob); i++ {
-		_blob := g.Taiko.TxDataFromBlob[i]
-		_commitment := (*g.Taiko.BlobCommitments)[i]
-		_proof := (*g.Taiko.BlobProofs)[i]
-		if err := verifyBlob(blobProofType, _blob, _commitment, &_proof); err != nil {
+		blob := g.Taiko.TxDataFromBlob[i]
+		commitment := (*g.Taiko.BlobCommitments)[i]
+		proof := (*g.Taiko.BlobProofs)[i]
+		if err := verifyBlob(blobProofType, blob, commitment, (*kzg4844.Proof)(&proof)); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func verifyBlob(
-	blobProofType BlobProofType,
-	_blob [eth.BlobSize]byte,
-	_commitment [commitmentSize]byte,
-	_proof *[proofSize]byte) error {
-	commitment := kzg4844.Commitment(_commitment)
-	blob := eth.Blob(_blob)
+func verifyBlob(blobProofType BlobProofType, blob eth.Blob, commitment kzg4844.Commitment, proof *kzg4844.Proof) error {
 	switch blobProofType {
 	case KzgVersionedHash:
 		got, err := blob.ComputeKZGCommitment()
@@ -44,11 +38,10 @@ func verifyBlob(
 			return fmt.Errorf("commitment mismatch: got %v, want %v", string(gotStr), string(wantStr))
 		}
 	case ProofOfEquivalence:
-		if _proof == nil {
+		if proof == nil {
 			return fmt.Errorf("missing proof")
 		}
-		proof := kzg4844.Proof(*_proof)
-		return eth.VerifyBlobProof(&blob, commitment, proof)
+		return eth.VerifyBlobProof(&blob, commitment, *proof)
 	default:
 		return fmt.Errorf("unsupported blob proof type: %v", blobProofType)
 	}
