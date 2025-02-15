@@ -1,6 +1,9 @@
 package transition
 
-import "github.com/ethereum/go-ethereum/core/types"
+import (
+	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum/go-ethereum/core/types"
+)
 
 type BatchGuestInput struct {
 	Inputs []GuestInput
@@ -14,7 +17,7 @@ type TaikoGuestBatchInput struct {
 	ChainSpec          ChainSpec
 	ProverData         TaikoProverData
 	TxDataFromCalldata []byte
-	TxDataFromBlob     [][blobSize]byte
+	TxDataFromBlob     [][eth.BlobSize]byte
 	BlobCommitments    *[][commitmentSize]byte
 	BlobProofs         *[][proofSize]byte
 	BlobProofType      BlobProofType

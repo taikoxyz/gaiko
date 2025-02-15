@@ -1,10 +1,10 @@
 package transition
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"slices"
 
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
@@ -71,11 +71,11 @@ func (g *GuestInput) publicInput(proofType ProofType) (*publicInput, error) {
 			return nil, fmt.Errorf("missing blob commitment")
 		}
 		commitment := kzg4844.Commitment(*g.Taiko.BlobCommitment)
-		txListHash = common.Hash(kzg4844.CalcBlobHashV1(sha256.New(), &commitment))
-		if len(g.Taiko.TxData) != blobSize {
-			return nil, fmt.Errorf("invalid TxData length, expected: %d, got: %d", blobSize, len(g.Taiko.TxData))
+		txListHash = eth.KZGToVersionedHash(commitment)
+		if len(g.Taiko.TxData) != eth.BlobSize {
+			return nil, fmt.Errorf("invalid TxData length, expected: %d, got: %d", eth.BlobSize, len(g.Taiko.TxData))
 		}
-		var blob [blobSize]byte
+		var blob [eth.BlobSize]byte
 		copy(blob[:], g.Taiko.TxData)
 		if err := verifyBlob(blobProofType, blob, txListHash, *g.Taiko.BlobCommitment, g.Taiko.BlobProof); err != nil {
 			return nil, err

@@ -14,17 +14,12 @@ const (
 	PacayaHardFork string = "Pacaya"
 )
 
-type TxSlicePosition struct {
-	Offset uint
-	Length uint
-}
-
 type BlockProposedFork interface {
 	ABIEncoder
 	BlockNumber() uint64
 	BlockTimestamp() uint64
 	BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig
-	BlobTxSliceParam() *TxSlicePosition
+	BlobTxSliceParam() (offset uint32, length uint32)
 	BlobHash() common.Hash
 	BlobUsed() bool
 	HardFork() string
@@ -61,7 +56,7 @@ func (b *PacayaBlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig 
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *PacayaBlockProposed) BlobTxSliceParam() *TxSlicePosition {
+func (b *PacayaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -137,7 +132,7 @@ func (b *HeklaBlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *HeklaBlockProposed) BlobTxSliceParam() *TxSlicePosition {
+func (b *HeklaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -213,7 +208,7 @@ func (b *OntakeBlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig 
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *OntakeBlockProposed) BlobTxSliceParam() *TxSlicePosition {
+func (b *OntakeBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
 	panic("not implemented") // TODO: Implement
 }
 

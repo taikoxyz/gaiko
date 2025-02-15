@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -111,8 +112,12 @@ func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, getHash f
 		gaspool = new(core.GasPool)
 		gasUsed = uint64(0)
 		txIndex = 0
-		txs     = g.decodeTxs()
 	)
+
+	txs, err := g.decodeTxs()
+	if err != nil {
+		return nil, err
+	}
 
 	gaspool.AddGas(g.Block.GasLimit())
 
@@ -198,12 +203,33 @@ func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, getHash f
 	return state.New(root, statedb.Database())
 }
 
-func (g *GuestInput) decodeTxs() types.Transactions {
+func (g *GuestInput) decodeTxs() (types.Transactions, error) {
 	chainID := big.NewInt(int64(g.ChainSpec.ChainId))
 	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
 	txListBytes := g.Taiko.TxData
 	blobUsed := g.Taiko.BlockProposed.BlobUsed()
 	isPacaya := g.Taiko.BlockProposed.HardFork() == PacayaHardFork
+	if blobUsed {
+		blob := eth.Blob(g.Taiko.TxData)
+		var err error
+		if txListBytes, err = blob.ToData(); err != nil {
+			return nil, err
+		}
+		offset, length := g.Taiko.BlockProposed.BlobTxSliceParam()
+		if txListBytes, err = sliceTxList(g.Block.Number(), txListBytes, offset, length); err != nil {
+			return nil, err
+		}
+	}
 	txs := decompressor.TryDecompress(chainID, txListBytes, blobUsed, isPacaya)
-	return append([]*types.Transaction{g.Taiko.AnchorTx}, txs...)
+	return append([]*types.Transaction{g.Taiko.AnchorTx}, txs...), nil
+}
+
+// sliceTxList returns the sliced txList bytes from the given offset and length.
+func sliceTxList(id *big.Int, b []byte, offset, length uint32) ([]byte, error) {
+	if offset+length > uint32(len(b)) {
+		return nil, fmt.Errorf(
+			"invalid txlist offset and size in metadata (%d): offset=%d, size=%d, blobSize=%d", id, offset, length, len(b),
+		)
+	}
+	return b[offset : offset+length], nil
 }

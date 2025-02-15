@@ -1,15 +1,14 @@
 package transition
 
 import (
-	"crypto/sha256"
 	"fmt"
 
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 )
 
 const (
-	blobSize       = 131072
 	proofSize      = 48
 	commitmentSize = 48
 )
@@ -21,7 +20,7 @@ func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 		_commitment := (*g.Taiko.BlobCommitments)[i]
 		_proof := (*g.Taiko.BlobProofs)[i]
 		commitment := kzg4844.Commitment(_commitment)
-		versionedHash := common.Hash(kzg4844.CalcBlobHashV1(sha256.New(), &commitment))
+		versionedHash := eth.KZGToVersionedHash(commitment)
 		if err := verifyBlob(blobProofType, blobData, versionedHash, _commitment, &_proof); err != nil {
 			return err
 		}
@@ -31,15 +30,15 @@ func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 
 func verifyBlob(
 	blobProofType BlobProofType,
-	_blob [blobSize]byte,
+	_blob [eth.BlobSize]byte,
 	versionedHash common.Hash,
 	_commitment [commitmentSize]byte,
 	_proof *[proofSize]byte) error {
 	commitment := kzg4844.Commitment(_commitment)
-	blob := kzg4844.Blob(_blob)
+	blob := eth.Blob(_blob)
 	switch blobProofType {
 	case KzgVersionedHash:
-		got, err := kzg4844.BlobToCommitment(&blob)
+		got, err := blob.ComputeKZGCommitment()
 		if err != nil {
 			return err
 		}
@@ -53,7 +52,7 @@ func verifyBlob(
 			return fmt.Errorf("missing proof")
 		}
 		proof := kzg4844.Proof(*_proof)
-		return kzg4844.VerifyBlobProof(&blob, commitment, proof)
+		return eth.VerifyBlobProof(&blob, commitment, proof)
 	default:
 		return fmt.Errorf("unsupported blob proof type: %v", blobProofType)
 	}
