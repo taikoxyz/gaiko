@@ -6,18 +6,18 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// hasher is used to compute the sha256 hash of the provided data.
-type hasher struct{ sha crypto.KeccakState }
+// keccakHasher is used to compute the sha256 hash of the provided data.
+type keccakHasher struct{ sha crypto.KeccakState }
 
-var hasherPool = sync.Pool{
-	New: func() interface{} { return &hasher{sha: crypto.NewKeccakState()} },
+var keccakHasherPool = sync.Pool{
+	New: func() interface{} { return &keccakHasher{sha: crypto.NewKeccakState()} },
 }
 
-func newHasher() *hasher {
-	return hasherPool.Get().(*hasher)
+func newKeccakHasher() *keccakHasher {
+	return keccakHasherPool.Get().(*keccakHasher)
 }
 
-func (h *hasher) hash(data []byte) []byte {
+func (h *keccakHasher) hash(data []byte) []byte {
 	b := make([]byte, 32)
 	h.sha.Reset()
 	h.sha.Write(data)
@@ -25,12 +25,12 @@ func (h *hasher) hash(data []byte) []byte {
 	return b
 }
 
-func (h *hasher) release() {
-	hasherPool.Put(h)
+func (h *keccakHasher) release() {
+	keccakHasherPool.Put(h)
 }
 
 func keccak(data []byte) []byte {
-	h := newHasher()
+	h := newKeccakHasher()
 	defer h.release()
 	return h.hash(data)
 }
