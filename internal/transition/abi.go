@@ -30,28 +30,28 @@ var (
 )
 
 func init() {
-	input, err := findInput("meta", batchProposedEvent.Inputs)
+	arg, err := findArgumentInEventInputs(batchProposedEvent.Inputs, "meta")
 	if err != nil {
 		log.Crit("Get BatchProposed failed", err)
 	}
-	batchMetaDataComponentsArgs = abi.Arguments{input}
-	input, err = findInput("meta", blockProposedEvent.Inputs)
+	batchMetaDataComponentsArgs = abi.Arguments{arg}
+	arg, err = findArgumentInEventInputs(blockProposedEvent.Inputs, "meta")
 	if err != nil {
 		log.Crit("Get BlockProposed failed", err)
 	}
-	blockMetadataComponentsArgs = abi.Arguments{input}
-	input, err = findInput("meta", blockProposedV2Event.Inputs)
+	blockMetadataComponentsArgs = abi.Arguments{arg}
+	arg, err = findArgumentInEventInputs(blockProposedV2Event.Inputs, "meta")
 	if err != nil {
 		log.Crit("Get BatchProposed failed", err)
 	}
-	blockMetadataV2ComponentsArgs = abi.Arguments{input}
+	blockMetadataV2ComponentsArgs = abi.Arguments{arg}
 }
 
 type ABIEncoder interface {
 	Encode() ([]byte, error)
 }
 
-func findInput(name string, inputs abi.Arguments) (abi.Argument, error) {
+func findArgumentInEventInputs(inputs abi.Arguments, name string) (abi.Argument, error) {
 	for _, input := range inputs {
 		if input.Name == name {
 			return input, nil

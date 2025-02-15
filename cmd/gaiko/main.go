@@ -12,25 +12,25 @@ import (
 
 var oneshotCommand = &cli.Command{
 	Name:   "oneshot",
-	Usage:  "Run a state transition",
+	Usage:  "Run state transition once",
 	Action: transition.Oneshot,
 	Flags: []cli.Flag{
 		transition.OneShotSgxInstanceID,
 	},
 }
 
-// NewApp creates an app with sane defaults.
-func NewApp(usage string) *cli.App {
+// newApp creates an app with sane defaults.
+func newApp(usage string) *cli.App {
 	git, _ := version.VCS()
 	app := cli.NewApp()
 	app.EnableBashCompletion = true
 	app.Version = params.VersionWithCommit(git.Commit, git.Date)
 	app.Usage = usage
-	app.Copyright = "Copyright 2013-2024 The gaiko Authors"
+	app.Copyright = "Copyright 2025-2025 The Gaiko Authors"
 	return app
 }
 
-var app = NewApp("The Gaiko command line interface")
+var app = newApp("The Gaiko command line interface")
 
 func init() {
 	app.Flags = transition.GlobalFlags
