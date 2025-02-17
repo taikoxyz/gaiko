@@ -21,7 +21,7 @@ type StorageEntry struct {
 var _ Driver = (*GuestInput)(nil)
 
 type GuestInput struct {
-	Block           types.Block                     `json:"block"`
+	Block           *types.Block                    `json:"block"`
 	ChainSpec       ChainSpec                       `json:"chain_spec"`
 	ParentHeader    types.Header                    `json:"parent_header"`
 	ParentStateTrie trie.Trie                       `json:"parent_state_trie"`
@@ -143,7 +143,7 @@ func (g *GuestInput) BlockMetaDataFork(proofType ProofType) (BlockMetaDataFork, 
 				BlobTxListOffset: g.Taiko.BlockProposed.BlobTxListOffset(),
 				BlobTxListLength: g.Taiko.BlockProposed.BlobTxListLength(),
 				BlobIndex:        g.Taiko.BlockProposed.BlobIndex(),
-				BaseFeeConfig:    g.Taiko.BlockProposed.BaseFeeConfig(),
+				BaseFeeConfig:    convertBaseFeeConfig(g.Taiko.BlockProposed.BaseFeeConfig()),
 			},
 		}
 	case PacayaHardFork:
@@ -171,7 +171,7 @@ func (g *GuestInput) Prover() common.Address {
 	return g.Taiko.ProverData.Prover
 }
 
-func (g *GuestInput) chainID() uint64 {
+func (g *GuestInput) ChainID() uint64 {
 	return g.ChainSpec.ChainID
 }
 

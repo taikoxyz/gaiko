@@ -20,6 +20,6 @@ type Driver interface {
 	Transition() *ontake.TaikoDataTransition
 	GetForkVerifierAddress(proofType ProofType) (common.Address, error)
 	Prover() common.Address
-	chainID() uint64
+	ChainID() uint64
 	IsTaiko() bool
 }

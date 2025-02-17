@@ -41,6 +41,10 @@ type PacayaBlockMetadata struct {
 	*pacaya.ITaikoInboxBatchMetadata
 }
 
+func NewPacayaBlockMetadata(meta *pacaya.ITaikoInboxBatchMetadata) *PacayaBlockMetadata {
+	return &PacayaBlockMetadata{meta}
+}
+
 func (m *PacayaBlockMetadata) Encode() ([]byte, error) {
 	return blockMetadataComponentsArgs.Pack(m.ITaikoInboxBatchMetadata)
 }

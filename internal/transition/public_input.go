@@ -55,7 +55,7 @@ func NewPublicInput(driver Driver, proofType ProofType) (*PublicInput, error) {
 		verifier:       verifierAddress,
 		prover:         driver.Prover(),
 		sgxInstance:    common.Address{},
-		chainID:        driver.chainID(),
+		chainID:        driver.ChainID(),
 	}
 
 	if driver.IsTaiko() {

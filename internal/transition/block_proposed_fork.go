@@ -18,7 +18,7 @@ type BlockProposedFork interface {
 	ABIEncoder
 	BlockNumber() uint64
 	BlockTimestamp() uint64
-	BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig
+	BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig
 	BlobTxSliceParam() (offset uint32, length uint32)
 	BlobHash() common.Hash
 	BlobUsed() bool
@@ -34,9 +34,21 @@ type BlockProposedFork interface {
 	BlobTxListOffset() uint32
 	BlobTxListLength() uint32
 	BlobIndex() uint8
-	BlobHashes() []common.Hash
 	BatchInfo() *pacaya.ITaikoInboxBatchInfo
-	GasLimit() uint64
+	GasLimit() uint32
+	Coinbase() common.Address
+	BlobHashes() [][32]byte
+	ExtraData() [32]byte
+}
+
+func convertBaseFeeConfig(baseFeeConfig pacaya.LibSharedDataBaseFeeConfig) ontake.LibSharedDataBaseFeeConfig {
+	return ontake.LibSharedDataBaseFeeConfig{
+		AdjustmentQuotient:     baseFeeConfig.AdjustmentQuotient,
+		SharingPctg:            baseFeeConfig.SharingPctg,
+		GasIssuancePerSecond:   baseFeeConfig.GasIssuancePerSecond,
+		MinGasExcess:           baseFeeConfig.MinGasExcess,
+		MaxGasIssuancePerBlock: baseFeeConfig.MaxGasIssuancePerBlock,
+	}
 }
 
 type PacayaBlockProposed struct {
@@ -55,7 +67,7 @@ func (b *PacayaBlockProposed) BlockTimestamp() uint64 {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *PacayaBlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig {
+func (b *PacayaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -119,6 +131,21 @@ func (b *PacayaBlockProposed) BlobIndex() uint8 {
 	panic("not implemented") // TODO: Implement
 }
 
+func (b *PacayaBlockProposed) GasLimit() uint32 {
+	panic("not implemented") // TODO: Implement
+}
+func (b *PacayaBlockProposed) Coinbase() common.Address {
+	panic("not implemented") // TODO: Implement
+}
+
+func (b *PacayaBlockProposed) BlobHashes() [][32]byte {
+	panic("not implemented")
+}
+
+func (b *PacayaBlockProposed) ExtraData() [32]byte {
+	panic("not implemented")
+}
+
 type HeklaBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposed
 }
@@ -131,7 +158,7 @@ func (b *HeklaBlockProposed) BlockTimestamp() uint64 {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *HeklaBlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig {
+func (b *HeklaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -195,6 +222,21 @@ func (b *HeklaBlockProposed) BlobIndex() uint8 {
 	panic("not implemented") // TODO: Implement
 }
 
+func (b *HeklaBlockProposed) GasLimit() uint32 {
+	panic("not implemented") // TODO: Implement
+}
+func (b *HeklaBlockProposed) Coinbase() common.Address {
+	panic("not implemented") // TODO: Implement
+}
+
+func (b *HeklaBlockProposed) BlobHashes() [][32]byte {
+	panic("not implemented")
+}
+
+func (b *HeklaBlockProposed) ExtraData() [32]byte {
+	panic("not implemented")
+}
+
 type OntakeBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposedV2
 }
@@ -207,7 +249,7 @@ func (b *OntakeBlockProposed) BlockTimestamp() uint64 {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *OntakeBlockProposed) BaseFeeConfig() ontake.LibSharedDataBaseFeeConfig {
+func (b *OntakeBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -269,4 +311,19 @@ func (b *OntakeBlockProposed) BlobTxListLength() uint32 {
 
 func (b *OntakeBlockProposed) BlobIndex() uint8 {
 	panic("not implemented") // TODO: Implement
+}
+
+func (b *OntakeBlockProposed) GasLimit() uint32 {
+	panic("not implemented") // TODO: Implement
+}
+func (b *OntakeBlockProposed) Coinbase() common.Address {
+	panic("not implemented") // TODO: Implement
+}
+
+func (b *OntakeBlockProposed) BlobHashes() [][32]byte {
+	panic("not implemented")
+}
+
+func (b *OntakeBlockProposed) ExtraData() [32]byte {
+	panic("not implemented")
 }
