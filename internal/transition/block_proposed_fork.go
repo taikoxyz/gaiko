@@ -34,6 +34,9 @@ type BlockProposedFork interface {
 	BlobTxListOffset() uint32
 	BlobTxListLength() uint32
 	BlobIndex() uint8
+	BlobHashes() []common.Hash
+	BatchInfo() *pacaya.ITaikoInboxBatchInfo
+	GasLimit() uint64
 }
 
 type PacayaBlockProposed struct {

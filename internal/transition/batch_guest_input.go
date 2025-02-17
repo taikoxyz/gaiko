@@ -23,6 +23,6 @@ type TaikoGuestBatchInput struct {
 	BlobProofType      BlobProofType
 }
 
-func (g *BatchGuestInput) publicInputs(proofType ProofType) (*publicInput, error) {
+func (g *BatchGuestInput) publicInputs(proofType ProofType) (*PublicInput, error) {
 	panic("unimplemented")
 }
