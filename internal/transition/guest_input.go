@@ -146,8 +146,6 @@ func (g *GuestInput) BlockMetaDataFork(proofType ProofType) (BlockMetaDataFork, 
 				BaseFeeConfig:    convertBaseFeeConfig(g.Taiko.BlockProposed.BaseFeeConfig()),
 			},
 		}
-	case PacayaHardFork:
-		panic("unsupported hardfork")
 	default:
 		return nil, fmt.Errorf("unsupported hardfork: %v", g.Taiko.BlockProposed.HardFork())
 	}

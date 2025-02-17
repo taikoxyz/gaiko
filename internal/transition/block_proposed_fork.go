@@ -34,7 +34,6 @@ type BlockProposedFork interface {
 	BlobTxListOffset() uint32
 	BlobTxListLength() uint32
 	BlobIndex() uint8
-	BatchInfo() *pacaya.ITaikoInboxBatchInfo
 	GasLimit() uint32
 	Coinbase() common.Address
 	BlobHashes() [][32]byte
@@ -50,6 +49,8 @@ func convertBaseFeeConfig(baseFeeConfig pacaya.LibSharedDataBaseFeeConfig) ontak
 		MaxGasIssuancePerBlock: baseFeeConfig.MaxGasIssuancePerBlock,
 	}
 }
+
+var _ BlockProposedFork = (*PacayaBlockProposed)(nil)
 
 type PacayaBlockProposed struct {
 	*pacaya.TaikoInboxClientBatchProposed
@@ -68,11 +69,11 @@ func (b *PacayaBlockProposed) BlockTimestamp() uint64 {
 }
 
 func (b *PacayaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	panic("not implemented") // TODO: Implement
+	return b.Info.BaseFeeConfig
 }
 
 func (b *PacayaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	panic("not implemented") // TODO: Implement
+	return b.Info.BlobByteOffset, b.Info.BlobByteSize
 }
 
 func (b *PacayaBlockProposed) BlobHash() common.Hash {
@@ -80,11 +81,11 @@ func (b *PacayaBlockProposed) BlobHash() common.Hash {
 }
 
 func (b *PacayaBlockProposed) BlobUsed() bool {
-	panic("not implemented") // TODO: Implement
+	return true
 }
 
-func (b *PacayaBlockProposed) HardFork() HardFork {
-	panic("not implemented") // TODO: Implement
+func (b *PacayaBlockProposed) HardFork() string {
+	return PacayaHardFork
 }
 
 func (b *PacayaBlockProposed) MinTier() uint16 {
@@ -104,7 +105,7 @@ func (b *PacayaBlockProposed) Difficulty() [32]byte {
 }
 
 func (b *PacayaBlockProposed) Proposer() common.Address {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Proposer
 }
 
 func (b *PacayaBlockProposed) LivenessBond() *big.Int {
@@ -112,19 +113,19 @@ func (b *PacayaBlockProposed) LivenessBond() *big.Int {
 }
 
 func (b *PacayaBlockProposed) ProposedAt() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.ProposedAt
 }
 
 func (b *PacayaBlockProposed) ProposedIn() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Info.ProposedIn
 }
 
 func (b *PacayaBlockProposed) BlobTxListOffset() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Info.BlobByteOffset
 }
 
 func (b *PacayaBlockProposed) BlobTxListLength() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Info.BlobByteSize
 }
 
 func (b *PacayaBlockProposed) BlobIndex() uint8 {
@@ -132,18 +133,18 @@ func (b *PacayaBlockProposed) BlobIndex() uint8 {
 }
 
 func (b *PacayaBlockProposed) GasLimit() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Info.GasLimit
 }
 func (b *PacayaBlockProposed) Coinbase() common.Address {
-	panic("not implemented") // TODO: Implement
+	return b.Info.Coinbase
 }
 
 func (b *PacayaBlockProposed) BlobHashes() [][32]byte {
-	panic("not implemented")
+	return b.Info.BlobHashes
 }
 
 func (b *PacayaBlockProposed) ExtraData() [32]byte {
-	panic("not implemented")
+	return b.Info.ExtraData
 }
 
 type HeklaBlockProposed struct {
