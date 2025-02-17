@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -17,90 +16,87 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
-	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/rpc"
 	"github.com/urfave/cli/v2"
 )
 
 func Oneshot(ctx *cli.Context) error {
-	var g GuestInput
-	err := json.NewDecoder(os.Stdin).Decode(&g)
+	var driver Driver
+	err := json.NewDecoder(os.Stdin).Decode(&driver)
 	if err != nil {
 		return err
 	}
-	chainConfig, err := g.ChainConfig()
+	chainConfig, err := driver.ChainConfig()
 	if err != nil {
 		return err
 	}
-	preState, err := g.makePreState()
-	if err != nil {
-		return err
-	}
-	statedb, err := g.apply(vm.Config{}, preState.statedb, preState.getHash, chainConfig)
-	if err != nil {
-		return err
-	}
-	collector := make(Dumper)
-	statedb.DumpToCollector(collector, nil)
-	for addr, _ := range preState.accounts {
-		_, ok := collector[addr]
-		if !ok {
-			// Account is deleted
-			key := keccak(addr.Bytes())
-			if err := g.ParentStateTrie.Delete(key); err != nil {
+	for pair := range driver.GuestInputs() {
+		g := pair.GuestInput
+		txs := pair.Transactions
+		preState, err := g.makePreState()
+		if err != nil {
+			return err
+		}
+		statedb, err := g.apply(vm.Config{}, preState.statedb, txs, preState.getHash, chainConfig)
+		if err != nil {
+			return err
+		}
+		collector := make(Dumper)
+		statedb.DumpToCollector(collector, nil)
+		for addr, _ := range preState.accounts {
+			_, ok := collector[addr]
+			if !ok {
+				// Account is deleted
+				key := keccak(addr.Bytes())
+				if err := g.ParentStateTrie.Delete(key); err != nil {
+					return err
+				}
+			}
+		}
+
+		for addr, acc := range collector {
+			storageEntry, ok := g.ParentStorage[addr]
+			if !ok {
+				return fmt.Errorf("account not found for address: %s", addr.Hex())
+			}
+			_, ok = preState.accounts[addr]
+			if !ok {
+				// New Account
+				storageEntry.Trie.Reset()
+			}
+			for slot, value := range acc.Storage {
+				key := keccak(slot.Bytes())
+				if value == (common.Hash{}) {
+					if err := storageEntry.Trie.Delete(key); err != nil {
+						return err
+					}
+				} else {
+					if err := updateStorage(&storageEntry.Trie, slot.Bytes(), value.Bytes()); err != nil {
+						return err
+					}
+				}
+			}
+			stateAcc := &types.StateAccount{
+				Nonce:    acc.Nonce,
+				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
+				Root:     storageEntry.Trie.Hash(),
+				CodeHash: keccak(acc.Code),
+			}
+
+			if err := updateAccount(&g.ParentStateTrie, addr, stateAcc); err != nil {
 				return err
 			}
-		}
-	}
-
-	for addr, acc := range collector {
-		storageEntry, ok := g.ParentStorage[addr]
-		if !ok {
-			return fmt.Errorf("account not found for address: %s", addr.Hex())
-		}
-		_, ok = preState.accounts[addr]
-		if !ok {
-			// New Account
-			storageEntry.Trie.Reset()
-		}
-		for slot, value := range acc.Storage {
-			key := keccak(slot.Bytes())
-			if value == (common.Hash{}) {
-				if err := storageEntry.Trie.Delete(key); err != nil {
-					return err
-				}
-			} else {
-				if err := updateStorage(&storageEntry.Trie, slot.Bytes(), value.Bytes()); err != nil {
-					return err
-				}
-			}
-		}
-		stateAcc := &types.StateAccount{
-			Nonce:    acc.Nonce,
-			Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
-			Root:     storageEntry.Trie.Hash(),
-			CodeHash: keccak(acc.Code),
-		}
-
-		if err := updateAccount(&g.ParentStateTrie, addr, stateAcc); err != nil {
-			return err
 		}
 	}
 	return nil
 }
 
-func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, getHash func(uint64) common.Hash, chainConfig *params.ChainConfig) (*state.StateDB, error) {
+func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, txs types.Transactions, getHash func(uint64) common.Hash, chainConfig *params.ChainConfig) (*state.StateDB, error) {
 	var (
 		signer  = types.MakeSigner(chainConfig, new(big.Int).SetUint64(g.Block.NumberU64()), g.Block.Time())
 		gaspool = new(core.GasPool)
 		gasUsed = uint64(0)
 		txIndex = 0
 	)
-
-	txs, err := g.decodeTxs()
-	if err != nil {
-		return nil, err
-	}
 
 	gaspool.AddGas(g.Block.GasLimit())
 
@@ -184,25 +180,4 @@ func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, getHash f
 	}
 
 	return state.New(root, statedb.Database())
-}
-
-func (g *GuestInput) decodeTxs() (types.Transactions, error) {
-	chainID := big.NewInt(int64(g.ChainSpec.ChainID))
-	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
-	txListBytes := g.Taiko.TxData
-	blobUsed := g.Taiko.BlockProposed.BlobUsed()
-	isPacaya := g.Taiko.BlockProposed.HardFork() == PacayaHardFork
-	if blobUsed {
-		blob := eth.Blob(g.Taiko.TxData)
-		var err error
-		if txListBytes, err = blob.ToData(); err != nil {
-			return nil, err
-		}
-		offset, length := g.Taiko.BlockProposed.BlobTxSliceParam()
-		if txListBytes, err = sliceTxList(g.Block.Number(), txListBytes, offset, length); err != nil {
-			return nil, err
-		}
-	}
-	txs := decompressor.TryDecompress(chainID, txListBytes, blobUsed, isPacaya)
-	return append([]*types.Transaction{g.Taiko.AnchorTx}, txs...), nil
 }

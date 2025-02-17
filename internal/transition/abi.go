@@ -74,7 +74,7 @@ func findArgumentInEventInputs(inputs abi.Arguments, name string) (abi.Argument,
 	return abi.Argument{}, errors.New("input not found")
 }
 
-func decodeAnchorV3ArgsSignalSlots(input []byte) ([][32]byte, error) {
+func decodeAnchorV3Args_signalSlots(input []byte) ([][32]byte, error) {
 	args := map[string]interface{}{}
 	err := anchorV3Method.Inputs.UnpackIntoMap(args, input)
 	if err != nil {

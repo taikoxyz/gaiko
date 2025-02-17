@@ -1,6 +1,7 @@
 package transition
 
 import (
+	"encoding/json"
 	"fmt"
 	"iter"
 	"math/big"
@@ -14,12 +15,8 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
-type StorageEntry struct {
-	Trie  trie.Trie
-	Slots []*big.Int
-}
-
 var _ Driver = (*GuestInput)(nil)
+var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {
 	Block           *types.Block                    `json:"block"`
@@ -30,6 +27,11 @@ type GuestInput struct {
 	Contracts       [][]byte                        `json:"contracts"`
 	AncestorHeaders []types.Header                  `json:"ancestor_headers"`
 	Taiko           TaikoGuestInput                 `json:"taiko"`
+}
+
+type StorageEntry struct {
+	Trie  trie.Trie
+	Slots []*big.Int
 }
 
 type TaikoGuestInput struct {
@@ -53,6 +55,11 @@ const (
 type TaikoProverData struct {
 	Prover   common.Address
 	Graffiti common.Hash
+}
+
+func (g *GuestInput) UnmarshalJSON(data []byte) error {
+	// TODO: Implement
+	return json.Unmarshal(data, g)
 }
 
 func (g *GuestInput) GuestInputs() iter.Seq[Pair] {

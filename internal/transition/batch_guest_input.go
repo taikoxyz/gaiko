@@ -1,6 +1,7 @@
 package transition
 
 import (
+	"encoding/json"
 	"iter"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
@@ -12,6 +13,7 @@ import (
 )
 
 var _ Driver = (*BatchGuestInput)(nil)
+var _ json.Unmarshaler = (*BatchGuestInput)(nil)
 
 type BatchGuestInput struct {
 	Inputs []GuestInput
@@ -29,6 +31,11 @@ type TaikoGuestBatchInput struct {
 	BlobCommitments    *[][commitmentSize]byte
 	BlobProofs         *[][proofSize]byte
 	BlobProofType      BlobProofType
+}
+
+func (g *BatchGuestInput) UnmarshalJSON(data []byte) error {
+	// TODO: Implement
+	return json.Unmarshal(data, g)
 }
 
 func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
@@ -57,7 +64,7 @@ func (g *BatchGuestInput) BlockMetaDataFork(proofType ProofType) (BlockMetaDataF
 	blocks := make([]pacaya.ITaikoInboxBlockParams, len(g.Inputs))
 
 	for i, input := range g.Inputs {
-		signalSlots, err := decodeAnchorV3ArgsSignalSlots(input.Taiko.AnchorTx.Data()[4:])
+		signalSlots, err := decodeAnchorV3Args_signalSlots(input.Taiko.AnchorTx.Data()[4:])
 		if err != nil {
 			return nil, err
 		}
