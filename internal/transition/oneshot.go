@@ -28,7 +28,7 @@ func Oneshot(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	chainConfig, err := g.chainConfig()
+	chainConfig, err := g.ChainConfig()
 	if err != nil {
 		return err
 	}
@@ -87,23 +87,6 @@ func Oneshot(ctx *cli.Context) error {
 		}
 	}
 	return nil
-}
-
-func (g *GuestInput) chainConfig() (*params.ChainConfig, error) {
-	switch g.ChainSpec.Name {
-	case "taiko_a7":
-		return params.NetworkIDToChainConfigOrDefault(params.HeklaNetworkID), nil
-	case "taiko_mainnet":
-		return params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID), nil
-	case "ethereum":
-		return params.MainnetChainConfig, nil
-	case "holesky":
-		return params.HoleskyChainConfig, nil
-	case "taiko_dev":
-		return params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID), nil
-	default:
-		return nil, errors.New("unsupported chain spec")
-	}
 }
 
 func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, getHash func(uint64) common.Hash, chainConfig *params.ChainConfig) (*state.StateDB, error) {

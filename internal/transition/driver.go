@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -22,4 +23,5 @@ type Driver interface {
 	Prover() common.Address
 	ChainID() uint64
 	IsTaiko() bool
+	ChainConfig() (*params.ChainConfig, error)
 }

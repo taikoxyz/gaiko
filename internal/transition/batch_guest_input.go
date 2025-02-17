@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
@@ -123,4 +124,8 @@ func (g *BatchGuestInput) ChainID() uint64 {
 
 func (g *BatchGuestInput) IsTaiko() bool {
 	return g.Taiko.ChainSpec.IsTaiko
+}
+
+func (g *BatchGuestInput) ChainConfig() (*params.ChainConfig, error) {
+	return g.Taiko.ChainSpec.chainConfig()
 }

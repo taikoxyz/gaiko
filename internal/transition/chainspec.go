@@ -1,10 +1,12 @@
 package transition
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 type SpecID = uint8
@@ -58,6 +60,23 @@ func (c *ChainSpec) getForkVerifierAddress(blockNum uint64, proofType ProofType)
 		}
 	}
 	return common.Address{}, fmt.Errorf("fork verifier is not active")
+}
+
+func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
+	switch c.Name {
+	case "taiko_a7":
+		return params.NetworkIDToChainConfigOrDefault(params.HeklaNetworkID), nil
+	case "taiko_mainnet":
+		return params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID), nil
+	case "ethereum":
+		return params.MainnetChainConfig, nil
+	case "holesky":
+		return params.HoleskyChainConfig, nil
+	case "taiko_dev":
+		return params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID), nil
+	default:
+		return nil, errors.New("unsupported chain spec")
+	}
 }
 
 type ForkCondition interface {

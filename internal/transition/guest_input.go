@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
@@ -175,4 +176,8 @@ func (g *GuestInput) ChainID() uint64 {
 
 func (g *GuestInput) IsTaiko() bool {
 	return g.ChainSpec.IsTaiko
+}
+
+func (g *GuestInput) ChainConfig() (*params.ChainConfig, error) {
+	return g.ChainSpec.chainConfig()
 }
