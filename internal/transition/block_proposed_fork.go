@@ -20,7 +20,6 @@ type BlockProposedFork interface {
 	BlockTimestamp() uint64
 	BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig
 	BlobTxSliceParam() (offset uint32, length uint32)
-	BlobHash() common.Hash
 	BlobUsed() bool
 	HardFork() string
 	MinTier() uint16
@@ -74,10 +73,6 @@ func (b *PacayaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig 
 
 func (b *PacayaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
 	return b.Info.BlobByteOffset, b.Info.BlobByteSize
-}
-
-func (b *PacayaBlockProposed) BlobHash() common.Hash {
-	panic("not implemented") // TODO: Implement
 }
 
 func (b *PacayaBlockProposed) BlobUsed() bool {
@@ -167,10 +162,6 @@ func (b *HeklaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *HeklaBlockProposed) BlobHash() common.Hash {
-	panic("not implemented") // TODO: Implement
-}
-
 func (b *HeklaBlockProposed) BlobUsed() bool {
 	panic("not implemented") // TODO: Implement
 }
@@ -255,10 +246,6 @@ func (b *OntakeBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig 
 }
 
 func (b *OntakeBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	panic("not implemented") // TODO: Implement
-}
-
-func (b *OntakeBlockProposed) BlobHash() common.Hash {
 	panic("not implemented") // TODO: Implement
 }
 
