@@ -35,7 +35,7 @@ type StorageEntry struct {
 }
 
 type TaikoGuestInput struct {
-	L1Header       types.Header          `json:"l1_header"`
+	L1Header       *types.Header         `json:"l1_header"`
 	TxData         []byte                `json:"tx_data"`
 	AnchorTx       *types.Transaction    `json:"anchor_tx"`
 	BlockProposed  BlockProposedFork     `json:"block_proposed"`

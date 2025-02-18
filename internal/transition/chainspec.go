@@ -41,7 +41,7 @@ type HardFork struct {
 
 type HardForks []HardFork
 
-func (h HardForks) UnmarshalJSON(data []byte) error {
+func (h *HardForks) UnmarshalJSON(data []byte) error {
 	orderedMap := ordered.NewOrderedMap()
 	if err := json.Unmarshal(data, orderedMap); err != nil {
 		return err
@@ -56,19 +56,19 @@ func (h HardForks) UnmarshalJSON(data []byte) error {
 		for key, value := range val {
 			switch key {
 			case "Block":
-				blockNumber := BlockNumber(value.(uint64))
-				h = append(h, HardFork{
+				blockNumber := BlockNumber(value.(float64))
+				*h = append(*h, HardFork{
 					SpecID:    SpecID(pair.Key),
 					Condition: blockNumber,
 				})
 			case "Timestamp":
-				blockTimestamp := BlockTimestamp(value.(uint64))
-				h = append(h, HardFork{
+				blockTimestamp := BlockTimestamp(value.(float64))
+				*h = append(*h, HardFork{
 					SpecID:    SpecID(pair.Key),
 					Condition: blockTimestamp,
 				})
 			case "TBD":
-				h = append(h, HardFork{
+				*h = append(*h, HardFork{
 					SpecID:    SpecID(pair.Key),
 					Condition: TBD{},
 				})
