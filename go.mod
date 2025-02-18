@@ -3,10 +3,12 @@ module github.com/taikoxyz/gaiko
 go 1.23.6
 
 require (
+	github.com/ethereum-optimism/optimism v1.7.4
 	github.com/ethereum/go-ethereum v1.14.11
 	github.com/holiman/uint256 v1.3.2
 	github.com/taikoxyz/taiko-mono v0.0.0-20250214100936-0ea61049d406
 	github.com/urfave/cli/v2 v2.27.5
+	gitlab.com/c0b/go-ordered-json v0.0.0-20201030195603-febf46534d5a
 )
 
 require (
@@ -37,7 +39,6 @@ require (
 	github.com/deckarep/golang-set/v2 v2.7.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/ethereum-optimism/go-ethereum-hdwallet v0.1.3 // indirect
-	github.com/ethereum-optimism/optimism v1.7.4 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.3 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
@@ -109,7 +110,7 @@ require (
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20250210185358-939b2ce775ac // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
