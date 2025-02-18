@@ -43,7 +43,9 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 			if child == nil {
 				writeNilString(w)
 			} else {
-				child.refEncode(w)
+				if err := child.refEncode(w); err != nil {
+					return err
+				}
 			}
 		}
 		w.ListEnd(idx)
@@ -56,7 +58,9 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	case *ExtensionNode:
 		idx := w.List()
 		w.WriteBytes(inner.Prefix)
-		inner.Child.refEncode(w)
+		if err := inner.Child.refEncode(w); err != nil {
+			return err
+		}
 		w.ListEnd(idx)
 	default:
 		return fmt.Errorf("unknown MptNodeData type: %T", inner)
@@ -418,8 +422,13 @@ func prefixNibs(prefix []byte) []byte {
 	return res
 }
 
-func (m *MptNode) refEncode(w rlp.EncoderBuffer) {
-	m.ref()
+func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
+	ref, err := m.ref()
+	if err != nil {
+		return err
+	}
+	ref.EncodeRLP(w)
+	return nil
 }
 
 func (m *MptNode) ref() (MptNodeRef, error) {
