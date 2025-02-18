@@ -109,29 +109,29 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	for key, val := range raw {
 		switch key {
 		case "Legacy":
-			var tx TxLegacy
-			if err := json.Unmarshal(val, &tx); err != nil {
+			var inner TxLegacy
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &tx
+			t.inner = &inner
 		case "Eip2930":
-			var tx TxEip2930
-			if err := json.Unmarshal(val, &tx); err != nil {
+			var inner TxEip2930
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &tx
+			t.inner = &inner
 		case "Eip1559":
-			var tx TxEip1559
-			if err := json.Unmarshal(val, &tx); err != nil {
+			var inner TxEip1559
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &tx
+			t.inner = &inner
 		case "Eip4844":
-			var tx TxEip4844
-			if err := json.Unmarshal(val, &tx); err != nil {
+			var inner TxEip4844
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &tx
+			t.inner = &inner
 		default:
 			return fmt.Errorf("unknown transaction type: %s", key)
 		}

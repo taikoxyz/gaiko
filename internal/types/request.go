@@ -39,31 +39,31 @@ func (t *Request) Origin() *types.Request {
 	}
 }
 
-func (t *Request) UnmarshalJSON(input []byte) error {
+func (t *Request) UnmarshalJSON(data []byte) error {
 	raw := map[string]json.RawMessage{}
-	if err := json.Unmarshal(input, &raw); err != nil {
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 	for key, val := range raw {
 		switch key {
 		case "DepositRequest":
-			var req types.Deposit
-			if err := json.Unmarshal(val, &req); err != nil {
+			var inner types.Deposit
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &req
+			t.inner = &inner
 		case "WithdrawalRequest":
-			var req WithdrawalRequest
-			if err := json.Unmarshal(val, &req); err != nil {
+			var inner WithdrawalRequest
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &req
+			t.inner = &inner
 		case "ConsolidationRequest":
-			var req ConsolidationRequest
-			if err := json.Unmarshal(val, &req); err != nil {
+			var inner ConsolidationRequest
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			t.inner = &req
+			t.inner = &inner
 		default:
 			return fmt.Errorf("unknown request type: %s", key)
 		}

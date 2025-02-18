@@ -104,31 +104,31 @@ func (b *blockProposedForkJSON) Origin() BlockProposedFork {
 	}
 }
 
-func (b *blockProposedForkJSON) UnmarshalJSON(input []byte) error {
+func (b *blockProposedForkJSON) UnmarshalJSON(data []byte) error {
 	raw := map[string]json.RawMessage{}
-	if err := json.Unmarshal(input, &raw); err != nil {
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 	for key, val := range raw {
 		switch key {
 		case "Hekla":
-			var bp gaikoTypes.BlockProposed
-			if err := json.Unmarshal(val, &bp); err != nil {
+			var inner gaikoTypes.BlockProposed
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			b.inner = &bp
+			b.inner = &inner
 		case "Ontake":
-			var bp gaikoTypes.BlockProposedV2
-			if err := json.Unmarshal(val, &bp); err != nil {
+			var inner gaikoTypes.BlockProposedV2
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			b.inner = &bp
+			b.inner = &inner
 		case "Pacaya":
-			var bp gaikoTypes.BatchProposed
-			if err := json.Unmarshal(val, &bp); err != nil {
+			var inner gaikoTypes.BatchProposed
+			if err := json.Unmarshal(val, &inner); err != nil {
 				return err
 			}
-			b.inner = &bp
+			b.inner = &inner
 		case "Nothing":
 			b.inner = &NotingBlockProposed{}
 		default:
