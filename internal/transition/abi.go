@@ -46,7 +46,7 @@ func init() {
 	batchMetaDataComponentsArgs = abi.Arguments{arg}
 	arg, err = findArgumentInEventInputs(batchProposedEvent.Inputs, "info")
 	if err != nil {
-		log.Crit("Get anchorV3 failed", err)
+		log.Crit("Get BatchInfo failed", err)
 	}
 	batchInfoComponentsArgs = abi.Arguments{arg}
 	arg, err = findArgumentInEventInputs(blockProposedEvent.Inputs, "meta")
