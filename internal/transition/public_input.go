@@ -25,19 +25,6 @@ func (p *PublicInput) Hash() (common.Address, error) {
 	return common.Address(keccak(b)), nil
 }
 
-func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) BlobProofType {
-	switch proofType {
-	case NativeProofType:
-		return blobProofTypeHint
-	case SgxProofType, GaikoSgxProofType:
-		return KzgVersionedHash
-	case Sp1ProofType, Risc0ProofType:
-		return ProofOfEquivalence
-	default:
-		panic("unreachable")
-	}
-}
-
 func NewPublicInput(driver Driver, proofType ProofType) (*PublicInput, error) {
 	verifierAddress, err := driver.GetForkVerifierAddress(proofType)
 	if err != nil {

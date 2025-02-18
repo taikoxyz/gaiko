@@ -47,3 +47,16 @@ func verifyBlob(blobProofType BlobProofType, blob eth.Blob, commitment kzg4844.C
 	}
 	return nil
 }
+
+func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) BlobProofType {
+	switch proofType {
+	case NativeProofType:
+		return blobProofTypeHint
+	case SgxProofType, GaikoSgxProofType:
+		return KzgVersionedHash
+	case Sp1ProofType, Risc0ProofType:
+		return ProofOfEquivalence
+	default:
+		panic("unreachable")
+	}
+}
