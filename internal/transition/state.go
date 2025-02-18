@@ -52,7 +52,7 @@ func (g *GuestInput) makePreState() (*preState, error) {
 	}
 	accounts := make(map[common.Address]*types.StateAccount, len(g.ParentStorage))
 	for addr, storage := range g.ParentStorage {
-		acc, err := getAccount(&g.ParentStateTrie, addr)
+		acc, err := getAccount(g.ParentStateTrie, addr)
 		if err != nil {
 			if err == ErrNotFound {
 				acc = types.NewEmptyStateAccount()
@@ -78,7 +78,7 @@ func (g *GuestInput) makePreState() (*preState, error) {
 		statedb.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
-			value, err := getStorage(&g.ParentStateTrie, key)
+			value, err := getStorage(g.ParentStateTrie, key)
 			if err != nil && err != ErrNotFound {
 				return nil, err
 			}

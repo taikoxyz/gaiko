@@ -9,6 +9,16 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+type Headers []*Header
+
+func (h Headers) Origin() []*types.Header {
+	headers := make([]*types.Header, len(h))
+	for i, header := range h {
+		headers[i] = header.Origin()
+	}
+	return headers
+}
+
 //go:generate go run github.com/fjl/gencodec -type Header -field-override headerMarshaling -out gen_header.go
 type Header struct {
 	ParentHash            common.Hash    `json:"parent_hash" gencodec:"required"`

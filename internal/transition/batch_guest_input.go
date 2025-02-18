@@ -17,16 +17,16 @@ var _ Driver = (*BatchGuestInput)(nil)
 var _ json.Unmarshaler = (*BatchGuestInput)(nil)
 
 type BatchGuestInput struct {
-	Inputs []GuestInput
-	Taiko  TaikoGuestBatchInput
+	Inputs []*GuestInput
+	Taiko  *TaikoGuestBatchInput
 }
 
 type TaikoGuestBatchInput struct {
 	BatchId            uint64
-	L1Header           types.Header
+	L1Header           *types.Header
 	BatchProposed      BlockProposedFork
-	ChainSpec          ChainSpec
-	ProverData         TaikoProverData
+	ChainSpec          *ChainSpec
+	ProverData         *TaikoProverData
 	TxDataFromCalldata []byte
 	TxDataFromBlob     [][eth.BlobSize]byte
 	BlobCommitments    *[][commitmentSize]byte

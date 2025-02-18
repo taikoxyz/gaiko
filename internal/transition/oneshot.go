@@ -82,7 +82,7 @@ func Oneshot(ctx *cli.Context) error {
 				CodeHash: keccak(acc.Code),
 			}
 
-			if err := updateAccount(&g.ParentStateTrie, addr, stateAcc); err != nil {
+			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
 				return err
 			}
 		}

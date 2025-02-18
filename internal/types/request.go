@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"unsafe"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -11,8 +10,33 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+type Requests []*Request
+
+func (r Requests) Origin() []*types.Request {
+	requests := make([]*types.Request, len(r))
+	for i, req := range r {
+		requests[i] = req.Origin()
+	}
+	return requests
+}
+
 type Request struct {
-	ptr unsafe.Pointer
+	inner interface{}
+}
+
+func (t *Request) Origin() *types.Request {
+	switch inner := t.inner.(type) {
+	case *types.Deposit:
+		return types.NewRequest(inner)
+	case *WithdrawalRequest:
+		// TODO: not support yet
+		return nil
+	case *ConsolidationRequest:
+		// TODO: not support yet
+		return nil
+	default:
+		panic(fmt.Sprintf("unknown request type: %T", inner))
+	}
 }
 
 func (t *Request) UnmarshalJSON(input []byte) error {
@@ -27,19 +51,19 @@ func (t *Request) UnmarshalJSON(input []byte) error {
 			if err := json.Unmarshal(val, &req); err != nil {
 				return err
 			}
-			t.ptr = unsafe.Pointer(&req)
+			t.inner = &req
 		case "WithdrawalRequest":
 			var req WithdrawalRequest
 			if err := json.Unmarshal(val, &req); err != nil {
 				return err
 			}
-			t.ptr = unsafe.Pointer(&req)
+			t.inner = &req
 		case "ConsolidationRequest":
 			var req ConsolidationRequest
 			if err := json.Unmarshal(val, &req); err != nil {
 				return err
 			}
-			t.ptr = unsafe.Pointer(&req)
+			t.inner = &req
 		default:
 			return fmt.Errorf("unknown request type: %s", key)
 		}

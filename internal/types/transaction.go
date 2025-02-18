@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"unsafe"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -12,6 +11,16 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/holiman/uint256"
 )
+
+type TransactionSigneds []TransactionSigned
+
+func (t TransactionSigneds) Origin() []*types.Transaction {
+	txs := make([]*types.Transaction, len(t))
+	for i, tx := range t {
+		txs[i] = tx.Origin()
+	}
+	return txs
+}
 
 type TransactionSigned struct {
 	Hash        common.Hash `json:"hash" gencodec:"required"`
@@ -104,25 +113,25 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 			if err := json.Unmarshal(val, &tx); err != nil {
 				return err
 			}
-			t.inner = unsafe.Pointer(&tx)
+			t.inner = &tx
 		case "Eip2930":
 			var tx TxEip2930
 			if err := json.Unmarshal(val, &tx); err != nil {
 				return err
 			}
-			t.inner = unsafe.Pointer(&tx)
+			t.inner = &tx
 		case "Eip1559":
 			var tx TxEip1559
 			if err := json.Unmarshal(val, &tx); err != nil {
 				return err
 			}
-			t.inner = unsafe.Pointer(&tx)
+			t.inner = &tx
 		case "Eip4844":
 			var tx TxEip4844
 			if err := json.Unmarshal(val, &tx); err != nil {
 				return err
 			}
-			t.inner = unsafe.Pointer(&tx)
+			t.inner = &tx
 		default:
 			return fmt.Errorf("unknown transaction type: %s", key)
 		}

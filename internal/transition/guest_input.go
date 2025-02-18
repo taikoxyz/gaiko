@@ -20,12 +20,12 @@ var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {
 	Block           *types.Block                    `json:"block"`
-	ChainSpec       ChainSpec                       `json:"chain_spec"`
-	ParentHeader    types.Header                    `json:"parent_header"`
-	ParentStateTrie trie.Trie                       `json:"parent_state_trie"`
+	ChainSpec       *ChainSpec                      `json:"chain_spec"`
+	ParentHeader    *types.Header                   `json:"parent_header"`
+	ParentStateTrie *trie.Trie                      `json:"parent_state_trie"`
 	ParentStorage   map[common.Address]StorageEntry `json:"parent_storage"`
 	Contracts       [][]byte                        `json:"contracts"`
-	AncestorHeaders []types.Header                  `json:"ancestor_headers"`
+	AncestorHeaders []*types.Header                 `json:"ancestor_headers"`
 	Taiko           TaikoGuestInput                 `json:"taiko"`
 }
 
@@ -39,7 +39,7 @@ type TaikoGuestInput struct {
 	TxData         []byte                `json:"tx_data"`
 	AnchorTx       *types.Transaction    `json:"anchor_tx"`
 	BlockProposed  BlockProposedFork     `json:"block_proposed"`
-	ProverData     TaikoProverData       `json:"prover_data"`
+	ProverData     *TaikoProverData      `json:"prover_data"`
 	BlobCommitment *[commitmentSize]byte `json:"blob_commitment"`
 	BlobProof      *[proofSize]byte      `json:"blob_proof"`
 	BlobProofType  BlobProofType         `json:"blob_proof_type"`
