@@ -70,7 +70,7 @@ func Oneshot(ctx *cli.Context) error {
 						return err
 					}
 				} else {
-					if err := updateStorage(&storageEntry.Trie, slot.Bytes(), value.Bytes()); err != nil {
+					if err := updateStorage(storageEntry.Trie, slot.Bytes(), value.Bytes()); err != nil {
 						return err
 					}
 				}

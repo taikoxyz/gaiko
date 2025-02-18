@@ -30,7 +30,7 @@ type GuestInput struct {
 }
 
 type StorageEntry struct {
-	Trie  trie.Trie
+	Trie  *trie.Trie
 	Slots []*big.Int
 }
 
