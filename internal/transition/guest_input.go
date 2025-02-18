@@ -19,14 +19,14 @@ var _ Driver = (*GuestInput)(nil)
 var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {
-	Block           *types.Block                    `json:"block"`
-	ChainSpec       *ChainSpec                      `json:"chain_spec"`
-	ParentHeader    *types.Header                   `json:"parent_header"`
-	ParentStateTrie *trie.Trie                      `json:"parent_state_trie"`
-	ParentStorage   map[common.Address]StorageEntry `json:"parent_storage"`
-	Contracts       [][]byte                        `json:"contracts"`
-	AncestorHeaders []*types.Header                 `json:"ancestor_headers"`
-	Taiko           TaikoGuestInput                 `json:"taiko"`
+	Block           *types.Block
+	ChainSpec       *ChainSpec
+	ParentHeader    *types.Header
+	ParentStateTrie *trie.Trie
+	ParentStorage   map[common.Address]StorageEntry
+	Contracts       [][]byte
+	AncestorHeaders []*types.Header
+	Taiko           *TaikoGuestInput
 }
 
 type StorageEntry struct {
@@ -35,14 +35,14 @@ type StorageEntry struct {
 }
 
 type TaikoGuestInput struct {
-	L1Header       *types.Header         `json:"l1_header"`
-	TxData         []byte                `json:"tx_data"`
-	AnchorTx       *types.Transaction    `json:"anchor_tx"`
-	BlockProposed  BlockProposedFork     `json:"block_proposed"`
-	ProverData     *TaikoProverData      `json:"prover_data"`
-	BlobCommitment *[commitmentSize]byte `json:"blob_commitment"`
-	BlobProof      *[proofSize]byte      `json:"blob_proof"`
-	BlobProofType  BlobProofType         `json:"blob_proof_type"`
+	L1Header       *types.Header
+	TxData         []byte
+	AnchorTx       *types.Transaction
+	BlockProposed  BlockProposedFork
+	ProverData     *TaikoProverData
+	BlobCommitment *[commitmentSize]byte
+	BlobProof      *[proofSize]byte
+	BlobProofType  BlobProofType
 }
 
 type BlobProofType string
@@ -53,13 +53,8 @@ const (
 )
 
 type TaikoProverData struct {
-	Prover   common.Address
-	Graffiti common.Hash
-}
-
-func (g *GuestInput) UnmarshalJSON(data []byte) error {
-	// TODO: Implement
-	return json.Unmarshal(data, g)
+	Prover   common.Address `json:"prover"`
+	Graffiti common.Hash    `json:"graffiti"`
 }
 
 func (g *GuestInput) GuestInputs() iter.Seq[Pair] {

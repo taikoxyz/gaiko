@@ -55,16 +55,20 @@ type PacayaBlockProposed struct {
 	*pacaya.TaikoInboxClientBatchProposed
 }
 
+func NewPacayaBlockProposed(b *pacaya.TaikoInboxClientBatchProposed) *PacayaBlockProposed {
+	return &PacayaBlockProposed{b}
+}
+
 func (b *PacayaBlockProposed) Encode() ([]byte, error) {
 	return batchProposedEvent.Inputs.Pack(b.Info, b.Meta, b.TxList)
 }
 
 func (b *PacayaBlockProposed) BlockNumber() uint64 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *PacayaBlockProposed) BlockTimestamp() uint64 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *PacayaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
@@ -84,19 +88,19 @@ func (b *PacayaBlockProposed) HardFork() string {
 }
 
 func (b *PacayaBlockProposed) MinTier() uint16 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *PacayaBlockProposed) ParentMetaHash() [32]byte {
-	panic("not implemented") // TODO: Implement
+	return [32]byte{}
 }
 
 func (b *PacayaBlockProposed) Sender() common.Address {
-	panic("not implemented") // TODO: Implement
+	return common.Address{}
 }
 
 func (b *PacayaBlockProposed) Difficulty() [32]byte {
-	panic("not implemented") // TODO: Implement
+	return [32]byte{}
 }
 
 func (b *PacayaBlockProposed) Proposer() common.Address {
@@ -104,7 +108,7 @@ func (b *PacayaBlockProposed) Proposer() common.Address {
 }
 
 func (b *PacayaBlockProposed) LivenessBond() *big.Int {
-	panic("not implemented") // TODO: Implement
+	return nil
 }
 
 func (b *PacayaBlockProposed) ProposedAt() uint64 {
@@ -124,7 +128,7 @@ func (b *PacayaBlockProposed) BlobTxListLength() uint32 {
 }
 
 func (b *PacayaBlockProposed) BlobIndex() uint8 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *PacayaBlockProposed) GasLimit() uint32 {
@@ -146,172 +150,286 @@ type HeklaBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposed
 }
 
+var _ BlockProposedFork = (*HeklaBlockProposed)(nil)
+
+func NewHeklaBlockProposed(b *ontake.TaikoL1ClientBlockProposed) *HeklaBlockProposed {
+	return &HeklaBlockProposed{b}
+}
+
+func (b *HeklaBlockProposed) Encode() ([]byte, error) {
+	return blockMetadataComponentsArgs.Pack(b.BlockId, b.AssignedProver, b.TaikoL1ClientBlockProposed.LivenessBond, b.Meta, b.DepositsProcessed)
+}
+
 func (b *HeklaBlockProposed) BlockNumber() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Id
 }
 
 func (b *HeklaBlockProposed) BlockTimestamp() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Timestamp
 }
 
 func (b *HeklaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	panic("not implemented") // TODO: Implement
+	return pacaya.LibSharedDataBaseFeeConfig{}
 }
 
 func (b *HeklaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	panic("not implemented") // TODO: Implement
+	return 0, 0
 }
 
 func (b *HeklaBlockProposed) BlobUsed() bool {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.BlobUsed
 }
 
-func (b *HeklaBlockProposed) HardFork() HardFork {
-	panic("not implemented") // TODO: Implement
+func (b *HeklaBlockProposed) HardFork() string {
+	return HeklaHardFork
 }
 
 func (b *HeklaBlockProposed) MinTier() uint16 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.MinTier
 }
 
 func (b *HeklaBlockProposed) ParentMetaHash() [32]byte {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.ParentMetaHash
 }
 
 func (b *HeklaBlockProposed) Sender() common.Address {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Sender
 }
 
 func (b *HeklaBlockProposed) Difficulty() [32]byte {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Difficulty
 }
 
 func (b *HeklaBlockProposed) Proposer() common.Address {
-	panic("not implemented") // TODO: Implement
+	return common.Address{}
 }
 
 func (b *HeklaBlockProposed) LivenessBond() *big.Int {
-	panic("not implemented") // TODO: Implement
+	return b.TaikoL1ClientBlockProposed.LivenessBond
 }
 
 func (b *HeklaBlockProposed) ProposedAt() uint64 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *HeklaBlockProposed) ProposedIn() uint64 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *HeklaBlockProposed) BlobTxListOffset() uint32 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *HeklaBlockProposed) BlobTxListLength() uint32 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *HeklaBlockProposed) BlobIndex() uint8 {
-	panic("not implemented") // TODO: Implement
+	return 0
 }
 
 func (b *HeklaBlockProposed) GasLimit() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.GasLimit
 }
+
 func (b *HeklaBlockProposed) Coinbase() common.Address {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Coinbase
 }
 
 func (b *HeklaBlockProposed) BlobHashes() [][32]byte {
-	panic("not implemented")
+	return nil
 }
 
 func (b *HeklaBlockProposed) ExtraData() [32]byte {
-	panic("not implemented")
+	return b.Meta.ExtraData
 }
 
 type OntakeBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposedV2
 }
 
+var _ BlockProposedFork = (*OntakeBlockProposed)(nil)
+
+func NewOntakeBlockProposed(b *ontake.TaikoL1ClientBlockProposedV2) *OntakeBlockProposed {
+	return &OntakeBlockProposed{b}
+}
+
+func (b *OntakeBlockProposed) Encode() ([]byte, error) {
+	return blockMetadataV2ComponentsArgs.Pack(b.BlockId, b.Meta)
+}
+
 func (b *OntakeBlockProposed) BlockNumber() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Id
 }
 
 func (b *OntakeBlockProposed) BlockTimestamp() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Timestamp
 }
 
 func (b *OntakeBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	panic("not implemented") // TODO: Implement
+	return pacaya.LibSharedDataBaseFeeConfig(b.Meta.BaseFeeConfig)
 }
 
 func (b *OntakeBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.BlobTxListOffset, b.Meta.BlobTxListLength
 }
 
 func (b *OntakeBlockProposed) BlobUsed() bool {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.BlobUsed
 }
 
-func (b *OntakeBlockProposed) HardFork() HardFork {
-	panic("not implemented") // TODO: Implement
+func (b *OntakeBlockProposed) HardFork() string {
+	return OntakeHardFork
 }
 
 func (b *OntakeBlockProposed) MinTier() uint16 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.MinTier
 }
 
 func (b *OntakeBlockProposed) ParentMetaHash() [32]byte {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.ParentMetaHash
 }
 
 func (b *OntakeBlockProposed) Sender() common.Address {
-	panic("not implemented") // TODO: Implement
+	return common.Address{}
 }
 
 func (b *OntakeBlockProposed) Difficulty() [32]byte {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Difficulty
 }
 
 func (b *OntakeBlockProposed) Proposer() common.Address {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Proposer
 }
 
 func (b *OntakeBlockProposed) LivenessBond() *big.Int {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.LivenessBond
 }
 
 func (b *OntakeBlockProposed) ProposedAt() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.ProposedAt
 }
 
 func (b *OntakeBlockProposed) ProposedIn() uint64 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.ProposedIn
 }
 
 func (b *OntakeBlockProposed) BlobTxListOffset() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.BlobTxListOffset
 }
 
 func (b *OntakeBlockProposed) BlobTxListLength() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.BlobTxListLength
 }
 
 func (b *OntakeBlockProposed) BlobIndex() uint8 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.BlobIndex
 }
 
 func (b *OntakeBlockProposed) GasLimit() uint32 {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.GasLimit
 }
+
 func (b *OntakeBlockProposed) Coinbase() common.Address {
-	panic("not implemented") // TODO: Implement
+	return b.Meta.Coinbase
 }
 
 func (b *OntakeBlockProposed) BlobHashes() [][32]byte {
-	panic("not implemented")
+	return nil
 }
 
 func (b *OntakeBlockProposed) ExtraData() [32]byte {
-	panic("not implemented")
+	return b.Meta.ExtraData
+}
+
+type NotingBlockProposed struct{}
+
+var _ BlockProposedFork = (*NotingBlockProposed)(nil)
+
+func (b *NotingBlockProposed) Encode() ([]byte, error) {
+	return nil, nil
+}
+
+func (b *NotingBlockProposed) BlockNumber() uint64 {
+	return 0
+}
+
+func (b *NotingBlockProposed) BlockTimestamp() uint64 {
+	return 0
+}
+
+func (b *NotingBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
+	return pacaya.LibSharedDataBaseFeeConfig{}
+}
+
+func (b *NotingBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
+	return 0, 0
+}
+
+func (b *NotingBlockProposed) BlobUsed() bool {
+	return false
+}
+
+func (b *NotingBlockProposed) HardFork() string {
+	return ""
+}
+
+func (b *NotingBlockProposed) MinTier() uint16 {
+	return 0
+}
+
+func (b *NotingBlockProposed) ParentMetaHash() [32]byte {
+	return [32]byte{}
+}
+
+func (b *NotingBlockProposed) Sender() common.Address {
+	return common.Address{}
+}
+
+func (b *NotingBlockProposed) Difficulty() [32]byte {
+	return [32]byte{}
+}
+
+func (b *NotingBlockProposed) Proposer() common.Address {
+	return common.Address{}
+}
+
+func (b *NotingBlockProposed) LivenessBond() *big.Int {
+	return nil
+}
+
+func (b *NotingBlockProposed) ProposedAt() uint64 {
+	return 0
+}
+
+func (b *NotingBlockProposed) ProposedIn() uint64 {
+	return 0
+}
+
+func (b *NotingBlockProposed) BlobTxListOffset() uint32 {
+	return 0
+}
+
+func (b *NotingBlockProposed) BlobTxListLength() uint32 {
+	return 0
+}
+
+func (b *NotingBlockProposed) BlobIndex() uint8 {
+	return 0
+}
+
+func (b *NotingBlockProposed) GasLimit() uint32 {
+	return 0
+}
+
+func (b *NotingBlockProposed) Coinbase() common.Address {
+	return common.Address{}
+}
+
+func (b *NotingBlockProposed) BlobHashes() [][32]byte {
+	return nil
+}
+
+func (b *NotingBlockProposed) ExtraData() [32]byte {
+	return [32]byte{}
 }
