@@ -12,19 +12,6 @@ const (
 	commitmentSize = 48
 )
 
-func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
-	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
-	for i := 0; i < len(g.Taiko.TxDataFromBlob); i++ {
-		blob := g.Taiko.TxDataFromBlob[i]
-		commitment := (*g.Taiko.BlobCommitments)[i]
-		proof := (*g.Taiko.BlobProofs)[i]
-		if err := verifyBlob(blobProofType, blob, commitment, (*kzg4844.Proof)(&proof)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func verifyBlob(blobProofType BlobProofType, blob eth.Blob, commitment kzg4844.Commitment, proof *kzg4844.Proof) error {
 	switch blobProofType {
 	case KzgVersionedHash:

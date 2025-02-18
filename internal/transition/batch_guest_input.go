@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
@@ -44,6 +45,19 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
 
 func (g *BatchGuestInput) BlockProposedFork() BlockProposedFork {
 	return g.Taiko.BatchProposed
+}
+
+func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
+	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
+	for i := 0; i < len(g.Taiko.TxDataFromBlob); i++ {
+		blob := g.Taiko.TxDataFromBlob[i]
+		commitment := (*g.Taiko.BlobCommitments)[i]
+		proof := (*g.Taiko.BlobProofs)[i]
+		if err := verifyBlob(blobProofType, blob, commitment, (*kzg4844.Proof)(&proof)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (g *BatchGuestInput) calculatePacayaTxsHash(txListHash common.Hash, blobHashes [][32]byte) (common.Hash, error) {
