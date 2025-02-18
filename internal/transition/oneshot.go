@@ -36,7 +36,7 @@ func Oneshot(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		statedb, err := g.apply(vm.Config{}, preState.statedb, txs, preState.getHash, chainConfig)
+		statedb, err := apply(vm.Config{}, preState.statedb, g.Block, txs, preState.getHash, chainConfig)
 		if err != nil {
 			return err
 		}
@@ -90,27 +90,27 @@ func Oneshot(ctx *cli.Context) error {
 	return nil
 }
 
-func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, txs types.Transactions, getHash func(uint64) common.Hash, chainConfig *params.ChainConfig) (*state.StateDB, error) {
+func apply(vmConfig vm.Config, statedb *state.StateDB, block *types.Block, txs types.Transactions, getHash func(uint64) common.Hash, chainConfig *params.ChainConfig) (*state.StateDB, error) {
 	var (
-		signer  = types.MakeSigner(chainConfig, new(big.Int).SetUint64(g.Block.NumberU64()), g.Block.Time())
+		signer  = types.MakeSigner(chainConfig, new(big.Int).SetUint64(block.NumberU64()), block.Time())
 		gaspool = new(core.GasPool)
 		gasUsed = uint64(0)
 		txIndex = 0
 	)
 
-	gaspool.AddGas(g.Block.GasLimit())
+	gaspool.AddGas(block.GasLimit())
 
-	rnd := g.Block.MixDigest()
+	rnd := block.MixDigest()
 	vmContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
-		Coinbase:    g.Block.Coinbase(),
-		BlockNumber: g.Block.Number(),
-		Time:        g.Block.Time(),
-		Difficulty:  g.Block.Difficulty(),
-		GasLimit:    g.Block.GasLimit(),
+		Coinbase:    block.Coinbase(),
+		BlockNumber: block.Number(),
+		Time:        block.Time(),
+		Difficulty:  block.Difficulty(),
+		GasLimit:    block.GasLimit(),
 		GetHash:     getHash,
-		BaseFee:     g.Block.BaseFee(),
+		BaseFee:     block.BaseFee(),
 		Random:      &rnd,
 	}
 
@@ -129,7 +129,7 @@ func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, txs types
 			log.Warn("Skip a blob transaction", "hash", tx.Hash())
 			continue
 		}
-		msg, err := core.TransactionToMessage(tx, signer, g.Block.BaseFee())
+		msg, err := core.TransactionToMessage(tx, signer, block.BaseFee())
 		if err != nil {
 			if isAnchor {
 				return nil, err
@@ -168,7 +168,7 @@ func (g *GuestInput) apply(vmConfig vm.Config, statedb *state.StateDB, txs types
 	statedb.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
 
 	// Apply withdrawals
-	for _, w := range g.Block.Withdrawals() {
+	for _, w := range block.Withdrawals() {
 		// Amount is in gwei, turn into wei
 		amount := new(big.Int).Mul(new(big.Int).SetUint64(w.Amount), big.NewInt(params.GWei))
 		statedb.AddBalance(w.Address, uint256.MustFromBig(amount), tracing.BalanceIncreaseWithdrawal)
