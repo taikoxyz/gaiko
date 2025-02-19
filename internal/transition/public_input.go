@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/taikoxyz/gaiko/internal"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -22,7 +23,7 @@ func (p *PublicInput) Hash() (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	return common.Address(keccak(b)), nil
+	return common.Address(internal.Keccak(b)), nil
 }
 
 func NewPublicInput(driver GuestDriver, proofType ProofType) (*PublicInput, error) {

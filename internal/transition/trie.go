@@ -6,13 +6,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taikoxyz/gaiko/internal"
 	"github.com/taikoxyz/gaiko/internal/mpt"
 )
 
 var ErrNotFound = errors.New("not found")
 
 func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount, error) {
-	res, err := trie.Get(keccak(address.Bytes()))
+	res, err := trie.Get(internal.Keccak(address.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +30,7 @@ func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount,
 }
 
 func getStorage(trie *mpt.MptNode, key common.Hash) (common.Hash, error) {
-	enc, err := trie.Get(keccak(key.Bytes()))
+	enc, err := trie.Get(internal.Keccak(key.Bytes()))
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -45,7 +46,7 @@ func getStorage(trie *mpt.MptNode, key common.Hash) (common.Hash, error) {
 }
 
 func updateAccount(trie *mpt.MptNode, address common.Address, acc *types.StateAccount) error {
-	hk := keccak(address.Bytes())
+	hk := internal.Keccak(address.Bytes())
 	data, err := rlp.EncodeToBytes(acc)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func updateAccount(trie *mpt.MptNode, address common.Address, acc *types.StateAc
 }
 
 func updateStorage(trie *mpt.MptNode, key, value []byte) error {
-	hk := keccak(key)
+	hk := internal.Keccak(key)
 	v, err := rlp.EncodeToBytes(value)
 	if err != nil {
 		return err

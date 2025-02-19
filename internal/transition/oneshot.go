@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
+	"github.com/taikoxyz/gaiko/internal"
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,7 +47,7 @@ func Oneshot(ctx *cli.Context) error {
 			_, ok := collector[addr]
 			if !ok {
 				// Account is deleted
-				key := keccak(addr.Bytes())
+				key := internal.Keccak(addr.Bytes())
 				if _, err := g.ParentStateTrie.Delete(key); err != nil {
 					return err
 				}
@@ -64,7 +65,7 @@ func Oneshot(ctx *cli.Context) error {
 				storageEntry.Trie.Clear()
 			}
 			for slot, value := range acc.Storage {
-				key := keccak(slot.Bytes())
+				key := internal.Keccak(slot.Bytes())
 				if value == (common.Hash{}) {
 					if _, err := storageEntry.Trie.Delete(key); err != nil {
 						return err
@@ -83,7 +84,7 @@ func Oneshot(ctx *cli.Context) error {
 				Nonce:    acc.Nonce,
 				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
 				Root:     root,
-				CodeHash: keccak(acc.Code),
+				CodeHash: internal.Keccak(acc.Code),
 			}
 
 			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
