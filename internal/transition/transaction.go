@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/rpc"
+	// "github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/rpc"
 )
 
 func decodeTxs(
@@ -16,7 +16,8 @@ func decodeTxs(
 	blobUsed, isPacaya bool,
 	chainID, blockNumber *big.Int,
 	offset, length uint32) types.Transactions {
-	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
+	BlockMaxTxListBytes := uint64(100000000)
+	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, BlockMaxTxListBytes, chainID)
 	if blobUsed {
 		blob := eth.Blob(txListBytes)
 		var err error
