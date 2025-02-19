@@ -12,12 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-const nilKindString = 0x80
-
-func writeNilKindString(w rlp.EncoderBuffer) {
-	w.Write([]byte{nilKindString})
-}
-
 type MptNode struct {
 	Data      MptNodeData `json:"data"`
 	cachedRef MptNodeRef  `json:"-"`
@@ -39,14 +33,12 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	w := rlp.NewEncoderBuffer(_w)
 	switch data := m.Data.(type) {
 	case *NullNode:
-		writeNilKindString(w)
-	case *DigestNode:
-		w.WriteBytes(data[:])
+		w.Write(rlp.EmptyString)
 	case *BranchNode:
 		idx := w.List()
 		for _, child := range data {
 			if child == nil {
-				writeNilKindString(w)
+				w.Write(rlp.EmptyString)
 			} else {
 				if err := child.refEncode(w); err != nil {
 					return err
@@ -54,7 +46,7 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 			}
 		}
 		w.ListEnd(idx)
-		writeNilKindString(w)
+		w.Write(rlp.EmptyString)
 	case *LeafNode:
 		idx := w.List()
 		w.WriteBytes(data.Prefix)
@@ -67,6 +59,8 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 			return err
 		}
 		w.ListEnd(idx)
+	case *DigestNode:
+		w.WriteBytes(data[:])
 	default:
 		return fmt.Errorf("unknown MptNodeData type: %T", data)
 	}
@@ -94,6 +88,15 @@ func (m *MptNode) Hash() (common.Hash, error) {
 func (m *MptNode) IsEmpty() bool {
 	switch m.Data.(type) {
 	case *NullNode:
+		return true
+	default:
+		return false
+	}
+}
+
+func (m *MptNode) IsDigest() bool {
+	switch m.Data.(type) {
+	case *DigestNode:
 		return true
 	default:
 		return false
@@ -414,8 +417,8 @@ func toNibs(key []byte) []byte {
 }
 
 func prefixNibs(prefix []byte) []byte {
-	if prefix == nil || len(prefix) == 0 {
-		return nil
+	if len(prefix) == 0 {
+		panic("prefix cannot be empty")
 	}
 	ext, tail := prefix[0], prefix[1:]
 
@@ -448,7 +451,7 @@ func (m *MptNode) ref() (MptNodeRef, error) {
 	if m.cachedRef == nil {
 		switch data := m.Data.(type) {
 		case *NullNode:
-			m.cachedRef = BytesMptNodeRef{nilKindString}
+			m.cachedRef = BytesMptNodeRef(rlp.EmptyString)
 		case *DigestNode:
 			m.cachedRef = DigestMptNodeRef(*data)
 		default:
@@ -475,7 +478,7 @@ type MptNodeRef interface {
 type BytesMptNodeRef []byte
 
 func (b BytesMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) {
-	w.WriteBytes(b)
+	w.Write(b)
 }
 
 func (b BytesMptNodeRef) Hash() common.Hash {
@@ -489,7 +492,6 @@ func (b BytesMptNodeRef) Len() int {
 type DigestMptNodeRef common.Hash
 
 func (d DigestMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) {
-	w.Write([]byte{nilKindString + 32})
 	w.WriteBytes(d[:])
 }
 
