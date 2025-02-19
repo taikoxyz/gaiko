@@ -22,11 +22,10 @@ type SpecID string
 type ProofType string
 
 const (
-	NativeProofType   ProofType = "NATIVE"
-	Sp1ProofType      ProofType = "SP1"
-	SgxProofType      ProofType = "SGX"
-	Risc0ProofType    ProofType = "RISC0"
-	GaikoSgxProofType ProofType = "GAIKO_SGX"
+	NativeProofType ProofType = "NATIVE"
+	Sp1ProofType    ProofType = "SP1"
+	SgxProofType    ProofType = "SGX"
+	Risc0ProofType  ProofType = "RISC0"
 )
 
 type VerifierAddressFork struct {

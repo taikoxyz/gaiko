@@ -39,7 +39,7 @@ func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) Blob
 	switch proofType {
 	case NativeProofType:
 		return blobProofTypeHint
-	case SgxProofType, GaikoSgxProofType:
+	case SgxProofType:
 		return KzgVersionedHash
 	case Sp1ProofType, Risc0ProofType:
 		return ProofOfEquivalence
