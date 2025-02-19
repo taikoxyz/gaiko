@@ -1,11 +1,16 @@
 package transition
 
 import (
+	"crypto/ecdsa"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"os"
+	"path"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -13,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
@@ -20,9 +26,23 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	AttestationQuoteDeviceFile          = "/dev/attestation/quote"
+	AttestationTypeDeviceFile           = "/dev/attestation/attestation_type"
+	AttestationUserReportDataDeviceFile = "/dev/attestation/user_report_data"
+	BootstrapInfoFilename               = "bootstrap.json"
+	PrivKeyFilename                     = "priv.key"
+)
+
 func Oneshot(ctx *cli.Context) error {
+	prevPrivKey, err := loadBootstrap(ctx.String(GlobalSecretPath.Name))
+	if err != nil {
+		return err
+	}
+	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
+
 	var driver GuestDriver
-	err := json.NewDecoder(os.Stdin).Decode(&driver)
+	err = json.NewDecoder(os.Stdin).Decode(&driver)
 	if err != nil {
 		return err
 	}
@@ -91,6 +111,45 @@ func Oneshot(ctx *cli.Context) error {
 				return err
 			}
 		}
+
+		pi, err := NewPublicInput(driver, SgxProofType, newInstance)
+		if err != nil {
+			return err
+		}
+		piHash, err := pi.Hash()
+		if err != nil {
+			return err
+		}
+		sign, err := crypto.Sign(piHash.Bytes(), prevPrivKey)
+		if err != nil {
+			return err
+		}
+		instanceId := uint32(ctx.Uint64(OneShotSgxInstanceID.Name))
+
+		var proof [89]byte
+		binary.BigEndian.PutUint32(proof[:4], instanceId)
+		copy(proof[4:24], newInstance.Bytes())
+		copy(proof[24:], sign)
+		proofHex := hex.EncodeToString(proof[:])
+		if err = saveAttestationUserReportData(newInstance); err != nil {
+			return err
+		}
+		quote, err := getSgxQuote()
+		if err != nil {
+			return err
+		}
+		data := map[string]interface{}{
+			"proof":            proofHex,
+			"quote":            hex.EncodeToString(quote),
+			"public_key":       newInstance.Hex(),
+			"instance_address": newInstance.Hex(),
+			"input":            piHash.Hex(),
+		}
+		dataBytes, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(dataBytes))
 	}
 	return nil
 }
@@ -185,4 +244,64 @@ func apply(vmConfig vm.Config, statedb *state.StateDB, block *types.Block, txs t
 	}
 
 	return state.New(root, statedb.Database())
+}
+
+func loadBootstrap(secretsDir string) (*ecdsa.PrivateKey, error) {
+	privKeyPath := path.Join(secretsDir, PrivKeyFilename)
+	info, err := os.Stat(privKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsDir() && info.Mode().Perm().Perm()&(1<<2) == 0 {
+		return crypto.LoadECDSA(privKeyPath)
+	} else if !info.IsDir() {
+		return nil, errors.New("File exists but has wrong permissions")
+	} else {
+		return nil, errors.New("File does not exist")
+	}
+}
+
+// fn save_attestation_user_report_data(pubkey: Address) -> Result<()> {
+//     let mut extended_pubkey = pubkey.to_vec();
+//     extended_pubkey.resize(64, 0);
+//     let mut user_report_data_file = OpenOptions::new()
+//         .write(true)
+//         .open(ATTESTATION_USER_REPORT_DATA_DEVICE_FILE)?;
+//     user_report_data_file
+//         .write_all(&extended_pubkey)
+//         .map_err(|err| anyhow!("Failed to save user report data: {err}"))
+// }
+
+func saveAttestationUserReportData(pubkey common.Address) error {
+	extendedPubkey := make([]byte, 64)
+	copy(extendedPubkey, pubkey.Bytes())
+	userReportDataFile, err := os.OpenFile(AttestationUserReportDataDeviceFile, os.O_WRONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer userReportDataFile.Close()
+	if _, err := userReportDataFile.Write(extendedPubkey); err != nil {
+		return err
+	}
+	return nil
+}
+
+// fn get_sgx_quote() -> Result<Vec<u8>> {
+//     let mut quote_file = File::open(ATTESTATION_QUOTE_DEVICE_FILE)?;
+//     let mut quote = Vec::new();
+//     quote_file.read_to_end(&mut quote)?;
+//     Ok(quote)
+// }
+
+func getSgxQuote() ([]byte, error) {
+	quoteFile, err := os.Open(AttestationQuoteDeviceFile)
+	if err != nil {
+		return nil, err
+	}
+	defer quoteFile.Close()
+	quote, err := ioutil.ReadAll(quoteFile)
+	if err != nil {
+		return nil, err
+	}
+	return quote, nil
 }
