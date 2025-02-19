@@ -28,14 +28,14 @@ func TestMpt(t *testing.T) {
 		}
 		return nil
 	}
-	trie := NewEmptyMptNode()
+	trie := New()
 	for i := 0; i < n; i++ {
 		key := keyFunc(i)
 		ok, err := trie.InsertRLP(internal.Keccak(key), uint(i))
 		require.NoError(t, err)
 		assert.True(t, ok)
 
-		ref := NewEmptyMptNode()
+		ref := New()
 		for j := i; j >= 0; j-- {
 			key := keyFunc(j)
 			ok, err := ref.InsertRLP(internal.Keccak(key), uint(j))
