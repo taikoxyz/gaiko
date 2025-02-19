@@ -45,8 +45,8 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 				}
 			}
 		}
-		w.ListEnd(idx)
 		w.Write(rlp.EmptyString)
+		w.ListEnd(idx)
 	case *LeafNode:
 		idx := w.List()
 		w.WriteBytes(data.Prefix)
@@ -64,7 +64,7 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	default:
 		return fmt.Errorf("unknown MptNodeData type: %T", data)
 	}
-	return nil
+	return w.Flush()
 }
 
 func (m *MptNode) Clear() {
@@ -217,6 +217,7 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 			} else {
 				branch[selfNibs[commonLen]] = data.Child
 			}
+			data.Child = NewEmptyMptNode()
 			branch[keyNibs[commonLen]] = NewMptNode(&LeafNode{
 				Prefix: toEncodedPath(keyNibs[splitPoint:], true),
 				Value:  value,
