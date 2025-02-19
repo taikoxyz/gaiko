@@ -10,32 +10,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const intSize = 32 << (^uint(0) >> 63)
+
 func TestMpt(t *testing.T) {
 	n := 512
 	keyFunc := func(i int) []byte {
-		key := make([]byte, 8)
-		binary.BigEndian.PutUint64(key, uint64(i))
-		return key
+		switch intSize {
+		case 32:
+			key := make([]byte, 32)
+			binary.BigEndian.PutUint32(key, uint32(i))
+			return key
+		case 64:
+			key := make([]byte, 64)
+			binary.BigEndian.PutUint64(key, uint64(i))
+			return key
+		}
+		return nil
 	}
 	trie := NewEmptyMptNode()
 	for i := 0; i < n; i++ {
 		key := keyFunc(i)
-		ok, err := trie.InsertRLP(keccak(key), uint64(i))
+		ok, err := trie.InsertRLP(keccak(key), uint(i))
 		require.NoError(t, err)
 		assert.True(t, ok)
 
 		ref := NewEmptyMptNode()
 		for j := i; j >= 0; j-- {
 			key := keyFunc(j)
-			ok, err := ref.InsertRLP(keccak(key), uint64(j))
+			ok, err := ref.InsertRLP(keccak(key), uint(j))
 			require.NoError(t, err)
 			assert.True(t, ok)
 		}
 		expected, err := trie.Hash()
 		require.NoError(t, err)
-		got, err := ref.Hash()
+		actual, err := ref.Hash()
 		require.NoError(t, err)
-		assert.Equal(t, expected, got)
+		assert.Equal(t, expected, actual)
 	}
 	actual := common.HexToHash("7310027edebdd1f7c950a7fb3413d551e85dff150d45aca4198c2f6315f9b4a7")
 	expected, err := trie.Hash()
