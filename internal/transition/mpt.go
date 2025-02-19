@@ -14,7 +14,7 @@ import (
 
 const nilKindString = 0x80
 
-func writeNilString(w rlp.EncoderBuffer) {
+func writeNilKindString(w rlp.EncoderBuffer) {
 	w.Write([]byte{nilKindString})
 }
 
@@ -39,14 +39,14 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	w := rlp.NewEncoderBuffer(_w)
 	switch data := m.Data.(type) {
 	case *NullNode:
-		writeNilString(w)
+		writeNilKindString(w)
 	case *DigestNode:
 		w.WriteBytes(data[:])
 	case *BranchNode:
 		idx := w.List()
 		for _, child := range data {
 			if child == nil {
-				writeNilString(w)
+				writeNilKindString(w)
 			} else {
 				if err := child.refEncode(w); err != nil {
 					return err
@@ -54,7 +54,7 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 			}
 		}
 		w.ListEnd(idx)
-		writeNilString(w)
+		writeNilKindString(w)
 	case *LeafNode:
 		idx := w.List()
 		w.WriteBytes(data.Prefix)
@@ -448,7 +448,7 @@ func (m *MptNode) ref() (MptNodeRef, error) {
 	if m.cachedRef == nil {
 		switch data := m.Data.(type) {
 		case *NullNode:
-			m.cachedRef = BytesMptNodeRef{0x80}
+			m.cachedRef = BytesMptNodeRef{nilKindString}
 		case *DigestNode:
 			m.cachedRef = DigestMptNodeRef(*data)
 		default:
