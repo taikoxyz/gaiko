@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	HeklaHardFork  string = "Hekla"
-	OntakeHardFork string = "Ontake"
-	PacayaHardFork string = "Pacaya"
+	NothingHardFork string = "Nothing"
+	HeklaHardFork   string = "Hekla"
+	OntakeHardFork  string = "Ontake"
+	PacayaHardFork  string = "Pacaya"
 )
 
 type BlockProposedFork interface {
@@ -371,7 +372,7 @@ func (b *NotingBlockProposed) BlobUsed() bool {
 }
 
 func (b *NotingBlockProposed) HardFork() string {
-	return ""
+	return NothingHardFork
 }
 
 func (b *NotingBlockProposed) MinTier() uint16 {
