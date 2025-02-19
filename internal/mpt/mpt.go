@@ -444,8 +444,7 @@ func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
 	if err != nil {
 		return err
 	}
-	ref.EncodeRLP(w)
-	return nil
+	return ref.EncodeRLP(w)
 }
 
 func (m *MptNode) ref() (MptNodeRef, error) {
@@ -471,15 +470,16 @@ func (m *MptNode) ref() (MptNodeRef, error) {
 }
 
 type MptNodeRef interface {
-	EncodeRLP(w rlp.EncoderBuffer)
+	EncodeRLP(w rlp.EncoderBuffer) error
 	Hash() common.Hash
 	Len() int
 }
 
 type BytesMptNodeRef []byte
 
-func (b BytesMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) {
-	w.Write(b)
+func (b BytesMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) error {
+	_, err := w.Write(b)
+	return err
 }
 
 func (b BytesMptNodeRef) Hash() common.Hash {
@@ -492,8 +492,9 @@ func (b BytesMptNodeRef) Len() int {
 
 type DigestMptNodeRef common.Hash
 
-func (d DigestMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) {
+func (d DigestMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) error {
 	w.WriteBytes(d[:])
+	return nil
 }
 
 func (d DigestMptNodeRef) Hash() common.Hash {
