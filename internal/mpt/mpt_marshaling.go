@@ -14,6 +14,7 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 	}
 	for _, rawData := range raw {
 		// try Null
+		// {"data": "Null" }
 		var null string
 		if err := json.Unmarshal(rawData, &null); err == nil {
 			if null == "Null" {
@@ -66,9 +67,6 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 					return err
 				}
 				m.data = &data
-			case "Null":
-				// {"data": "Null" }
-				m.data = &nullNode{}
 			default:
 				return fmt.Errorf("unknown MptNodeData type: %s", key)
 			}
