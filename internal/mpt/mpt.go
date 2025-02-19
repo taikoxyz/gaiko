@@ -287,7 +287,6 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 					nextIdx = idx
 					nextChild = child
 				}
-				break
 			}
 		}
 		if remaining == 1 {
