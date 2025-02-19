@@ -35,7 +35,7 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	case *NullNode:
 		w.Write(rlp.EmptyString)
 	case *BranchNode:
-		idx := w.List()
+		_tmp0 := w.List()
 		for _, child := range data {
 			if child == nil {
 				w.Write(rlp.EmptyString)
@@ -46,19 +46,19 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 			}
 		}
 		w.Write(rlp.EmptyString)
-		w.ListEnd(idx)
+		w.ListEnd(_tmp0)
 	case *LeafNode:
-		idx := w.List()
+		_tmp0 := w.List()
 		w.WriteBytes(data.Prefix)
 		w.WriteBytes(data.Value)
-		w.ListEnd(idx)
+		w.ListEnd(_tmp0)
 	case *ExtensionNode:
-		idx := w.List()
+		_tmp0 := w.List()
 		w.WriteBytes(data.Prefix)
 		if err := data.Child.refEncode(w); err != nil {
 			return err
 		}
-		w.ListEnd(idx)
+		w.ListEnd(_tmp0)
 	case *DigestNode:
 		w.WriteBytes(data[:])
 	default:
