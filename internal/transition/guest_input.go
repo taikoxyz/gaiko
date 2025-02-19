@@ -93,9 +93,9 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 		if len(g.Taiko.TxData) != eth.BlobSize {
 			return nil, fmt.Errorf("invalid TxData length, expected: %d, got: %d", eth.BlobSize, len(g.Taiko.TxData))
 		}
-		var blob [eth.BlobSize]byte
+		var blob eth.Blob
 		copy(blob[:], g.Taiko.TxData)
-		if err := verifyBlob(blobProofType, blob, *g.Taiko.BlobCommitment, (*kzg4844.Proof)(g.Taiko.BlobProof)); err != nil {
+		if err := verifyBlob(blobProofType, &blob, *g.Taiko.BlobCommitment, (*kzg4844.Proof)(g.Taiko.BlobProof)); err != nil {
 			return nil, err
 		}
 	} else {

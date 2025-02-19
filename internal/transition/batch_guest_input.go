@@ -28,7 +28,7 @@ type TaikoGuestBatchInput struct {
 	ChainSpec          *ChainSpec
 	ProverData         *TaikoProverData
 	TxDataFromCalldata []byte
-	TxDataFromBlob     [][eth.BlobSize]byte
+	TxDataFromBlob     []*[eth.BlobSize]byte
 	BlobCommitments    *[][commitmentSize]byte
 	BlobProofs         *[][proofSize]byte
 	BlobProofType      BlobProofType
@@ -53,7 +53,7 @@ func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 		blob := g.Taiko.TxDataFromBlob[i]
 		commitment := (*g.Taiko.BlobCommitments)[i]
 		proof := (*g.Taiko.BlobProofs)[i]
-		if err := verifyBlob(blobProofType, blob, commitment, (*kzg4844.Proof)(&proof)); err != nil {
+		if err := verifyBlob(blobProofType, (*eth.Blob)(blob), commitment, (*kzg4844.Proof)(&proof)); err != nil {
 			return err
 		}
 	}

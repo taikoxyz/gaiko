@@ -12,7 +12,7 @@ const (
 	commitmentSize = 48
 )
 
-func verifyBlob(blobProofType BlobProofType, blob eth.Blob, commitment kzg4844.Commitment, proof *kzg4844.Proof) error {
+func verifyBlob(blobProofType BlobProofType, blob *eth.Blob, commitment kzg4844.Commitment, proof *kzg4844.Proof) error {
 	switch blobProofType {
 	case KzgVersionedHash:
 		got, err := blob.ComputeKZGCommitment()
@@ -28,7 +28,7 @@ func verifyBlob(blobProofType BlobProofType, blob eth.Blob, commitment kzg4844.C
 		if proof == nil {
 			return fmt.Errorf("missing proof")
 		}
-		return eth.VerifyBlobProof(&blob, commitment, *proof)
+		return eth.VerifyBlobProof(blob, commitment, *proof)
 	default:
 		return fmt.Errorf("unsupported blob proof type: %v", blobProofType)
 	}
