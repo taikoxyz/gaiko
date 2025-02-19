@@ -13,23 +13,21 @@ import (
 
 func decodeTxs(
 	txListBytes []byte,
-	anchorTx *types.Transaction,
 	blobUsed, isPacaya bool,
 	chainID, blockNumber *big.Int,
 	offset, length uint32) types.Transactions {
 	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
-	txs := []*types.Transaction{anchorTx}
 	if blobUsed {
 		blob := eth.Blob(txListBytes)
 		var err error
 		if txListBytes, err = blob.ToData(); err != nil {
-			return txs
+			return nil
 		}
 		if txListBytes, err = sliceTxList(blockNumber, txListBytes, offset, length); err != nil {
-			return txs
+			return nil
 		}
 	}
-	return append(txs, decompressor.TryDecompress(chainID, txListBytes, blobUsed, isPacaya)...)
+	return decompressor.TryDecompress(chainID, txListBytes, blobUsed, isPacaya)
 }
 
 // sliceTxList returns the sliced txList bytes from the given offset and length.

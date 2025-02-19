@@ -64,7 +64,8 @@ func (g *GuestInput) GuestInputs() iter.Seq[Pair] {
 		blobUsed := g.Taiko.BlockProposed.BlobUsed()
 		isPacaya := g.Taiko.BlockProposed.HardFork() == PacayaHardFork
 		offset, length := g.Taiko.BlockProposed.BlobTxSliceParam()
-		txs := decodeTxs(txListBytes, g.Taiko.AnchorTx, blobUsed, isPacaya, chainID, g.Block.Number(), offset, length)
+		txs := decodeTxs(txListBytes, blobUsed, isPacaya, chainID, g.Block.Number(), offset, length)
+		txs = append([]*types.Transaction{g.Taiko.AnchorTx}, txs...)
 		yield(Pair{g, txs})
 	}
 }

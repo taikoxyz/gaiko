@@ -3,14 +3,18 @@ package transition
 import (
 	"encoding/json"
 	"iter"
+	"math/big"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
+	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
+	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/rpc"
 )
 
 var _ GuestDriver = (*BatchGuestInput)(nil)
@@ -35,7 +39,39 @@ type TaikoGuestBatchInput struct {
 }
 
 func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
-	panic("not implemented") // TODO: Implement
+	return func(yield func(Pair) bool) {
+		batchProposed := g.Taiko.BatchProposed
+		blobDataBufs := g.Taiko.TxDataFromBlob
+		var compressedTxListBuf []byte
+		for _, blobDataBuf := range blobDataBufs {
+			blob := (*eth.Blob)(blobDataBuf)
+			data, err := blob.ToData()
+			if err != nil {
+				log.Error("blob.ToData error: %s", err)
+				return
+			}
+			compressedTxListBuf = append(compressedTxListBuf, data...)
+		}
+		offset, length := batchProposed.BlobTxSliceParam()
+		chainID := big.NewInt(int64(g.ChainID()))
+		firstBlock := g.Inputs[0].Block.Number()
+		decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, rpc.BlockMaxTxListBytes, chainID)
+		txListBytes, err := sliceTxList(firstBlock, compressedTxListBuf, offset, length)
+		if err != nil {
+			log.Error("sliceTxList error: %s", err)
+			return
+		}
+		txs := decompressor.TryDecompress(chainID, txListBytes, true, true)
+		blockParams := batchProposed.BlockParams()
+		next := 0
+		for i, blockParam := range blockParams {
+			numTransactions := int(blockParam.NumTransactions)
+			_txs := []*types.Transaction{g.Inputs[i].Taiko.AnchorTx}
+			_txs = append(_txs, txs[next:next+numTransactions]...)
+			yield(Pair{g.Inputs[i], _txs})
+			next += numTransactions
+		}
+	}
 }
 
 func (g *BatchGuestInput) BlockProposedFork() BlockProposedFork {
@@ -74,7 +110,6 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 	}
 
 	blocks := make([]pacaya.ITaikoInboxBlockParams, len(g.Inputs))
-
 	for i, input := range g.Inputs {
 		signalSlots, err := decodeAnchorV3Args_signalSlots(input.Taiko.AnchorTx.Data()[4:])
 		if err != nil {

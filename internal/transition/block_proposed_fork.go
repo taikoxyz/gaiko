@@ -38,6 +38,7 @@ type BlockProposedFork interface {
 	Coinbase() common.Address
 	BlobHashes() [][32]byte
 	ExtraData() [32]byte
+	BlockParams() []pacaya.ITaikoInboxBlockParams
 }
 
 func convertBaseFeeConfig(baseFeeConfig pacaya.LibSharedDataBaseFeeConfig) ontake.LibSharedDataBaseFeeConfig {
@@ -147,6 +148,10 @@ func (b *PacayaBlockProposed) ExtraData() [32]byte {
 	return b.Info.ExtraData
 }
 
+func (b *PacayaBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+	return b.Info.Blocks
+}
+
 type HeklaBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposed
 }
@@ -243,6 +248,10 @@ func (b *HeklaBlockProposed) BlobHashes() [][32]byte {
 
 func (b *HeklaBlockProposed) ExtraData() [32]byte {
 	return b.Meta.ExtraData
+}
+
+func (b *HeklaBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+	return nil
 }
 
 type OntakeBlockProposed struct {
@@ -343,6 +352,10 @@ func (b *OntakeBlockProposed) ExtraData() [32]byte {
 	return b.Meta.ExtraData
 }
 
+func (b *OntakeBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+	return nil
+}
+
 type NotingBlockProposed struct{}
 
 var _ BlockProposedFork = (*NotingBlockProposed)(nil)
@@ -433,4 +446,8 @@ func (b *NotingBlockProposed) BlobHashes() [][32]byte {
 
 func (b *NotingBlockProposed) ExtraData() [32]byte {
 	return [32]byte{}
+}
+
+func (b *NotingBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+	return nil
 }
