@@ -6,7 +6,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
-type BlockMetaDataFork interface {
+type BlockMetadataFork interface {
 	ABIEncoder
 	Hash() common.Hash
 }

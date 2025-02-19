@@ -68,7 +68,7 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(txListHash common.Hash, blobHas
 	return common.BytesToHash(keccak(data)), nil
 }
 
-func (g *BatchGuestInput) BlockMetaDataFork(proofType ProofType) (BlockMetaDataFork, error) {
+func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
 	if err := g.verifyBatchModeBlobUsage(proofType); err != nil {
 		return nil, err
 	}

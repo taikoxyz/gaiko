@@ -73,11 +73,11 @@ func (g *GuestInput) BlockProposedFork() BlockProposedFork {
 	return g.Taiko.BlockProposed
 }
 
-func (g *GuestInput) BlockMetaDataFork(proofType ProofType) (BlockMetaDataFork, error) {
+func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
 	var (
 		reducedGasLimit uint32
 		txListHash      common.Hash
-		metadata        BlockMetaDataFork
+		metadata        BlockMetadataFork
 		blobProofType   = getBlobProofType(proofType, g.Taiko.BlobProofType)
 	)
 	if g.ChainSpec.IsTaiko {

@@ -26,7 +26,7 @@ var (
 		{Name: "_txListHash", Type: byte32Ty},
 		{Name: "blobHashes_", Type: byte32sTy},
 	}
-	batchMetaDataComponentsArgs   abi.Arguments
+	batchMetadataComponentsArgs   abi.Arguments
 	batchInfoComponentsArgs       abi.Arguments
 	blockMetadataComponentsArgs   abi.Arguments
 	blockMetadataV2ComponentsArgs abi.Arguments
@@ -43,7 +43,7 @@ func init() {
 	if err != nil {
 		log.Crit("Get BatchProposed failed", err)
 	}
-	batchMetaDataComponentsArgs = abi.Arguments{arg}
+	batchMetadataComponentsArgs = abi.Arguments{arg}
 	arg, err = findArgumentInEventInputs(batchProposedEvent.Inputs, "info")
 	if err != nil {
 		log.Crit("Get BatchInfo failed", err)

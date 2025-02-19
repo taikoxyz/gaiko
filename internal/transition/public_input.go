@@ -10,7 +10,7 @@ import (
 
 type PublicInput struct {
 	transition     *ontake.TaikoDataTransition
-	block_metadata BlockMetaDataFork
+	block_metadata BlockMetadataFork
 	verifier       common.Address
 	prover         common.Address
 	sgxInstance    common.Address
@@ -31,14 +31,14 @@ func NewPublicInput(driver GuestDriver, proofType ProofType) (*PublicInput, erro
 		return nil, err
 	}
 
-	metaData, err := driver.BlockMetaDataFork(proofType)
+	meta, err := driver.BlockMetadataFork(proofType)
 	if err != nil {
 		return nil, err
 	}
 
 	pi := &PublicInput{
 		transition:     driver.Transition(),
-		block_metadata: metaData,
+		block_metadata: meta,
 		verifier:       verifierAddress,
 		prover:         driver.Prover(),
 		sgxInstance:    common.Address{},
