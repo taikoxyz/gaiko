@@ -16,7 +16,7 @@ type BatchProposed struct {
 	TxList hexutil.Bytes  `json:"txList" gencodec:"required"`
 }
 
-func (b *BatchProposed) Origin() *pacaya.TaikoInboxClientBatchProposed {
+func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 	blocks := make([]pacaya.ITaikoInboxBlockParams, len(b.Info.Blocks))
 	for i, block := range b.Info.Blocks {
 		signalSlots := make([][32]byte, len(block.SignalSlots))

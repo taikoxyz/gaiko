@@ -7,10 +7,10 @@ import (
 
 type AccessList []AccessTuple
 
-func (a AccessList) Origin() types.AccessList {
+func (a AccessList) GethType() types.AccessList {
 	accessList := make(types.AccessList, len(a))
 	for i, accessTuple := range a {
-		accessList[i] = accessTuple.Origin()
+		accessList[i] = accessTuple.GethType()
 	}
 	return accessList
 }
@@ -20,7 +20,7 @@ type AccessTuple struct {
 	StorageKeys []common.Hash  `json:"storage_keys" gencodec:"required"`
 }
 
-func (a *AccessTuple) Origin() types.AccessTuple {
+func (a *AccessTuple) GethType() types.AccessTuple {
 	return types.AccessTuple{
 		Address:     a.Address,
 		StorageKeys: a.StorageKeys,

@@ -34,7 +34,7 @@ type guestInputJSON struct {
 	Taiko           *taikoGuestInputJSON            `json:"taiko"`
 }
 
-func (g *guestInputJSON) Origin() *GuestInput {
+func (g *guestInputJSON) GethType() *GuestInput {
 	contracts := make([][]byte, len(g.Contracts))
 	for i, contract := range g.Contracts {
 		contracts[i] = contract
@@ -42,17 +42,17 @@ func (g *guestInputJSON) Origin() *GuestInput {
 
 	ancestorHeaders := make([]*types.Header, len(g.AncestorHeaders))
 	for i, ancestorHeader := range g.AncestorHeaders {
-		ancestorHeaders[i] = ancestorHeader.Origin()
+		ancestorHeaders[i] = ancestorHeader.GethType()
 	}
 	return &GuestInput{
-		Block:           g.Block.Origin(),
+		Block:           g.Block.GethType(),
 		ChainSpec:       g.ChainSpec,
-		ParentHeader:    g.ParentHeader.Origin(),
+		ParentHeader:    g.ParentHeader.GethType(),
 		ParentStateTrie: g.ParentStateTrie,
 		ParentStorage:   g.ParentStorage,
 		Contracts:       contracts,
 		AncestorHeaders: ancestorHeaders,
-		Taiko:           g.Taiko.Origin(),
+		Taiko:           g.Taiko.GethType(),
 	}
 }
 
@@ -67,12 +67,12 @@ type taikoGuestInputJSON struct {
 	BlobProofType  BlobProofType                 `json:"blob_proof_type"`
 }
 
-func (t *taikoGuestInputJSON) Origin() *TaikoGuestInput {
+func (t *taikoGuestInputJSON) GethType() *TaikoGuestInput {
 	return &TaikoGuestInput{
-		L1Header:       t.L1Header.Origin(),
+		L1Header:       t.L1Header.GethType(),
 		TxData:         t.TxData,
-		AnchorTx:       t.AnchorTx.Origin(),
-		BlockProposed:  t.BlockProposed.Origin(),
+		AnchorTx:       t.AnchorTx.GethType(),
+		BlockProposed:  t.BlockProposed.GethType(),
 		ProverData:     t.ProverData,
 		BlobCommitment: t.BlobCommitment,
 		BlobProof:      t.BlobProof,
@@ -91,14 +91,16 @@ type blockProposedForkJSON struct {
 	inner interface{}
 }
 
-func (b *blockProposedForkJSON) Origin() BlockProposedFork {
+func (b *blockProposedForkJSON) GethType() BlockProposedFork {
 	switch inner := b.inner.(type) {
 	case *gaikoTypes.BlockProposed:
-		return NewHeklaBlockProposed(inner.Origin())
+		return NewHeklaBlockProposed(inner.GethType())
 	case *gaikoTypes.BlockProposedV2:
-		return NewOntakeBlockProposed(inner.Origin())
+		return NewOntakeBlockProposed(inner.GethType())
 	case *gaikoTypes.BatchProposed:
-		return NewPacayaBlockProposed(inner.Origin())
+		return NewPacayaBlockProposed(inner.GethType())
+	case *NotingBlockProposed:
+		return &NotingBlockProposed{}
 	default:
 		return nil
 	}
@@ -144,6 +146,6 @@ func (g *GuestInput) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*g = *dec.Origin()
+	*g = *dec.GethType()
 	return nil
 }

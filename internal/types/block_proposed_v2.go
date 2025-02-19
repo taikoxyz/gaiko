@@ -16,7 +16,7 @@ type BlockProposedV2 struct {
 	Meta    *BlockMetadataV2 `json:"meta" gencodec:"required"`
 }
 
-func (b *BlockProposedV2) Origin() *ontake.TaikoL1ClientBlockProposedV2 {
+func (b *BlockProposedV2) GethType() *ontake.TaikoL1ClientBlockProposedV2 {
 	return &ontake.TaikoL1ClientBlockProposedV2{
 		BlockId: b.BlockId,
 		Meta: ontake.TaikoDataBlockMetadataV2{

@@ -19,7 +19,7 @@ type BlockProposed struct {
 	DepositsProcessed []*EthDeposit  `json:"depositsProcessed" gencodec:"required"`
 }
 
-func (b *BlockProposed) Origin() *ontake.TaikoL1ClientBlockProposed {
+func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
 	deposits := make([]ontake.TaikoDataEthDeposit, len(b.DepositsProcessed))
 	for i, deposit := range b.DepositsProcessed {
 		deposits[i] = ontake.TaikoDataEthDeposit{

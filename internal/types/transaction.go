@@ -14,10 +14,10 @@ import (
 
 type TransactionSigneds []*TransactionSigned
 
-func (t TransactionSigneds) Origin() []*types.Transaction {
+func (t TransactionSigneds) GethType() []*types.Transaction {
 	txs := make([]*types.Transaction, len(t))
 	for i, tx := range t {
-		txs[i] = tx.Origin()
+		txs[i] = tx.GethType()
 	}
 	return txs
 }
@@ -32,7 +32,7 @@ type Transaction struct {
 	inner interface{}
 }
 
-func (t *TransactionSigned) Origin() *types.Transaction {
+func (t *TransactionSigned) GethType() *types.Transaction {
 	switch inner := t.Transaction.inner.(type) {
 	case *TxLegacy:
 		tx := &types.LegacyTx{
@@ -56,7 +56,7 @@ func (t *TransactionSigned) Origin() *types.Transaction {
 			To:         inner.To,
 			Value:      inner.Value,
 			Data:       inner.Input,
-			AccessList: inner.AccessList.Origin(),
+			AccessList: inner.AccessList.GethType(),
 			V:          t.Signature.V(inner.ChainId),
 			R:          t.Signature.R,
 			S:          t.Signature.S,
@@ -72,7 +72,7 @@ func (t *TransactionSigned) Origin() *types.Transaction {
 			To:         inner.To,
 			Value:      inner.Value,
 			Data:       inner.Input,
-			AccessList: inner.AccessList.Origin(),
+			AccessList: inner.AccessList.GethType(),
 			V:          t.Signature.V(inner.ChainId),
 			R:          t.Signature.R,
 			S:          t.Signature.S,
@@ -88,7 +88,7 @@ func (t *TransactionSigned) Origin() *types.Transaction {
 			To:         inner.To,
 			Value:      uint256.MustFromBig(inner.Value),
 			Data:       inner.Input,
-			AccessList: inner.AccessList.Origin(),
+			AccessList: inner.AccessList.GethType(),
 			BlobFeeCap: uint256.MustFromBig(inner.MaxFeePerBlobGas),
 			BlobHashes: inner.BlobVersionedHashes,
 			V:          uint256.MustFromBig(t.Signature.V(inner.ChainId)),

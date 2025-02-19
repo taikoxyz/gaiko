@@ -46,7 +46,7 @@ func (t *Requests) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (r Requests) Origin() []*types.Request {
+func (r Requests) GethType() []*types.Request {
 	requests := make([]*types.Request, len(r))
 	for i, req := range r {
 		switch inner := req.(type) {

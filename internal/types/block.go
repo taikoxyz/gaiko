@@ -13,11 +13,11 @@ type Block struct {
 	Requests    Requests           `json:"requests"`
 }
 
-func (b *Block) Origin() *types.Block {
-	return types.NewBlock(b.Header.Origin(), &types.Body{
-		Transactions: b.Body.Origin(),
-		Uncles:       b.Ommers.Origin(),
+func (b *Block) GethType() *types.Block {
+	return types.NewBlock(b.Header.GethType(), &types.Body{
+		Transactions: b.Body.GethType(),
+		Uncles:       b.Ommers.GethType(),
 		Withdrawals:  b.Withdrawals,
-		Requests:     b.Requests.Origin(),
+		Requests:     b.Requests.GethType(),
 	}, nil, trie.NewStackTrie(nil))
 }

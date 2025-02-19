@@ -11,10 +11,10 @@ import (
 
 type Headers []*Header
 
-func (h Headers) Origin() []*types.Header {
+func (h Headers) GethType() []*types.Header {
 	headers := make([]*types.Header, len(h))
 	for i, header := range h {
-		headers[i] = header.Origin()
+		headers[i] = header.GethType()
 	}
 	return headers
 }
@@ -57,7 +57,7 @@ type headerMarshaling struct {
 	ExcessBlobGas *math.HexOrDecimal64  `json:"excess_blob_gas"`
 }
 
-func (h *Header) Origin() *types.Header {
+func (h *Header) GethType() *types.Header {
 	return &types.Header{
 		ParentHash:       h.ParentHash,
 		UncleHash:        h.OmmerHash,
