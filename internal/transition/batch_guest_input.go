@@ -34,11 +34,6 @@ type TaikoGuestBatchInput struct {
 	BlobProofType      BlobProofType
 }
 
-func (g *BatchGuestInput) UnmarshalJSON(data []byte) error {
-	// TODO: Implement
-	return json.Unmarshal(data, g)
-}
-
 func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
 	panic("not implemented") // TODO: Implement
 }

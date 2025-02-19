@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -69,13 +68,6 @@ func (t *taikoGuestInputJSON) GethType() *TaikoGuestInput {
 		BlobProof:      t.BlobProof,
 		BlobProofType:  t.BlobProofType,
 	}
-}
-
-func toCamelCase(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToLower(s[:1]) + s[1:]
 }
 
 type blockProposedForkJSON struct {
