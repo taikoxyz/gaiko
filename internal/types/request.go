@@ -10,65 +10,57 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-type Requests []*Request
+type Requests []interface{}
+
+func (t *Requests) UnmarshalJSON(data []byte) error {
+	raw := []map[string]json.RawMessage{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	for _, req := range raw {
+		for key, val := range req {
+			switch key {
+			case "DepositRequest":
+				var inner types.Deposit
+				if err := json.Unmarshal(val, &inner); err != nil {
+					return err
+				}
+				*t = append(*t, &inner)
+			case "WithdrawalRequest":
+				var inner WithdrawalRequest
+				if err := json.Unmarshal(val, &inner); err != nil {
+					return err
+				}
+				*t = append(*t, &inner)
+			case "ConsolidationRequest":
+				var inner ConsolidationRequest
+				if err := json.Unmarshal(val, &inner); err != nil {
+					return err
+				}
+				*t = append(*t, &inner)
+			default:
+				return fmt.Errorf("unknown request type: %s", key)
+			}
+		}
+	}
+	return nil
+}
 
 func (r Requests) Origin() []*types.Request {
 	requests := make([]*types.Request, len(r))
 	for i, req := range r {
-		requests[i] = req.Origin()
-	}
-	return requests
-}
-
-type Request struct {
-	inner interface{}
-}
-
-func (t *Request) Origin() *types.Request {
-	switch inner := t.inner.(type) {
-	case *types.Deposit:
-		return types.NewRequest(inner)
-	case *WithdrawalRequest:
-		// TODO: not support yet
-		return nil
-	case *ConsolidationRequest:
-		// TODO: not support yet
-		return nil
-	default:
-		panic(fmt.Sprintf("unknown request type: %T", inner))
-	}
-}
-
-func (t *Request) UnmarshalJSON(data []byte) error {
-	raw := map[string]json.RawMessage{}
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-	for key, val := range raw {
-		switch key {
-		case "DepositRequest":
-			var inner types.Deposit
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			t.inner = &inner
-		case "WithdrawalRequest":
-			var inner WithdrawalRequest
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			t.inner = &inner
-		case "ConsolidationRequest":
-			var inner ConsolidationRequest
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			t.inner = &inner
+		switch inner := req.(type) {
+		case *types.Deposit:
+			requests[i] = types.NewRequest(inner)
+		case *WithdrawalRequest:
+			// TODO: not support yet
+		case *ConsolidationRequest:
+			// TODO: not support yet
 		default:
-			return fmt.Errorf("unknown request type: %s", key)
+			panic(fmt.Sprintf("unknown request type: %T", inner))
 		}
 	}
-	return nil
+	return requests
 }
 
 //go:generate go run github.com/fjl/gencodec -type WithdrawalRequest -field-override withdrawalRequestMarshaling -out gen_withdrawal_request.go

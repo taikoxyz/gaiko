@@ -10,7 +10,7 @@ type Block struct {
 	Body        TransactionSigneds `json:"body" gencodec:"required"`
 	Ommers      Headers            `json:"ommers" gencodec:"required"`
 	Withdrawals types.Withdrawals  `json:"withdrawals"`
-	Requests    *Requests          `json:"requests"`
+	Requests    Requests           `json:"requests"`
 }
 
 func (b *Block) Origin() *types.Block {

@@ -12,7 +12,7 @@ import (
 	"github.com/holiman/uint256"
 )
 
-type TransactionSigneds []TransactionSigned
+type TransactionSigneds []*TransactionSigned
 
 func (t TransactionSigneds) Origin() []*types.Transaction {
 	txs := make([]*types.Transaction, len(t))
