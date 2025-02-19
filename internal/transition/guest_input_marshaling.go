@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/taikoxyz/gaiko/internal/mpt"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 )
 
@@ -27,7 +27,7 @@ type guestInputJSON struct {
 	Block           *gaikoTypes.Block               `json:"block"`
 	ChainSpec       *ChainSpec                      `json:"chain_spec"`
 	ParentHeader    *gaikoTypes.Header              `json:"parent_header"`
-	ParentStateTrie *trie.Trie                      `json:"parent_state_trie"`
+	ParentStateTrie *mpt.MptNode                    `json:"parent_state_trie"`
 	ParentStorage   map[common.Address]StorageEntry `json:"parent_storage"`
 	Contracts       []hexutil.Bytes                 `json:"contracts"`
 	AncestorHeaders []*gaikoTypes.Header            `json:"ancestor_headers"`

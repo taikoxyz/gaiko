@@ -37,9 +37,13 @@ type preState struct {
 // *Note*:
 // This StateDB is only used for execution without trust its root.
 func (g *GuestInput) makePreState() (*preState, error) {
-	if g.ParentHeader.Root != g.ParentStateTrie.Hash() {
+	parentRoot, err := g.ParentStateTrie.Hash()
+	if err != nil {
+		return nil, err
+	}
+	if g.ParentHeader.Root != parentRoot {
 		return nil, fmt.Errorf("parent state root mismatch: expected %s, got %s",
-			g.ParentHeader.Root.Hex(), g.ParentStateTrie.Hash().Hex())
+			g.ParentHeader.Root.Hex(), parentRoot.Hex())
 	}
 	mdb := rawdb.NewMemoryDatabase()
 	tdb := triedb.NewDatabase(mdb, &triedb.Config{Preimages: true})
@@ -63,7 +67,11 @@ func (g *GuestInput) makePreState() (*preState, error) {
 			// skip not found accounts
 			accounts[addr] = acc
 		}
-		if storage.Trie.Hash() != acc.Root {
+		root, err := storage.Trie.Hash()
+		if err != nil {
+			return nil, err
+		}
+		if root != acc.Root {
 			return nil, fmt.Errorf("account root mismatch for address: %s", addr.Hex())
 		}
 		var code []byte

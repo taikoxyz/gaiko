@@ -1,4 +1,4 @@
-package transition
+package mpt
 
 import (
 	"encoding/binary"
@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/taikoxyz/gaiko/internal"
 )
 
 const intSize = 32 << (^uint(0) >> 63)
@@ -30,14 +31,14 @@ func TestMpt(t *testing.T) {
 	trie := NewEmptyMptNode()
 	for i := 0; i < n; i++ {
 		key := keyFunc(i)
-		ok, err := trie.InsertRLP(keccak(key), uint(i))
+		ok, err := trie.InsertRLP(internal.Keccak(key), uint(i))
 		require.NoError(t, err)
 		assert.True(t, ok)
 
 		ref := NewEmptyMptNode()
 		for j := i; j >= 0; j-- {
 			key := keyFunc(j)
-			ok, err := ref.InsertRLP(keccak(key), uint(j))
+			ok, err := ref.InsertRLP(internal.Keccak(key), uint(j))
 			require.NoError(t, err)
 			assert.True(t, ok)
 		}
@@ -53,7 +54,7 @@ func TestMpt(t *testing.T) {
 	assert.Equal(t, expected, actual)
 	for i := 0; i < n; i++ {
 		key := keyFunc(i)
-		data, err := trie.Get(keccak(key))
+		data, err := trie.Get(internal.Keccak(key))
 		require.NoError(t, err)
 		var val uint64
 		err = rlp.DecodeBytes(data, &val)

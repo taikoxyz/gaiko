@@ -1,4 +1,4 @@
-package transition
+package mpt
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taikoxyz/gaiko/internal"
 )
 
 type MptNode struct {
@@ -463,7 +464,7 @@ func (m *MptNode) ref() (MptNodeRef, error) {
 			if len(encoded) < 32 {
 				m.cachedRef = BytesMptNodeRef(encoded)
 			} else {
-				m.cachedRef = DigestMptNodeRef(common.BytesToHash(keccak(encoded)))
+				m.cachedRef = DigestMptNodeRef(common.BytesToHash(internal.Keccak(encoded)))
 			}
 		}
 	}
@@ -483,7 +484,7 @@ func (b BytesMptNodeRef) EncodeRLP(w rlp.EncoderBuffer) {
 }
 
 func (b BytesMptNodeRef) Hash() common.Hash {
-	return common.BytesToHash(keccak(b))
+	return common.BytesToHash(internal.Keccak(b))
 }
 
 func (b BytesMptNodeRef) Len() int {

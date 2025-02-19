@@ -47,7 +47,7 @@ func Oneshot(ctx *cli.Context) error {
 			if !ok {
 				// Account is deleted
 				key := keccak(addr.Bytes())
-				if err := g.ParentStateTrie.Delete(key); err != nil {
+				if _, err := g.ParentStateTrie.Delete(key); err != nil {
 					return err
 				}
 			}
@@ -61,12 +61,12 @@ func Oneshot(ctx *cli.Context) error {
 			_, ok = preState.accounts[addr]
 			if !ok {
 				// New Account
-				storageEntry.Trie.Reset()
+				storageEntry.Trie.Clear()
 			}
 			for slot, value := range acc.Storage {
 				key := keccak(slot.Bytes())
 				if value == (common.Hash{}) {
-					if err := storageEntry.Trie.Delete(key); err != nil {
+					if _, err := storageEntry.Trie.Delete(key); err != nil {
 						return err
 					}
 				} else {
@@ -75,10 +75,14 @@ func Oneshot(ctx *cli.Context) error {
 					}
 				}
 			}
+			root, err := storageEntry.Trie.Hash()
+			if err != nil {
+				return err
+			}
 			stateAcc := &types.StateAccount{
 				Nonce:    acc.Nonce,
 				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
-				Root:     storageEntry.Trie.Hash(),
+				Root:     root,
 				CodeHash: keccak(acc.Code),
 			}
 

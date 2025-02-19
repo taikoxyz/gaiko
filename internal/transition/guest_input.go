@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/taikoxyz/gaiko/internal/mpt"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -22,7 +22,7 @@ type GuestInput struct {
 	Block           *types.Block
 	ChainSpec       *ChainSpec
 	ParentHeader    *types.Header
-	ParentStateTrie *trie.Trie
+	ParentStateTrie *mpt.MptNode
 	ParentStorage   map[common.Address]StorageEntry
 	Contracts       [][]byte
 	AncestorHeaders []*types.Header
@@ -30,7 +30,7 @@ type GuestInput struct {
 }
 
 type StorageEntry struct {
-	Trie  *trie.Trie
+	Trie  *mpt.MptNode
 	Slots []*big.Int
 }
 
