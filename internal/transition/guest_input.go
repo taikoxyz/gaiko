@@ -15,7 +15,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
-var _ Driver = (*GuestInput)(nil)
+var _ GuestDriver = (*GuestInput)(nil)
 var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {
@@ -164,7 +164,7 @@ func (g *GuestInput) Transition() *ontake.TaikoDataTransition {
 	}
 }
 
-func (g *GuestInput) GetForkVerifierAddress(proofType ProofType) (common.Address, error) {
+func (g *GuestInput) ForkVerifierAddress(proofType ProofType) (common.Address, error) {
 	return g.ChainSpec.getForkVerifierAddress(g.Taiko.BlockProposed.BlockNumber(), proofType)
 }
 

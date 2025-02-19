@@ -14,12 +14,12 @@ type Pair struct {
 	types.Transactions
 }
 
-type Driver interface {
+type GuestDriver interface {
 	GuestInputs() iter.Seq[Pair]
 	BlockProposedFork() BlockProposedFork
 	BlockMetaDataFork(proofType ProofType) (BlockMetaDataFork, error)
 	Transition() *ontake.TaikoDataTransition
-	GetForkVerifierAddress(proofType ProofType) (common.Address, error)
+	ForkVerifierAddress(proofType ProofType) (common.Address, error)
 	Prover() common.Address
 	ChainID() uint64
 	IsTaiko() bool

@@ -25,8 +25,8 @@ func (p *PublicInput) Hash() (common.Address, error) {
 	return common.Address(keccak(b)), nil
 }
 
-func NewPublicInput(driver Driver, proofType ProofType) (*PublicInput, error) {
-	verifierAddress, err := driver.GetForkVerifierAddress(proofType)
+func NewPublicInput(driver GuestDriver, proofType ProofType) (*PublicInput, error) {
+	verifierAddress, err := driver.ForkVerifierAddress(proofType)
 	if err != nil {
 		return nil, err
 	}

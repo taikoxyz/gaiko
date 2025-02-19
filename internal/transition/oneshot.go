@@ -20,7 +20,7 @@ import (
 )
 
 func Oneshot(ctx *cli.Context) error {
-	var driver Driver
+	var driver GuestDriver
 	err := json.NewDecoder(os.Stdin).Decode(&driver)
 	if err != nil {
 		return err

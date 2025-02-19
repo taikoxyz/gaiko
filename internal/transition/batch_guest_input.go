@@ -13,7 +13,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
-var _ Driver = (*BatchGuestInput)(nil)
+var _ GuestDriver = (*BatchGuestInput)(nil)
 var _ json.Unmarshaler = (*BatchGuestInput)(nil)
 
 type BatchGuestInput struct {
@@ -134,7 +134,7 @@ func (g *BatchGuestInput) Transition() *ontake.TaikoDataTransition {
 	}
 }
 
-func (g *BatchGuestInput) GetForkVerifierAddress(proofType ProofType) (common.Address, error) {
+func (g *BatchGuestInput) ForkVerifierAddress(proofType ProofType) (common.Address, error) {
 	return g.Taiko.ChainSpec.getForkVerifierAddress(g.Taiko.BatchProposed.BlockNumber(), proofType)
 }
 
