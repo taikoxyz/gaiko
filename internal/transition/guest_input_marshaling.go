@@ -3,35 +3,26 @@ package transition
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/taikoxyz/gaiko/internal/mpt"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 )
 
-// pub struct GuestInput {
-//     pub block: Block,
-//     pub chain_spec: ChainSpec,
-//     pub parent_header: Header,
-//     pub parent_state_trie: MptNode,
-//     pub parent_storage: HashMap<Address, StorageEntry>,
-//     pub contracts: Vec<Bytes>,
-//     pub ancestor_headers: Vec<Header>,
-//     pub taiko: TaikoGuestInput,
-// }
-
 type guestInputJSON struct {
-	Block           *gaikoTypes.Block               `json:"block"`
-	ChainSpec       *ChainSpec                      `json:"chain_spec"`
-	ParentHeader    *gaikoTypes.Header              `json:"parent_header"`
-	ParentStateTrie *mpt.MptNode                    `json:"parent_state_trie"`
-	ParentStorage   map[common.Address]StorageEntry `json:"parent_storage"`
-	Contracts       []hexutil.Bytes                 `json:"contracts"`
-	AncestorHeaders []*gaikoTypes.Header            `json:"ancestor_headers"`
-	Taiko           *taikoGuestInputJSON            `json:"taiko"`
+	Block           *gaikoTypes.Block                `json:"block"`
+	ChainSpec       *ChainSpec                       `json:"chain_spec"`
+	ParentHeader    *gaikoTypes.Header               `json:"parent_header"`
+	ParentStateTrie *mpt.MptNode                     `json:"parent_state_trie"`
+	ParentStorage   map[common.Address]*StorageEntry `json:"parent_storage"`
+	Contracts       []hexutil.Bytes                  `json:"contracts"`
+	AncestorHeaders []*gaikoTypes.Header             `json:"ancestor_headers"`
+	Taiko           *taikoGuestInputJSON             `json:"taiko"`
 }
 
 func (g *guestInputJSON) GethType() *GuestInput {
@@ -136,6 +127,28 @@ func (b *blockProposedForkJSON) UnmarshalJSON(data []byte) error {
 		default:
 			return fmt.Errorf("unknown BlockProposedFork type: %s", key)
 		}
+	}
+	return nil
+}
+
+func (s *StorageEntry) UnmarshalJSON(data []byte) error {
+	raw := [2]json.RawMessage{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	var trie mpt.MptNode
+	if err := json.Unmarshal(raw[0], &trie); err != nil {
+		return err
+	}
+	s.Trie = &trie
+	var slots []*math.HexOrDecimal256
+	if err := json.Unmarshal(raw[1], &slots); err != nil {
+		return err
+	}
+	s.Slots = make([]*big.Int, len(slots))
+	for i, slot := range slots {
+		s.Slots[i] = (*big.Int)(slot)
 	}
 	return nil
 }

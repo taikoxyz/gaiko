@@ -23,7 +23,7 @@ type GuestInput struct {
 	ChainSpec       *ChainSpec
 	ParentHeader    *types.Header
 	ParentStateTrie *mpt.MptNode
-	ParentStorage   map[common.Address]StorageEntry
+	ParentStorage   map[common.Address]*StorageEntry
 	Contracts       [][]byte
 	AncestorHeaders []*types.Header
 	Taiko           *TaikoGuestInput
