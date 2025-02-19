@@ -2,7 +2,6 @@ package transition
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,19 +19,25 @@ func writeNilString(w rlp.EncoderBuffer) {
 }
 
 type MptNode struct {
-	Data      *MptNodeData `json:"data"`
-	cachedRef MptNodeRef   `json:"-"`
+	Data      MptNodeData `json:"data"`
+	cachedRef MptNodeRef  `json:"-"`
 }
 
-func NewMptNode(inner interface{}) *MptNode {
+var _ rlp.Encoder = (*MptNode)(nil)
+
+func NewMptNode(data MptNodeData) *MptNode {
 	return &MptNode{
-		Data: NewMptNodeData(inner),
+		Data: data,
 	}
+}
+
+func NewEmptyMptNode() *MptNode {
+	return NewMptNode(&NullNode{})
 }
 
 func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	w := rlp.NewEncoderBuffer(_w)
-	switch inner := m.Data.inner.(type) {
+	switch inner := m.Data.(type) {
 	case *NullNode:
 		writeNilString(w)
 	case *DigestNode:
@@ -69,12 +74,12 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 }
 
 func (m *MptNode) Clear() {
-	m.Data = NewMptNodeData(NullNode{})
+	m.Data = &NullNode{}
 	m.cachedRef = nil
 }
 
 func (m *MptNode) Hash() (common.Hash, error) {
-	switch m.Data.inner.(type) {
+	switch m.Data.(type) {
 	case *NullNode:
 		return types.EmptyRootHash, nil
 	default:
@@ -87,7 +92,7 @@ func (m *MptNode) Hash() (common.Hash, error) {
 }
 
 func (m *MptNode) IsEmpty() bool {
-	switch m.Data.inner.(type) {
+	switch m.Data.(type) {
 	case *NullNode:
 		return true
 	default:
@@ -96,7 +101,7 @@ func (m *MptNode) IsEmpty() bool {
 }
 
 func (m *MptNode) Nibs() []byte {
-	switch inner := m.Data.inner.(type) {
+	switch inner := m.Data.(type) {
 	case *NullNode, *BranchNode, *DigestNode:
 		return nil
 	case *LeafNode:
@@ -120,13 +125,21 @@ func (m *MptNode) Insert(key []byte, value []byte) (bool, error) {
 	return m.insert(toNibs(key), value)
 }
 
+func (m *MptNode) InsertRLP(key []byte, value interface{}) (bool, error) {
+	data, err := rlp.EncodeToBytes(value)
+	if err != nil {
+		return false, err
+	}
+	return m.insert(toNibs(key), data)
+}
+
 func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
-	switch inner := m.Data.inner.(type) {
+	switch inner := m.Data.(type) {
 	case *NullNode:
-		m.Data = NewMptNodeData(&LeafNode{
+		m.Data = &LeafNode{
 			Prefix: toEncodedPath(keyNibs, true),
 			Value:  value,
-		})
+		}
 	case *BranchNode:
 		if len(keyNibs) == 0 {
 			return false, errors.New("branch node with value")
@@ -169,12 +182,12 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 				Value:  value,
 			})
 			if commonLen > 0 {
-				m.Data = NewMptNodeData(&ExtensionNode{
+				m.Data = &ExtensionNode{
 					Prefix: toEncodedPath(selfNibs[:commonLen], false),
 					Child:  NewMptNode(branch),
-				})
+				}
 			} else {
-				m.Data = NewMptNodeData(branch)
+				m.Data = branch
 			}
 		}
 	case *ExtensionNode:
@@ -206,12 +219,12 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 				Value:  value,
 			})
 			if commonLen > 0 {
-				m.Data = NewMptNodeData(&ExtensionNode{
+				m.Data = &ExtensionNode{
 					Prefix: toEncodedPath(selfNibs[:commonLen], false),
 					Child:  NewMptNode(branch),
-				})
+				}
 			} else {
-				m.Data = NewMptNodeData(branch)
+				m.Data = branch
 			}
 		}
 	case *DigestNode:
@@ -237,7 +250,7 @@ func lcp(a, b []byte) int {
 }
 
 func (m *MptNode) delete(keyNibs []byte) (bool, error) {
-	switch inner := m.Data.inner.(type) {
+	switch inner := m.Data.(type) {
 	case *NullNode:
 		return false, nil
 	case *BranchNode:
@@ -273,24 +286,24 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 			}
 		}
 		if remaining == 1 {
-			switch inner := nextChild.Data.inner.(type) {
+			switch inner := nextChild.Data.(type) {
 			case *LeafNode:
 				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(inner.Prefix)...)
-				m.Data = NewMptNodeData(&LeafNode{
+				m.Data = &LeafNode{
 					Prefix: toEncodedPath(newNibs, true),
 					Value:  inner.Value,
-				})
+				}
 			case *ExtensionNode:
 				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(inner.Prefix)...)
-				m.Data = NewMptNodeData(&ExtensionNode{
+				m.Data = &ExtensionNode{
 					Prefix: toEncodedPath(newNibs, false),
 					Child:  inner.Child,
-				})
+				}
 			case *BranchNode, *DigestNode:
-				m.Data = NewMptNodeData(&ExtensionNode{
+				m.Data = &ExtensionNode{
 					Prefix: toEncodedPath([]byte{byte(nextIdx)}, false),
 					Child:  nextChild,
-				})
+				}
 			case *NullNode:
 				panic("unreachable")
 			}
@@ -299,7 +312,7 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		if !slices.Equal(prefixNibs(inner.Prefix), keyNibs) {
 			return false, nil
 		}
-		m.Data = NewMptNodeData(&NullNode{})
+		m.Data = &NullNode{}
 	case *ExtensionNode:
 		selfNibs := prefixNibs(inner.Prefix)
 		if bytes.HasPrefix(keyNibs, selfNibs) {
@@ -314,21 +327,21 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 			return false, nil
 		}
 
-		switch inner := inner.Child.Data.inner.(type) {
+		switch inner := inner.Child.Data.(type) {
 		case *NullNode:
-			m.Data = NewMptNodeData(&NullNode{})
+			m.Data = &NullNode{}
 		case *LeafNode:
 			selfNibs := append(selfNibs, prefixNibs(inner.Prefix)...)
-			m.Data = NewMptNodeData(&LeafNode{
+			m.Data = &LeafNode{
 				Prefix: toEncodedPath(selfNibs, true),
 				Value:  inner.Value,
-			})
+			}
 		case *ExtensionNode:
 			selfNibs := append(selfNibs, prefixNibs(inner.Prefix)...)
-			m.Data = NewMptNodeData(&ExtensionNode{
+			m.Data = &ExtensionNode{
 				Prefix: toEncodedPath(selfNibs, true),
 				Child:  inner.Child,
-			})
+			}
 		case *BranchNode, *DigestNode:
 		}
 	case *DigestNode:
@@ -339,7 +352,7 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 }
 
 func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
-	switch inner := m.Data.inner.(type) {
+	switch inner := m.Data.(type) {
 	case *NullNode:
 		return nil, nil
 	case *BranchNode:
@@ -433,7 +446,7 @@ func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
 
 func (m *MptNode) ref() (MptNodeRef, error) {
 	if m.cachedRef == nil {
-		switch inner := m.Data.inner.(type) {
+		switch inner := m.Data.(type) {
 		case *NullNode:
 			m.cachedRef = BytesMptNodeRef{0x80}
 		case *DigestNode:
@@ -488,14 +501,6 @@ func (d DigestMptNodeRef) Len() int {
 	return 33
 }
 
-type MptNodeData struct {
-	inner interface{}
-}
-
-func NewMptNodeData(inner interface{}) *MptNodeData {
-	return &MptNodeData{inner: inner}
-}
-
 type (
 	NullNode   struct{}
 	BranchNode [16]*MptNode
@@ -510,54 +515,12 @@ type (
 	DigestNode common.Hash
 )
 
-func (m *MptNodeData) Unmarshal(data []byte) error {
-	raw := map[string]json.RawMessage{}
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	for key, val := range raw {
-		switch key {
-		case "Branch":
-			var inner BranchNode
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			m.inner = &inner
-		case "Leaf":
-			var inner [2]json.RawMessage
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			m.inner = &LeafNode{
-				Prefix: inner[0],
-				Value:  inner[1],
-			}
-		case "Extension":
-			var inner [2]json.RawMessage
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			var child MptNode
-			if err := json.Unmarshal(inner[1], &child); err != nil {
-				return err
-			}
-			ext := &ExtensionNode{
-				Prefix: inner[0],
-				Child:  &child,
-			}
-			m.inner = ext
-		case "Digest":
-			var inner DigestNode
-			if err := json.Unmarshal(val, &inner); err != nil {
-				return err
-			}
-			m.inner = &inner
-		case "Null":
-			m.inner = &NullNode{}
-		default:
-			return fmt.Errorf("unknown MptNodeData type: %s", key)
-		}
-	}
-	return nil
+type MptNodeData interface {
+	_private()
 }
+
+func (*NullNode) _private()      {}
+func (*BranchNode) _private()    {}
+func (*LeafNode) _private()      {}
+func (*ExtensionNode) _private() {}
+func (*DigestNode) _private()    {}

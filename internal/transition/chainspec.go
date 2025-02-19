@@ -111,7 +111,7 @@ func (c *ChainSpec) getForkVerifierAddress(blockNum uint64, proofType ProofType)
 			if verifierAddressFork, ok := c.VerifierAddressForks[fork.SpecID]; ok {
 				verifierAddress := verifierAddressFork[proofType]
 				if verifierAddress == nil {
-					return common.Address{}, fmt.Errorf("fork verifier for proof type %d is not active", proofType)
+					return common.Address{}, fmt.Errorf("fork verifier for proof type %s is not active", proofType)
 				}
 				return *verifierAddress, nil
 			}
