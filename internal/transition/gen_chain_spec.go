@@ -15,7 +15,7 @@ func (c ChainSpec) MarshalJSON() ([]byte, error) {
 		Name                 string                                   `json:"name" gencodec:"required"`
 		ChainID              uint64                                   `json:"chain_id" gencodec:"required"`
 		MaxSpecID            SpecID                                   `json:"max_spec_id" gencodec:"required"`
-		HardForks            []HardFork                               `json:"hard_forks" gencodec:"required"`
+		HardForks            HardForks                                `json:"hard_forks" gencodec:"required"`
 		Eip1559Constants     Eip1559Constants                         `json:"eip1559_constants" gencodec:"required"`
 		L1Contract           *common.Address                          `json:"l1_contract"`
 		L2Contract           *common.Address                          `json:"l2_contract"`
@@ -49,7 +49,7 @@ func (c *ChainSpec) UnmarshalJSON(input []byte) error {
 		Name                 *string                                  `json:"name" gencodec:"required"`
 		ChainID              *uint64                                  `json:"chain_id" gencodec:"required"`
 		MaxSpecID            *SpecID                                  `json:"max_spec_id" gencodec:"required"`
-		HardForks            []HardFork                               `json:"hard_forks" gencodec:"required"`
+		HardForks            *HardForks                               `json:"hard_forks" gencodec:"required"`
 		Eip1559Constants     *Eip1559Constants                        `json:"eip1559_constants" gencodec:"required"`
 		L1Contract           *common.Address                          `json:"l1_contract"`
 		L2Contract           *common.Address                          `json:"l2_contract"`
@@ -79,7 +79,7 @@ func (c *ChainSpec) UnmarshalJSON(input []byte) error {
 	if dec.HardForks == nil {
 		return errors.New("missing required field 'hard_forks' for ChainSpec")
 	}
-	c.HardForks = dec.HardForks
+	c.HardForks = *dec.HardForks
 	if dec.Eip1559Constants == nil {
 		return errors.New("missing required field 'eip1559_constants' for ChainSpec")
 	}

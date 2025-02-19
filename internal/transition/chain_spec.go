@@ -39,7 +39,7 @@ type HardFork struct {
 	Condition ForkCondition
 }
 
-type HardForks []HardFork
+type HardForks []*HardFork
 
 func (h *HardForks) UnmarshalJSON(data []byte) error {
 	orderedMap := ordered.NewOrderedMap()
@@ -57,18 +57,18 @@ func (h *HardForks) UnmarshalJSON(data []byte) error {
 			switch key {
 			case "Block":
 				blockNumber := BlockNumber(value.(float64))
-				*h = append(*h, HardFork{
+				*h = append(*h, &HardFork{
 					SpecID:    SpecID(pair.Key),
 					Condition: blockNumber,
 				})
 			case "Timestamp":
 				blockTimestamp := BlockTimestamp(value.(float64))
-				*h = append(*h, HardFork{
+				*h = append(*h, &HardFork{
 					SpecID:    SpecID(pair.Key),
 					Condition: blockTimestamp,
 				})
 			case "TBD":
-				*h = append(*h, HardFork{
+				*h = append(*h, &HardFork{
 					SpecID:    SpecID(pair.Key),
 					Condition: TBD{},
 				})
@@ -86,7 +86,7 @@ type ChainSpec struct {
 	Name                 string                                   `json:"name" gencodec:"required"`
 	ChainID              uint64                                   `json:"chain_id" gencodec:"required"`
 	MaxSpecID            SpecID                                   `json:"max_spec_id" gencodec:"required"`
-	HardForks            []HardFork                               `json:"hard_forks" gencodec:"required"`
+	HardForks            HardForks                                `json:"hard_forks" gencodec:"required"`
 	Eip1559Constants     Eip1559Constants                         `json:"eip1559_constants" gencodec:"required"`
 	L1Contract           *common.Address                          `json:"l1_contract"`
 	L2Contract           *common.Address                          `json:"l2_contract"`
@@ -96,10 +96,6 @@ type ChainSpec struct {
 	GenesisTime          uint64                                   `json:"genesis_time" gencodec:"required"`
 	SecondsPerSlot       uint64                                   `json:"seconds_per_slot" gencodec:"required"`
 	IsTaiko              bool                                     `json:"is_taiko" gencodec:"required"`
-}
-
-type chainSpecMarshaling struct {
-	HardForks HardForks `json:"hard_forks" gencodec:"required"`
 }
 
 var _ json.Unmarshaler = (*ChainSpec)(nil)
