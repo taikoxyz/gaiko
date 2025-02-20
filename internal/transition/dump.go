@@ -8,7 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-type Dumper map[common.Address]types.Account
+// Dumper for catching accounts updates
+type Dumper map[common.Address]*types.Account
 
 func (g Dumper) OnRoot(common.Hash) {}
 
@@ -24,7 +25,7 @@ func (g Dumper) OnAccount(addr *common.Address, dumpAccount state.DumpAccount) {
 			storage[k] = common.HexToHash(v)
 		}
 	}
-	genesisAccount := types.Account{
+	genesisAccount := &types.Account{
 		Code:    dumpAccount.Code,
 		Storage: storage,
 		Balance: balance,

@@ -12,6 +12,17 @@ const (
 	commitmentSize = 48
 )
 
+// verifyBlob verifies the integrity of a blob based on the provided proof type.
+// It supports different types of blob proofs, such as KZG commitments and proofs of equivalence.
+//
+// Parameters:
+// - blobProofType: The type of proof used to verify the blob.
+// - blob: The blob to be verified.
+// - commitment: The expected commitment for the blob.
+// - proof: The proof used for verification (optional, depending on the proof type).
+//
+// Returns:
+// - An error if the verification fails or if the proof type is unsupported, otherwise nil.
 func verifyBlob(blobProofType BlobProofType, blob *eth.Blob, commitment kzg4844.Commitment, proof *kzg4844.Proof) error {
 	switch blobProofType {
 	case KzgVersionedHash:
@@ -42,6 +53,7 @@ func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) Blob
 	case SgxProofType:
 		return KzgVersionedHash
 	case Sp1ProofType, Risc0ProofType:
+		//TODO: Implement support for zk proofs
 		return ProofOfEquivalence
 	default:
 		panic("unreachable")

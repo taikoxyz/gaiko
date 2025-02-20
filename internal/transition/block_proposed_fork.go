@@ -15,6 +15,7 @@ const (
 	PacayaHardFork  string = "Pacaya"
 )
 
+// BlockProposedFork represents the interface for handling taiko proposed blocks in different hard forks.
 type BlockProposedFork interface {
 	ABIEncoder
 	BlockNumber() uint64
