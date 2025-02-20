@@ -15,7 +15,6 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
-	// "github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/rpc"
 )
 
 var _ GuestDriver = (*BatchGuestInput)(nil)
@@ -56,8 +55,7 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
 		offset, length := batchProposed.BlobTxSliceParam()
 		chainID := big.NewInt(int64(g.ChainID()))
 		firstBlock := g.Inputs[0].Block.Number()
-		uBlockMaxTxListBytes := uint64(100000000)
-		decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, uBlockMaxTxListBytes, chainID)
+		decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, blockMaxTxListBytes, chainID)
 		txListBytes, err := sliceTxList(firstBlock, compressedTxListBuf, offset, length)
 		if err != nil {
 			log.Error("sliceTxList error: %s", err)
