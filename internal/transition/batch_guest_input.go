@@ -137,7 +137,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 		LastBlockTimestamp: g.Inputs[len(g.Inputs)-1].Block.Time(),
 		AnchorBlockId:      g.Taiko.L1Header.Number.Uint64(),
 		AnchorBlockHash:    g.Taiko.L1Header.Hash(),
-		BaseFeeConfig:      g.Taiko.BatchProposed.BaseFeeConfig(),
+		BaseFeeConfig:      *g.Taiko.BatchProposed.BaseFeeConfig(),
 	}
 
 	data, err := batchInfoComponentsArgs.Pack(batchInfo)

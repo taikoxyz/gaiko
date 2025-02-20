@@ -20,7 +20,7 @@ type BlockProposedFork interface {
 	ABIEncoder
 	BlockNumber() uint64
 	BlockTimestamp() uint64
-	BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig
+	BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig
 	BlobTxSliceParam() (offset uint32, length uint32)
 	BlobUsed() bool
 	HardFork() string
@@ -39,27 +39,26 @@ type BlockProposedFork interface {
 	Coinbase() common.Address
 	BlobHashes() [][32]byte
 	ExtraData() [32]byte
-	BlockParams() []pacaya.ITaikoInboxBlockParams
-}
-
-func convertBaseFeeConfig(baseFeeConfig pacaya.LibSharedDataBaseFeeConfig) ontake.LibSharedDataBaseFeeConfig {
-	return ontake.LibSharedDataBaseFeeConfig{
-		AdjustmentQuotient:     baseFeeConfig.AdjustmentQuotient,
-		SharingPctg:            baseFeeConfig.SharingPctg,
-		GasIssuancePerSecond:   baseFeeConfig.GasIssuancePerSecond,
-		MinGasExcess:           baseFeeConfig.MinGasExcess,
-		MaxGasIssuancePerBlock: baseFeeConfig.MaxGasIssuancePerBlock,
-	}
+	BlockParams() []*pacaya.ITaikoInboxBlockParams
 }
 
 var _ BlockProposedFork = (*PacayaBlockProposed)(nil)
 
 type PacayaBlockProposed struct {
 	*pacaya.TaikoInboxClientBatchProposed
+	blockParams []*pacaya.ITaikoInboxBlockParams
 }
 
 func NewPacayaBlockProposed(b *pacaya.TaikoInboxClientBatchProposed) *PacayaBlockProposed {
-	return &PacayaBlockProposed{b}
+	blockParams := make([]*pacaya.ITaikoInboxBlockParams, len(b.Info.Blocks))
+	for i, block := range b.Info.Blocks {
+		blockParams[i] = &block
+	}
+
+	return &PacayaBlockProposed{
+		TaikoInboxClientBatchProposed: b,
+		blockParams:                   blockParams,
+	}
 }
 
 func (b *PacayaBlockProposed) Encode() ([]byte, error) {
@@ -74,8 +73,8 @@ func (b *PacayaBlockProposed) BlockTimestamp() uint64 {
 	return 0
 }
 
-func (b *PacayaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	return b.Info.BaseFeeConfig
+func (b *PacayaBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig {
+	return &b.Info.BaseFeeConfig
 }
 
 func (b *PacayaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
@@ -149,8 +148,8 @@ func (b *PacayaBlockProposed) ExtraData() [32]byte {
 	return b.Info.ExtraData
 }
 
-func (b *PacayaBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
-	return b.Info.Blocks
+func (b *PacayaBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
+	return b.blockParams
 }
 
 type HeklaBlockProposed struct {
@@ -175,8 +174,8 @@ func (b *HeklaBlockProposed) BlockTimestamp() uint64 {
 	return b.Meta.Timestamp
 }
 
-func (b *HeklaBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	return pacaya.LibSharedDataBaseFeeConfig{}
+func (b *HeklaBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig {
+	return nil
 }
 
 func (b *HeklaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
@@ -251,7 +250,7 @@ func (b *HeklaBlockProposed) ExtraData() [32]byte {
 	return b.Meta.ExtraData
 }
 
-func (b *HeklaBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+func (b *HeklaBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
 }
 
@@ -277,8 +276,8 @@ func (b *OntakeBlockProposed) BlockTimestamp() uint64 {
 	return b.Meta.Timestamp
 }
 
-func (b *OntakeBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	return pacaya.LibSharedDataBaseFeeConfig(b.Meta.BaseFeeConfig)
+func (b *OntakeBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig {
+	return (*pacaya.LibSharedDataBaseFeeConfig)(&b.Meta.BaseFeeConfig)
 }
 
 func (b *OntakeBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
@@ -353,7 +352,7 @@ func (b *OntakeBlockProposed) ExtraData() [32]byte {
 	return b.Meta.ExtraData
 }
 
-func (b *OntakeBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+func (b *OntakeBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
 }
 
@@ -373,8 +372,8 @@ func (b *NotingBlockProposed) BlockTimestamp() uint64 {
 	return 0
 }
 
-func (b *NotingBlockProposed) BaseFeeConfig() pacaya.LibSharedDataBaseFeeConfig {
-	return pacaya.LibSharedDataBaseFeeConfig{}
+func (b *NotingBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig {
+	return nil
 }
 
 func (b *NotingBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
@@ -449,6 +448,6 @@ func (b *NotingBlockProposed) ExtraData() [32]byte {
 	return [32]byte{}
 }
 
-func (b *NotingBlockProposed) BlockParams() []pacaya.ITaikoInboxBlockParams {
+func (b *NotingBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
 }

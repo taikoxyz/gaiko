@@ -163,7 +163,7 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 				BlobTxListOffset: g.Taiko.BlockProposed.BlobTxListOffset(),
 				BlobTxListLength: g.Taiko.BlockProposed.BlobTxListLength(),
 				BlobIndex:        g.Taiko.BlockProposed.BlobIndex(),
-				BaseFeeConfig:    convertBaseFeeConfig(g.Taiko.BlockProposed.BaseFeeConfig()),
+				BaseFeeConfig:    ontake.LibSharedDataBaseFeeConfig(*g.Taiko.BlockProposed.BaseFeeConfig()),
 			},
 		}
 	default:
