@@ -1,0 +1,41 @@
+{
+    "exe": "helloworld",
+    "key": "private.pem",
+    "debug": true,
+    "heapSize": 512,
+    "executableHeap": false,
+    "productID": 1,
+    "securityVersion": 1,
+    "mounts": [
+        {
+            "source": "/home/user",
+            "target": "/data",
+            "type": "hostfs",
+            "readOnly": false
+        },
+        {
+            "target": "/tmp",
+            "type": "memfs"
+        }
+    ],
+    "env": [
+        {
+            "name": "LANG",
+            "fromHost": true
+        },
+        {
+            "name": "PWD",
+            "value": "/data"
+        }
+    ],
+    "files": [
+        {
+            "source": "some_datafile",
+            "target": "/some/path/to/datafile"
+        },
+        {
+            "source": "/etc/ssl/certs/ca-certificates.crt",
+            "target": "/etc/ssl/certs/ca-certificates.crt"
+        }
+    ]
+}
