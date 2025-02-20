@@ -14,7 +14,6 @@ import (
 	"github.com/taikoxyz/gaiko/internal"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
-	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
 )
 
 var _ GuestDriver = (*BatchGuestInput)(nil)
@@ -38,8 +37,8 @@ type TaikoGuestBatchInput struct {
 	BlobProofType      BlobProofType
 }
 
-func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
-	return func(yield func(Pair) bool) {
+func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
+	return func(yield func(*Pair) bool) {
 		batchProposed := g.Taiko.BatchProposed
 		blobDataBufs := g.Taiko.TxDataFromBlob
 		var compressedTxListBuf []byte
@@ -47,7 +46,7 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
 			blob := (*eth.Blob)(blobDataBuf)
 			data, err := blob.ToData()
 			if err != nil {
-				log.Error("blob.ToData error: %s", err)
+				log.Warn("Parse blob data failed", "err", err)
 				return
 			}
 			compressedTxListBuf = append(compressedTxListBuf, data...)
@@ -55,20 +54,21 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[Pair] {
 		offset, length := batchProposed.BlobTxSliceParam()
 		chainID := big.NewInt(int64(g.ChainID()))
 		firstBlock := g.Inputs[0].Block.Number()
-		decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, blockMaxTxListBytes, chainID)
 		txListBytes, err := sliceTxList(firstBlock, compressedTxListBuf, offset, length)
 		if err != nil {
-			log.Error("sliceTxList error: %s", err)
+			log.Warn("Invalid txlist offset and size in metadata", "blockID", firstBlock.Uint64(), "err", err)
 			return
 		}
-		txs := decompressor.TryDecompress(chainID, txListBytes, true, true)
+		txs := decompressTxList(txListBytes, true, true, chainID)
 		blockParams := batchProposed.BlockParams()
 		next := 0
 		for i, blockParam := range blockParams {
 			numTransactions := int(blockParam.NumTransactions)
 			_txs := []*types.Transaction{g.Inputs[i].Taiko.AnchorTx}
 			_txs = append(_txs, txs[next:next+numTransactions]...)
-			yield(Pair{g.Inputs[i], _txs})
+			if !yield(&Pair{g.Inputs[i], _txs}) {
+				return
+			}
 			next += numTransactions
 		}
 	}

@@ -4,29 +4,25 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
 	txListDecompressor "github.com/taikoxyz/taiko-mono/packages/taiko-client/driver/txlist_decompressor"
 )
 
-func decodeTxs(
+func decompressTxList(
 	txListBytes []byte,
 	blobUsed, isPacaya bool,
-	chainID, blockNumber *big.Int,
-	offset, length uint32) types.Transactions {
-	decompressor := txListDecompressor.NewTxListDecompressor(params.MaxGasLimit, blockMaxTxListBytes, chainID)
-	if blobUsed {
-		blob := eth.Blob(txListBytes)
-		var err error
-		if txListBytes, err = blob.ToData(); err != nil {
-			return nil
-		}
-		if txListBytes, err = sliceTxList(blockNumber, txListBytes, offset, length); err != nil {
-			return nil
-		}
-	}
-	return decompressor.TryDecompress(chainID, txListBytes, blobUsed, isPacaya)
+	chainID *big.Int,
+) types.Transactions {
+	return txListDecompressor.NewTxListDecompressor(
+		blockMaxGasLimit,
+		blockMaxTxListBytes,
+		chainID,
+	).TryDecompress(
+		chainID,
+		txListBytes,
+		blobUsed,
+		isPacaya,
+	)
 }
 
 // sliceTxList returns the sliced txList bytes from the given offset and length.

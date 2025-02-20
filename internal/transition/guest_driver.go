@@ -10,14 +10,14 @@ import (
 )
 
 type Pair struct {
-	*GuestInput
-	types.Transactions
+	Input *GuestInput
+	Txs   types.Transactions
 }
 
 // GuestDriver is an interface for guest inputs.
 type GuestDriver interface {
 	// GuestInputs returns a sequence of pairs of GuestInput and Transactions.
-	GuestInputs() iter.Seq[Pair]
+	GuestInputs() iter.Seq[*Pair]
 	// BlockProposedFork returns the block proposed data.
 	BlockProposedFork() BlockProposedFork
 	// BlockMetadataFork returns the block metadata.

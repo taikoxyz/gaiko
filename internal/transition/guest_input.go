@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal"
 	"github.com/taikoxyz/gaiko/internal/mpt"
@@ -58,16 +59,30 @@ type TaikoProverData struct {
 	Graffiti common.Hash    `json:"graffiti"`
 }
 
-func (g *GuestInput) GuestInputs() iter.Seq[Pair] {
-	return func(yield func(Pair) bool) {
+func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
+	return func(yield func(*Pair) bool) {
 		chainID := big.NewInt(int64(g.ChainSpec.ChainID))
 		txListBytes := g.Taiko.TxData
 		blobUsed := g.Taiko.BlockProposed.BlobUsed()
 		isPacaya := g.Taiko.BlockProposed.HardFork() == PacayaHardFork
 		offset, length := g.Taiko.BlockProposed.BlobTxSliceParam()
-		txs := decodeTxs(txListBytes, blobUsed, isPacaya, chainID, g.Block.Number(), offset, length)
+		if blobUsed {
+			blob := eth.Blob(txListBytes)
+			var err error
+			if txListBytes, err = blob.ToData(); err != nil {
+				log.Warn("Parse blob data failed", "err", err)
+				return
+			}
+			if txListBytes, err = sliceTxList(g.Block.Number(), txListBytes, offset, length); err != nil {
+				log.Warn("Invalid txlist offset and size in metadata", "blockID", g.Block.NumberU64(), "err", err)
+				return
+			}
+		}
+		txs := decompressTxList(txListBytes, blobUsed, isPacaya, chainID)
 		txs = append([]*types.Transaction{g.Taiko.AnchorTx}, txs...)
-		yield(Pair{g, txs})
+		if !yield(&Pair{g, txs}) {
+			return
+		}
 	}
 }
 

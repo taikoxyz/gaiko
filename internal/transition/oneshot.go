@@ -51,8 +51,8 @@ func Oneshot(ctx *cli.Context) error {
 		return err
 	}
 	for pair := range driver.GuestInputs() {
-		g := pair.GuestInput
-		txs := pair.Transactions
+		g := pair.Input
+		txs := pair.Txs
 		preState, err := g.makePreState()
 		if err != nil {
 			return err
