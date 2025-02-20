@@ -519,6 +519,7 @@ type (
 	digestNode common.Hash
 )
 
+// marker interface, only for type checking
 type mptNodeData interface {
 	_private()
 }
