@@ -235,14 +235,10 @@ func apply(
 			}
 			log.Warn(
 				"rejected tx",
-				"index",
-				txIndex,
-				"hash",
-				tx.Hash(),
-				"from",
-				msg.From,
-				"error",
-				err,
+				"index", txIndex,
+				"hash", tx.Hash(),
+				"from", msg.From,
+				"error", err,
 			)
 			statedb.RevertToSnapshot(snapshot)
 			gaspool.SetGas(prevGas)

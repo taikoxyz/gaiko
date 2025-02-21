@@ -58,10 +58,8 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 		if err != nil {
 			log.Warn(
 				"Invalid txlist offset and size in metadata",
-				"blockID",
-				firstBlock.Uint64(),
-				"err",
-				err,
+				"blockID", firstBlock.Uint64(),
+				"err", err,
 			)
 			return
 		}
