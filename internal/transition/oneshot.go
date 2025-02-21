@@ -154,7 +154,14 @@ func Oneshot(ctx *cli.Context) error {
 	return nil
 }
 
-func apply(vmConfig vm.Config, statedb *state.StateDB, block *types.Block, txs types.Transactions, getHash func(uint64) common.Hash, chainConfig *params.ChainConfig) (*state.StateDB, error) {
+func apply(
+	vmConfig vm.Config,
+	statedb *state.StateDB,
+	block *types.Block,
+	txs types.Transactions,
+	getHash func(uint64) common.Hash,
+	chainConfig *params.ChainConfig,
+) (*state.StateDB, error) {
 	var (
 		signer  = types.MakeSigner(chainConfig, new(big.Int).SetUint64(block.NumberU64()), block.Time())
 		gaspool = new(core.GasPool)
