@@ -56,7 +56,13 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 		firstBlock := g.Inputs[0].Block.Number()
 		txListBytes, err := sliceTxList(firstBlock, compressedTxListBuf, offset, length)
 		if err != nil {
-			log.Warn("Invalid txlist offset and size in metadata", "blockID", firstBlock.Uint64(), "err", err)
+			log.Warn(
+				"Invalid txlist offset and size in metadata",
+				"blockID",
+				firstBlock.Uint64(),
+				"err",
+				err,
+			)
 			return
 		}
 		txs := decompressTxList(txListBytes, true, true, chainID)
@@ -91,7 +97,10 @@ func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 	return nil
 }
 
-func (g *BatchGuestInput) calculatePacayaTxsHash(txListHash common.Hash, blobHashes [][32]byte) (common.Hash, error) {
+func (g *BatchGuestInput) calculatePacayaTxsHash(
+	txListHash common.Hash,
+	blobHashes [][32]byte,
+) (common.Hash, error) {
 	data, err := batchTxHashArgs.Pack(txListHash, blobHashes)
 	if err != nil {
 		return common.Hash{}, err

@@ -16,7 +16,7 @@ func (a AccessList) GethType() types.AccessList {
 }
 
 type AccessTuple struct {
-	Address     common.Address `json:"address" gencodec:"required"`
+	Address     common.Address `json:"address"      gencodec:"required"`
 	StorageKeys []common.Hash  `json:"storage_keys" gencodec:"required"`
 }
 

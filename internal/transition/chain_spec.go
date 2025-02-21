@@ -82,31 +82,37 @@ func (h *HardForks) UnmarshalJSON(data []byte) error {
 
 //go:generate go run github.com/fjl/gencodec -type ChainSpec -out gen_chain_spec.go
 type ChainSpec struct {
-	Name                 string                                   `json:"name" gencodec:"required"`
-	ChainID              uint64                                   `json:"chain_id" gencodec:"required"`
-	MaxSpecID            SpecID                                   `json:"max_spec_id" gencodec:"required"`
-	HardForks            HardForks                                `json:"hard_forks" gencodec:"required"`
-	Eip1559Constants     Eip1559Constants                         `json:"eip1559_constants" gencodec:"required"`
+	Name                 string                                   `json:"name"                   gencodec:"required"`
+	ChainID              uint64                                   `json:"chain_id"               gencodec:"required"`
+	MaxSpecID            SpecID                                   `json:"max_spec_id"            gencodec:"required"`
+	HardForks            HardForks                                `json:"hard_forks"             gencodec:"required"`
+	Eip1559Constants     Eip1559Constants                         `json:"eip1559_constants"      gencodec:"required"`
 	L1Contract           *common.Address                          `json:"l1_contract"`
 	L2Contract           *common.Address                          `json:"l2_contract"`
-	RPC                  string                                   `json:"rpc" gencodec:"required"`
+	RPC                  string                                   `json:"rpc"                    gencodec:"required"`
 	BeaconRPC            *string                                  `json:"beacon_rpc"`
 	VerifierAddressForks map[SpecID]map[ProofType]*common.Address `json:"verifier_address_forks" gencodec:"required"`
-	GenesisTime          uint64                                   `json:"genesis_time" gencodec:"required"`
-	SecondsPerSlot       uint64                                   `json:"seconds_per_slot" gencodec:"required"`
-	IsTaiko              bool                                     `json:"is_taiko" gencodec:"required"`
+	GenesisTime          uint64                                   `json:"genesis_time"           gencodec:"required"`
+	SecondsPerSlot       uint64                                   `json:"seconds_per_slot"       gencodec:"required"`
+	IsTaiko              bool                                     `json:"is_taiko"               gencodec:"required"`
 }
 
 var _ json.Unmarshaler = (*ChainSpec)(nil)
 
-func (c *ChainSpec) getForkVerifierAddress(blockNum uint64, proofType ProofType) (common.Address, error) {
+func (c *ChainSpec) getForkVerifierAddress(
+	blockNum uint64,
+	proofType ProofType,
+) (common.Address, error) {
 	for i := len(c.HardForks) - 1; i >= 0; i-- {
 		fork := c.HardForks[i]
 		if fork.Condition.Active(blockNum, 0) {
 			if verifierAddressFork, ok := c.VerifierAddressForks[fork.SpecID]; ok {
 				verifierAddress := verifierAddressFork[proofType]
 				if verifierAddress == nil {
-					return common.Address{}, fmt.Errorf("fork verifier for proof type %s is not active", proofType)
+					return common.Address{}, fmt.Errorf(
+						"fork verifier for proof type %s is not active",
+						proofType,
+					)
 				}
 				return *verifierAddress, nil
 			}
@@ -156,15 +162,15 @@ func (t TBD) Active(_ uint64, _ uint64) bool {
 
 //go:generate go run github.com/fjl/gencodec -type Eip1559Constants -field-override eip1559ConstantsMarshaling -out gen_eip1559_constants.go
 type Eip1559Constants struct {
-	BaseFeeChangeDenominator      *big.Int `json:"base_fee_change_denominator" gencodec:"required"`
+	BaseFeeChangeDenominator      *big.Int `json:"base_fee_change_denominator"       gencodec:"required"`
 	BaseFeeMaxIncreaseDenominator *big.Int `json:"base_fee_max_increase_denominator" gencodec:"required"`
 	BaseFeeMaxDecreaseDenominator *big.Int `json:"base_fee_max_decrease_denominator" gencodec:"required"`
-	ElasticityMultiplier          *big.Int `json:"elasticity_multiplier" gencodec:"required"`
+	ElasticityMultiplier          *big.Int `json:"elasticity_multiplier"             gencodec:"required"`
 }
 
 type eip1559ConstantsMarshaling struct {
-	BaseFeeChangeDenominator      *hexutil.Big `json:"base_fee_change_denominator" gencodec:"required"`
+	BaseFeeChangeDenominator      *hexutil.Big `json:"base_fee_change_denominator"       gencodec:"required"`
 	BaseFeeMaxIncreaseDenominator *hexutil.Big `json:"base_fee_max_increase_denominator" gencodec:"required"`
 	BaseFeeMaxDecreaseDenominator *hexutil.Big `json:"base_fee_max_decrease_denominator" gencodec:"required"`
-	ElasticityMultiplier          *hexutil.Big `json:"elasticity_multiplier" gencodec:"required"`
+	ElasticityMultiplier          *hexutil.Big `json:"elasticity_multiplier"             gencodec:"required"`
 }

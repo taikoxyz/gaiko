@@ -19,14 +19,25 @@ type PublicInput struct {
 }
 
 func (p *PublicInput) Hash() (common.Hash, error) {
-	b, err := publicInputsType.Pack("VERIFY_PROOF", p.chainID, p.verifier, p.transition, p.sgxInstance, p.block_metadata.Hash())
+	b, err := publicInputsType.Pack(
+		"VERIFY_PROOF",
+		p.chainID,
+		p.verifier,
+		p.transition,
+		p.sgxInstance,
+		p.block_metadata.Hash(),
+	)
 	if err != nil {
 		return common.Hash{}, err
 	}
 	return common.BytesToHash(internal.Keccak(b)), nil
 }
 
-func NewPublicInput(driver GuestDriver, proofType ProofType, sgxInstance common.Address) (*PublicInput, error) {
+func NewPublicInput(
+	driver GuestDriver,
+	proofType ProofType,
+	sgxInstance common.Address,
+) (*PublicInput, error) {
 	verifierAddress, err := driver.ForkVerifierAddress(proofType)
 	if err != nil {
 		return nil, err

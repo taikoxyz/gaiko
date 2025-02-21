@@ -102,7 +102,11 @@ func (g *GuestInput) makePreState() (*preState, error) {
 	prev := g.ParentHeader
 	for _, header := range g.AncestorHeaders {
 		if prev.ParentHash != header.Hash() {
-			return nil, fmt.Errorf("parent hash mismatch: expected %s, got %s", prev.ParentHash.Hex(), header.Hash().Hex())
+			return nil, fmt.Errorf(
+				"parent hash mismatch: expected %s, got %s",
+				prev.ParentHash.Hex(),
+				header.Hash().Hex(),
+			)
 		}
 		historyHashes[header.Number.Uint64()] = header.Hash()
 		prev = header

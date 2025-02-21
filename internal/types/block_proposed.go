@@ -12,10 +12,10 @@ import (
 
 // BlockProposed represents a BlockProposed event raised by the TaikoL1Client contract.
 type BlockProposed struct {
-	BlockId           *big.Int       `json:"blockId" gencodec:"required"`
-	AssignedProver    common.Address `json:"assignedProver" gencodec:"required"`
-	LivenessBond      *big.Int       `json:"livenessBond" gencodec:"required"`
-	Meta              *BlockMetadata `json:"meta" gencodec:"required"`
+	BlockId           *big.Int       `json:"blockId"           gencodec:"required"`
+	AssignedProver    common.Address `json:"assignedProver"    gencodec:"required"`
+	LivenessBond      *big.Int       `json:"livenessBond"      gencodec:"required"`
+	Meta              *BlockMetadata `json:"meta"              gencodec:"required"`
 	DepositsProcessed []*EthDeposit  `json:"depositsProcessed" gencodec:"required"`
 }
 
@@ -53,7 +53,7 @@ func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
 }
 
 type blockProposedMarshaling struct {
-	BlockId      *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
+	BlockId      *math.HexOrDecimal256 `json:"blockId"      gencodec:"required"`
 	LivenessBond *math.HexOrDecimal256 `json:"livenessBond" gencodec:"required"`
 }
 
@@ -61,26 +61,26 @@ type blockProposedMarshaling struct {
 
 // BlockMetadata is an auto generated low-level Go binding around an user-defined struct.
 type BlockMetadata struct {
-	L1Hash         common.Hash    `json:"l1Hash" gencodec:"required"`
-	Difficulty     common.Hash    `json:"difficulty" gencodec:"required"`
-	BlobHash       common.Hash    `json:"blobHash" gencodec:"required"`
-	ExtraData      common.Hash    `json:"extraData" gencodec:"required"`
-	DepositsHash   common.Hash    `json:"depositsHash" gencodec:"required"`
-	Coinbase       common.Address `json:"coinbase" gencodec:"required"`
-	Id             uint64         `json:"id" gencodec:"required"`
-	GasLimit       uint32         `json:"gasLimit" gencodec:"required"`
-	Timestamp      uint64         `json:"timestamp" gencodec:"required"`
-	L1Height       uint64         `json:"l1Height" gencodec:"required"`
-	MinTier        uint16         `json:"minTier" gencodec:"required"`
-	BlobUsed       bool           `json:"blobUsed" gencodec:"required"`
+	L1Hash         common.Hash    `json:"l1Hash"         gencodec:"required"`
+	Difficulty     common.Hash    `json:"difficulty"     gencodec:"required"`
+	BlobHash       common.Hash    `json:"blobHash"       gencodec:"required"`
+	ExtraData      common.Hash    `json:"extraData"      gencodec:"required"`
+	DepositsHash   common.Hash    `json:"depositsHash"   gencodec:"required"`
+	Coinbase       common.Address `json:"coinbase"       gencodec:"required"`
+	Id             uint64         `json:"id"             gencodec:"required"`
+	GasLimit       uint32         `json:"gasLimit"       gencodec:"required"`
+	Timestamp      uint64         `json:"timestamp"      gencodec:"required"`
+	L1Height       uint64         `json:"l1Height"       gencodec:"required"`
+	MinTier        uint16         `json:"minTier"        gencodec:"required"`
+	BlobUsed       bool           `json:"blobUsed"       gencodec:"required"`
 	ParentMetaHash common.Hash    `json:"parentMetaHash" gencodec:"required"`
-	Sender         common.Address `json:"sender" gencodec:"required"`
+	Sender         common.Address `json:"sender"         gencodec:"required"`
 }
 
 type blockMetadataMarshaling struct {
-	Id        math.HexOrDecimal64 `json:"id" gencodec:"required"`
+	Id        math.HexOrDecimal64 `json:"id"        gencodec:"required"`
 	Timestamp math.HexOrDecimal64 `json:"timestamp" gencodec:"required"`
-	L1Height  math.HexOrDecimal64 `json:"l1Height" gencodec:"required"`
+	L1Height  math.HexOrDecimal64 `json:"l1Height"  gencodec:"required"`
 }
 
 //go:generate go run github.com/fjl/gencodec -type EthDeposit -field-override ethDepositMarshaling -out gen_eth_deposit.go
@@ -88,11 +88,11 @@ type blockMetadataMarshaling struct {
 // EthDeposit is an auto generated low-level Go binding around an user-defined struct.
 type EthDeposit struct {
 	Recipient common.Address `json:"recipient" gencodec:"required"`
-	Amount    *big.Int       `json:"amount" gencodec:"required"`
-	Id        uint64         `json:"id" gencodec:"required"`
+	Amount    *big.Int       `json:"amount"    gencodec:"required"`
+	Id        uint64         `json:"id"        gencodec:"required"`
 }
 
 type ethDepositMarshaling struct {
 	Amount *math.HexOrDecimal256 `json:"amount" gencodec:"required"`
-	Id     math.HexOrDecimal64   `json:"id" gencodec:"required"`
+	Id     math.HexOrDecimal64   `json:"id"     gencodec:"required"`
 }

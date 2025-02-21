@@ -11,8 +11,8 @@ import (
 
 // BatchProposed represents a BatchProposed event raised by the TaikoInboxClient contract.
 type BatchProposed struct {
-	Info   *BatchInfo     `json:"info" gencodec:"required"`
-	Meta   *BatchMetadata `json:"meta" gencodec:"required"`
+	Info   *BatchInfo     `json:"info"   gencodec:"required"`
+	Meta   *BatchMetadata `json:"meta"   gencodec:"required"`
 	TxList hexutil.Bytes  `json:"txList" gencodec:"required"`
 }
 
@@ -75,14 +75,14 @@ type batchProposedMarshaling struct {
 
 // BatchMetadata is an auto generated low-level Go binding around an user-defined struct.
 type BatchMetadata struct {
-	InfoHash   common.Hash    `json:"infoHash" gencodec:"required"`
-	Proposer   common.Address `json:"proposer" gencodec:"required"`
-	BatchId    uint64         `json:"batchId" gencodec:"required"`
+	InfoHash   common.Hash    `json:"infoHash"   gencodec:"required"`
+	Proposer   common.Address `json:"proposer"   gencodec:"required"`
+	BatchId    uint64         `json:"batchId"    gencodec:"required"`
 	ProposedAt uint64         `json:"proposedAt" gencodec:"required"`
 }
 
 type batchMetadataMarshaling struct {
-	BatchId    math.HexOrDecimal64 `json:"batchId" gencodec:"required"`
+	BatchId    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 	ProposedAt math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 }
 
@@ -90,10 +90,10 @@ type batchMetadataMarshaling struct {
 
 // LibSharedDataBaseFeeConfig is an auto generated low-level Go binding around an user-defined struct.
 type LibSharedDataBaseFeeConfig struct {
-	AdjustmentQuotient     uint8  `json:"adjustmentQuotient" gencodec:"required"`
-	SharingPctg            uint8  `json:"sharingPctg" gencodec:"required"`
-	GasIssuancePerSecond   uint32 `json:"gasIssuancePerSecond" gencodec:"required"`
-	MinGasExcess           uint64 `json:"minGasExcess" gencodec:"required"`
+	AdjustmentQuotient     uint8  `json:"adjustmentQuotient"     gencodec:"required"`
+	SharingPctg            uint8  `json:"sharingPctg"            gencodec:"required"`
+	GasIssuancePerSecond   uint32 `json:"gasIssuancePerSecond"   gencodec:"required"`
+	MinGasExcess           uint64 `json:"minGasExcess"           gencodec:"required"`
 	MaxGasIssuancePerBlock uint32 `json:"maxGasIssuancePerBlock" gencodec:"required"`
 }
 
@@ -106,8 +106,8 @@ type libSharedDataBaseFeeConfigMarshaling struct {
 // BlockParams is an auto generated low-level Go binding around an user-defined struct.
 type BlockParams struct {
 	NumTransactions uint16        `json:"numTransactions" gencodec:"required"`
-	TimeShift       uint8         `json:"timeShift" gencodec:"required"`
-	SignalSlots     []common.Hash `json:"signalSlots" gencodec:"required"`
+	TimeShift       uint8         `json:"timeShift"       gencodec:"required"`
+	SignalSlots     []common.Hash `json:"signalSlots"     gencodec:"required"`
 }
 
 //go:generate go run github.com/fjl/gencodec -type BatchInfo -field-override batchInfoMarshaling -out gen_batch_info.go
@@ -131,8 +131,8 @@ type BatchInfo struct {
 }
 
 type batchInfoMarshaling struct {
-	ProposedIn         math.HexOrDecimal64 `json:"proposedIn" gencodec:"required"`
-	LastBlockId        math.HexOrDecimal64 `json:"lastBlockId" gencodec:"required"`
+	ProposedIn         math.HexOrDecimal64 `json:"proposedIn"         gencodec:"required"`
+	LastBlockId        math.HexOrDecimal64 `json:"lastBlockId"        gencodec:"required"`
 	LastBlockTimestamp math.HexOrDecimal64 `json:"lastBlockTimestamp" gencodec:"required"`
-	AnchorBlockId      math.HexOrDecimal64 `json:"anchorBlockId" gencodec:"required"`
+	AnchorBlockId      math.HexOrDecimal64 `json:"anchorBlockId"      gencodec:"required"`
 }

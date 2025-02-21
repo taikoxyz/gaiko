@@ -13,7 +13,7 @@ import (
 // BlockProposedV2 represents a BlockProposed event raised by the TaikoL1Client contract.
 type BlockProposedV2 struct {
 	BlockId *big.Int         `json:"blockId" gencodec:"required"`
-	Meta    *BlockMetadataV2 `json:"meta" gencodec:"required"`
+	Meta    *BlockMetadataV2 `json:"meta"    gencodec:"required"`
 }
 
 func (b *BlockProposedV2) GethType() *ontake.TaikoL1ClientBlockProposedV2 {
@@ -58,33 +58,33 @@ type blockProposedV2Marshaling struct {
 
 // BlockMetadataV2 is an auto generated low-level Go binding around an user-defined struct.
 type BlockMetadataV2 struct {
-	AnchorBlockHash  common.Hash                 `json:"anchorBlockHash" gencodec:"required"`
-	Difficulty       common.Hash                 `json:"difficulty" gencodec:"required"`
-	BlobHash         common.Hash                 `json:"blobHash" gencodec:"required"`
-	ExtraData        common.Hash                 `json:"extraData" gencodec:"required"`
-	Coinbase         common.Address              `json:"coinbase" gencodec:"required"`
-	Id               uint64                      `json:"id" gencodec:"required"`
-	GasLimit         uint32                      `json:"gasLimit" gencodec:"required"`
-	Timestamp        uint64                      `json:"timestamp" gencodec:"required"`
-	AnchorBlockId    uint64                      `json:"anchorBlockId" gencodec:"required"`
-	MinTier          uint16                      `json:"minTier" gencodec:"required"`
-	BlobUsed         bool                        `json:"blobUsed" gencodec:"required"`
-	ParentMetaHash   common.Hash                 `json:"parentMetaHash" gencodec:"required"`
-	Proposer         common.Address              `json:"proposer" gencodec:"required"`
-	LivenessBond     *big.Int                    `json:"livenessBond" gencodec:"required"`
-	ProposedAt       uint64                      `json:"proposedAt" gencodec:"required"`
-	ProposedIn       uint64                      `json:"proposedIn" gencodec:"required"`
+	AnchorBlockHash  common.Hash                 `json:"anchorBlockHash"  gencodec:"required"`
+	Difficulty       common.Hash                 `json:"difficulty"       gencodec:"required"`
+	BlobHash         common.Hash                 `json:"blobHash"         gencodec:"required"`
+	ExtraData        common.Hash                 `json:"extraData"        gencodec:"required"`
+	Coinbase         common.Address              `json:"coinbase"         gencodec:"required"`
+	Id               uint64                      `json:"id"               gencodec:"required"`
+	GasLimit         uint32                      `json:"gasLimit"         gencodec:"required"`
+	Timestamp        uint64                      `json:"timestamp"        gencodec:"required"`
+	AnchorBlockId    uint64                      `json:"anchorBlockId"    gencodec:"required"`
+	MinTier          uint16                      `json:"minTier"          gencodec:"required"`
+	BlobUsed         bool                        `json:"blobUsed"         gencodec:"required"`
+	ParentMetaHash   common.Hash                 `json:"parentMetaHash"   gencodec:"required"`
+	Proposer         common.Address              `json:"proposer"         gencodec:"required"`
+	LivenessBond     *big.Int                    `json:"livenessBond"     gencodec:"required"`
+	ProposedAt       uint64                      `json:"proposedAt"       gencodec:"required"`
+	ProposedIn       uint64                      `json:"proposedIn"       gencodec:"required"`
 	BlobTxListOffset uint32                      `json:"blobTxListOffset" gencodec:"required"`
 	BlobTxListLength uint32                      `json:"blobTxListLength" gencodec:"required"`
-	BlobIndex        uint8                       `json:"blobIndex" gencodec:"required"`
-	BaseFeeConfig    *LibSharedDataBaseFeeConfig `json:"baseFeeConfig" gencodec:"required"`
+	BlobIndex        uint8                       `json:"blobIndex"        gencodec:"required"`
+	BaseFeeConfig    *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"    gencodec:"required"`
 }
 
 type blockMetadataV2Marshaling struct {
-	Id            math.HexOrDecimal64   `json:"id" gencodec:"required"`
-	Timestamp     math.HexOrDecimal64   `json:"timestamp" gencodec:"required"`
+	Id            math.HexOrDecimal64   `json:"id"            gencodec:"required"`
+	Timestamp     math.HexOrDecimal64   `json:"timestamp"     gencodec:"required"`
 	AnchorBlockId math.HexOrDecimal64   `json:"anchorBlockId" gencodec:"required"`
-	LivenessBond  *math.HexOrDecimal256 `json:"livenessBond" gencodec:"required"`
-	ProposedAt    math.HexOrDecimal64   `json:"proposedAt" gencodec:"required"`
-	ProposedIn    math.HexOrDecimal64   `json:"proposedIn" gencodec:"required"`
+	LivenessBond  *math.HexOrDecimal256 `json:"livenessBond"  gencodec:"required"`
+	ProposedAt    math.HexOrDecimal64   `json:"proposedAt"    gencodec:"required"`
+	ProposedIn    math.HexOrDecimal64   `json:"proposedIn"    gencodec:"required"`
 }

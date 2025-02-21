@@ -163,7 +163,13 @@ func NewHeklaBlockProposed(b *ontake.TaikoL1ClientBlockProposed) *HeklaBlockProp
 }
 
 func (b *HeklaBlockProposed) Encode() ([]byte, error) {
-	return blockMetadataComponentsArgs.Pack(b.BlockId, b.AssignedProver, b.TaikoL1ClientBlockProposed.LivenessBond, b.Meta, b.DepositsProcessed)
+	return blockMetadataComponentsArgs.Pack(
+		b.BlockId,
+		b.AssignedProver,
+		b.TaikoL1ClientBlockProposed.LivenessBond,
+		b.Meta,
+		b.DepositsProcessed,
+	)
 }
 
 func (b *HeklaBlockProposed) BlockNumber() uint64 {

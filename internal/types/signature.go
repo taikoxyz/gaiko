@@ -8,8 +8,8 @@ import (
 
 //go:generate go run github.com/fjl/gencodec -type Signature -field-override signatureMarshaling -out gen_signature.go
 type Signature struct {
-	R          *big.Int `json:"r" gencodec:"required"`
-	S          *big.Int `json:"s" gencodec:"required"`
+	R          *big.Int `json:"r"            gencodec:"required"`
+	S          *big.Int `json:"s"            gencodec:"required"`
 	OddYParity bool     `json:"odd_y_parity" gencodec:"required"`
 }
 

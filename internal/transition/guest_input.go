@@ -74,7 +74,13 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 				return
 			}
 			if txListBytes, err = sliceTxList(g.Block.Number(), txListBytes, offset, length); err != nil {
-				log.Warn("Invalid txlist offset and size in metadata", "blockID", g.Block.NumberU64(), "err", err)
+				log.Warn(
+					"Invalid txlist offset and size in metadata",
+					"blockID",
+					g.Block.NumberU64(),
+					"err",
+					err,
+				)
 				return
 			}
 		}
@@ -108,7 +114,11 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 		commitment := kzg4844.Commitment(*g.Taiko.BlobCommitment)
 		txListHash = eth.KZGToVersionedHash(commitment)
 		if len(g.Taiko.TxData) != eth.BlobSize {
-			return nil, fmt.Errorf("invalid TxData length, expected: %d, got: %d", eth.BlobSize, len(g.Taiko.TxData))
+			return nil, fmt.Errorf(
+				"invalid TxData length, expected: %d, got: %d",
+				eth.BlobSize,
+				len(g.Taiko.TxData),
+			)
 		}
 		var blob eth.Blob
 		copy(blob[:], g.Taiko.TxData)
@@ -163,7 +173,9 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 				BlobTxListOffset: g.Taiko.BlockProposed.BlobTxListOffset(),
 				BlobTxListLength: g.Taiko.BlockProposed.BlobTxListLength(),
 				BlobIndex:        g.Taiko.BlockProposed.BlobIndex(),
-				BaseFeeConfig:    ontake.LibSharedDataBaseFeeConfig(*g.Taiko.BlockProposed.BaseFeeConfig()),
+				BaseFeeConfig: ontake.LibSharedDataBaseFeeConfig(
+					*g.Taiko.BlockProposed.BaseFeeConfig(),
+				),
 			},
 		}
 	default:

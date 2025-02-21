@@ -23,7 +23,12 @@ const (
 //
 // Returns:
 // - An error if the verification fails or if the proof type is unsupported, otherwise nil.
-func verifyBlob(blobProofType BlobProofType, blob *eth.Blob, commitment kzg4844.Commitment, proof *kzg4844.Proof) error {
+func verifyBlob(
+	blobProofType BlobProofType,
+	blob *eth.Blob,
+	commitment kzg4844.Commitment,
+	proof *kzg4844.Proof,
+) error {
 	switch blobProofType {
 	case KzgVersionedHash:
 		got, err := blob.ComputeKZGCommitment()
@@ -33,7 +38,11 @@ func verifyBlob(blobProofType BlobProofType, blob *eth.Blob, commitment kzg4844.
 		if got != commitment {
 			gotStr, _ := got.MarshalText()
 			wantStr, _ := commitment.MarshalText()
-			return fmt.Errorf("commitment mismatch: got %v, want %v", string(gotStr), string(wantStr))
+			return fmt.Errorf(
+				"commitment mismatch: got %v, want %v",
+				string(gotStr),
+				string(wantStr),
+			)
 		}
 	case ProofOfEquivalence:
 		if proof == nil {

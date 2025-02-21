@@ -65,21 +65,21 @@ func (r Requests) GethType() []*types.Request {
 
 //go:generate go run github.com/fjl/gencodec -type WithdrawalRequest -field-override withdrawalRequestMarshaling -out gen_withdrawal_request.go
 type WithdrawalRequest struct {
-	SourceAddress   common.Address `json:"sourceAddress" gencodec:"required"`
+	SourceAddress   common.Address `json:"sourceAddress"   gencodec:"required"`
 	ValidatorPubkey [48]byte       `json:"validatorPubkey" gencodec:"required"`
-	Amount          uint64         `json:"amount" gencodec:"required"`
+	Amount          uint64         `json:"amount"          gencodec:"required"`
 }
 
 type withdrawalRequestMarshaling struct {
 	ValidatorPubkey hexutil.Bytes       `json:"validatorPubkey" gencodec:"required"`
-	Amount          math.HexOrDecimal64 `json:"amount" gencodec:"required"`
+	Amount          math.HexOrDecimal64 `json:"amount"          gencodec:"required"`
 }
 
 //go:generate go run github.com/fjl/gencodec -type ConsolidationRequest -field-override consolidationRequestMarshaling -out gen_consolidation_request.go
 type ConsolidationRequest struct {
 	SourceAddress common.Address `json:"sourceAddress" gencodec:"required"`
-	SourcePubkey  [48]byte       `json:"sourcePubkey" gencodec:"required"`
-	TargetPubkey  [48]byte       `json:"targetPubkey" gencodec:"required"`
+	SourcePubkey  [48]byte       `json:"sourcePubkey"  gencodec:"required"`
+	TargetPubkey  [48]byte       `json:"targetPubkey"  gencodec:"required"`
 }
 
 type consolidationRequestMarshaling struct {

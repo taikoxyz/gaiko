@@ -6,9 +6,9 @@ import (
 )
 
 type Block struct {
-	Header      *Header            `json:"header" gencodec:"required"`
-	Body        TransactionSigneds `json:"body" gencodec:"required"`
-	Ommers      Headers            `json:"ommers" gencodec:"required"`
+	Header      *Header            `json:"header"      gencodec:"required"`
+	Body        TransactionSigneds `json:"body"        gencodec:"required"`
+	Ommers      Headers            `json:"ommers"      gencodec:"required"`
 	Withdrawals types.Withdrawals  `json:"withdrawals"`
 	Requests    Requests           `json:"requests"`
 }
