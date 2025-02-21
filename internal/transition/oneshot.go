@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"os"
 	"path"
@@ -63,7 +63,7 @@ func Oneshot(ctx *cli.Context) error {
 		}
 		collector := make(Dumper)
 		statedb.DumpToCollector(collector, nil)
-		for addr, _ := range preState.accounts {
+		for addr := range preState.accounts {
 			_, ok := collector[addr]
 			if !ok {
 				// Account is deleted
@@ -255,9 +255,9 @@ func loadBootstrap(secretsDir string) (*ecdsa.PrivateKey, error) {
 	if !info.IsDir() && info.Mode().Perm().Perm()&(1<<2) == 0 {
 		return crypto.LoadECDSA(privKeyPath)
 	} else if !info.IsDir() {
-		return nil, errors.New("File exists but has wrong permissions")
+		return nil, errors.New("file exists but has wrong permissions")
 	} else {
-		return nil, errors.New("File does not exist")
+		return nil, errors.New("file does not exist")
 	}
 }
 
@@ -299,7 +299,7 @@ func getSgxQuote() ([]byte, error) {
 		return nil, err
 	}
 	defer quoteFile.Close()
-	quote, err := ioutil.ReadAll(quoteFile)
+	quote, err := io.ReadAll(quoteFile)
 	if err != nil {
 		return nil, err
 	}
