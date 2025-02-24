@@ -42,8 +42,8 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 					return err
 				}
 				m.data = &leafNode{
-					Prefix: data[0],
-					Value:  data[1],
+					prefix: data[0],
+					value:  data[1],
 				}
 			case "Extension":
 				// {"data": {"Extension": [prefix, child]}}
@@ -56,8 +56,8 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 					return err
 				}
 				ext := &extensionNode{
-					Prefix: data[0],
-					Child:  &child,
+					prefix: data[0],
+					child:  &child,
 				}
 				m.data = ext
 			case "Digest":
