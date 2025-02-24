@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -18,8 +17,6 @@ type MptNode struct {
 	cachedRef mptNodeRef
 }
 
-var _ rlp.Encoder = (*MptNode)(nil)
-
 func newMptNode(data mptNodeData) *MptNode {
 	return &MptNode{
 		data: data,
@@ -28,44 +25,6 @@ func newMptNode(data mptNodeData) *MptNode {
 
 func New() *MptNode {
 	return newMptNode(&nullNode{})
-}
-
-func (m *MptNode) EncodeRLP(_w io.Writer) error {
-	w := rlp.NewEncoderBuffer(_w)
-	switch data := m.data.(type) {
-	case *nullNode:
-		w.Write(rlp.EmptyString)
-	case *branchNode:
-		_tmp0 := w.List()
-		for _, child := range data {
-			if child == nil {
-				w.Write(rlp.EmptyString)
-			} else {
-				if err := child.refEncode(w); err != nil {
-					return err
-				}
-			}
-		}
-		w.Write(rlp.EmptyString)
-		w.ListEnd(_tmp0)
-	case *leafNode:
-		_tmp0 := w.List()
-		w.WriteBytes(data.prefix)
-		w.WriteBytes(data.value)
-		w.ListEnd(_tmp0)
-	case *extensionNode:
-		_tmp0 := w.List()
-		w.WriteBytes(data.prefix)
-		if err := data.child.refEncode(w); err != nil {
-			return err
-		}
-		w.ListEnd(_tmp0)
-	case *digestNode:
-		w.WriteBytes(data[:])
-	default:
-		return fmt.Errorf("unknown MptNodeData type: %T", data)
-	}
-	return w.Flush()
 }
 
 func (m *MptNode) Clear() {
@@ -138,6 +97,9 @@ func (m *MptNode) InsertRLP(key []byte, value interface{}) (bool, error) {
 }
 
 func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
+	if len(value) == 0 {
+		panic("value must not be empty")
+	}
 	switch data := m.data.(type) {
 	case *nullNode:
 		m.data = &leafNode{
@@ -150,12 +112,7 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 		}
 		idx, tail := keyNibs[0], keyNibs[1:]
 		child := data[idx]
-		if child == nil {
-			data[idx] = newMptNode(&leafNode{
-				prefix: toEncodedPath(tail, true),
-				value:  value,
-			})
-		} else {
+		if child != nil {
 			ok, err := child.insert(tail, value)
 			if err != nil {
 				return false, err
@@ -163,6 +120,11 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 			if !ok {
 				return false, nil
 			}
+		} else {
+			data[idx] = newMptNode(&leafNode{
+				prefix: toEncodedPath(tail, true),
+				value:  value,
+			})
 		}
 	case *leafNode:
 		selfNibs := prefixNibs(data.prefix)
@@ -218,7 +180,6 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 			} else {
 				branch[selfNibs[commonLen]] = data.child
 			}
-			data.child = New()
 			branch[keyNibs[commonLen]] = newMptNode(&leafNode{
 				prefix: toEncodedPath(keyNibs[splitPoint:], true),
 				value:  value,
@@ -262,8 +223,8 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		if len(keyNibs) == 0 {
 			return false, errors.New("branch node with value")
 		}
-		i, tail := keyNibs[0], keyNibs[1:]
-		child := data[i]
+		idx, tail := keyNibs[0], keyNibs[1:]
+		child := data[idx]
 		if child == nil {
 			return false, nil
 		}
@@ -275,20 +236,24 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 			return false, nil
 		}
 		if child.IsEmpty() {
-			data[i] = nil
+			data[idx] = nil
 		}
-		nextIdx := 0
-		remaining := 0
-		var nextChild *MptNode
+		var (
+			nextIdx   int
+			nextChild *MptNode
+			remaining int
+		)
 		for idx, child := range data {
 			if child != nil {
 				remaining += 1
-				if nextChild == nil {
-					nextIdx = idx
-					nextChild = child
-				}
+				nextIdx = idx
+				nextChild = child
 			}
 		}
+		if remaining == 0 {
+			panic("at least one remaining node")
+		}
+		// if there is only exactly one node left, we need to convert the branch
 		if remaining == 1 {
 			switch data := nextChild.data.(type) {
 			case *leafNode:
@@ -319,8 +284,9 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		m.data = &nullNode{}
 	case *extensionNode:
 		selfNibs := prefixNibs(data.prefix)
-		if bytes.HasPrefix(keyNibs, selfNibs) {
-			ok, err := data.child.delete(bytes.TrimPrefix(keyNibs, selfNibs))
+		tail := stripPrefix(keyNibs, selfNibs)
+		if tail != nil {
+			ok, err := data.child.delete(tail)
 			if err != nil {
 				return false, err
 			}
@@ -335,15 +301,15 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		case *nullNode:
 			m.data = &nullNode{}
 		case *leafNode:
-			selfNibs := append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
 			m.data = &leafNode{
 				prefix: toEncodedPath(selfNibs, true),
 				value:  data.value,
 			}
 		case *extensionNode:
-			selfNibs := append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
 			m.data = &extensionNode{
-				prefix: toEncodedPath(selfNibs, true),
+				prefix: toEncodedPath(selfNibs, false),
 				child:  data.child,
 			}
 		case *branchNode, *digestNode:
@@ -363,31 +329,30 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 		if len(keyNibs) == 0 {
 			return nil, nil
 		}
-		idx := keyNibs[0]
-		tail := keyNibs[1:]
-
+		idx, tail := keyNibs[0], keyNibs[1:]
 		if data[idx] == nil {
 			return nil, nil
 		}
 		return data[idx].get(tail)
 	case *leafNode:
-		if len(keyNibs) == 0 {
+		if bytes.Equal(prefixNibs(data.prefix), keyNibs) {
 			return data.value, nil
 		}
 		return nil, nil
 	case *extensionNode:
-		if len(keyNibs) == 0 {
-			return nil, nil
-		}
 		prefix := prefixNibs(data.prefix)
-		if bytes.HasPrefix(keyNibs, prefix) {
-			data.child.get(bytes.TrimPrefix(keyNibs, prefix))
-		}
-		return nil, nil
+		return data.child.get(stripPrefix(keyNibs, prefix))
 	case *digestNode:
 		return nil, fmt.Errorf("node not resolved: %s", data)
 	}
 	return nil, nil
+}
+
+func stripPrefix(nibs []byte, prefix []byte) []byte {
+	if bytes.HasPrefix(nibs, prefix) {
+		return nibs[len(prefix):]
+	}
+	return nil
 }
 
 func toEncodedPath(nibs []byte, isLeaf bool) []byte {
