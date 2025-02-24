@@ -1,7 +1,6 @@
 package transition
 
 import (
-	"crypto/ecdsa"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -10,7 +9,6 @@ import (
 	"io"
 	"math/big"
 	"os"
-	"path"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -23,6 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 	"github.com/taikoxyz/gaiko/internal/keccak"
+	"github.com/taikoxyz/gaiko/internal/util"
 	"github.com/urfave/cli/v2"
 )
 
@@ -31,11 +30,10 @@ const (
 	AttestationTypeDeviceFile           = "/dev/attestation/attestation_type"
 	AttestationUserReportDataDeviceFile = "/dev/attestation/user_report_data"
 	BootstrapInfoFilename               = "bootstrap.json"
-	PrivKeyFilename                     = "priv.key"
 )
 
 func Oneshot(ctx *cli.Context) error {
-	prevPrivKey, err := loadBootstrap(ctx.String(GlobalSecretPath.Name))
+	prevPrivKey, err := util.LoadPrivKey(ctx.String(GlobalSecretPath.Name))
 	if err != nil {
 		return err
 	}
@@ -275,21 +273,6 @@ func apply(
 	}
 
 	return state.New(root, statedb.Database())
-}
-
-func loadBootstrap(secretsDir string) (*ecdsa.PrivateKey, error) {
-	privKeyPath := path.Join(secretsDir, PrivKeyFilename)
-	info, err := os.Stat(privKeyPath)
-	if err != nil {
-		return nil, err
-	}
-	if !info.IsDir() && info.Mode().Perm().Perm()&(1<<2) == 0 {
-		return crypto.LoadECDSA(privKeyPath)
-	} else if !info.IsDir() {
-		return nil, errors.New("file exists but has wrong permissions")
-	} else {
-		return nil, errors.New("file does not exist")
-	}
 }
 
 func saveAttestationUserReportData(pubkey common.Address) error {
