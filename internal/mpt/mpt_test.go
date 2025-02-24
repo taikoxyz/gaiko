@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 )
 
 const intSize = 32 << (^uint(0) >> 63)
@@ -198,14 +198,14 @@ func TestMpt(t *testing.T) {
 	trie := New()
 	for i := 0; i < N; i++ {
 		key := keyFunc(i)
-		ok, err := trie.InsertRLP(internal.Keccak(key), uint(i))
+		ok, err := trie.InsertRLP(keccak.Keccak(key), uint(i))
 		require.NoError(t, err)
 		require.True(t, ok)
 
 		ref := New()
 		for j := i; j >= 0; j-- {
 			key := keyFunc(j)
-			ok, err := ref.InsertRLP(internal.Keccak(key), uint(j))
+			ok, err := ref.InsertRLP(keccak.Keccak(key), uint(j))
 			require.NoError(t, err)
 			require.True(t, ok)
 		}
@@ -221,7 +221,7 @@ func TestMpt(t *testing.T) {
 	require.Equal(t, expected, actual)
 	for i := 0; i < N; i++ {
 		key := keyFunc(i)
-		data, err := trie.Get(internal.Keccak(key))
+		data, err := trie.Get(keccak.Keccak(key))
 		require.NoError(t, err)
 		var val uint64
 		err = rlp.DecodeBytes(data, &val)
@@ -232,7 +232,7 @@ func TestMpt(t *testing.T) {
 
 func TestKeccak(t *testing.T) {
 	key := keyFunc(1)
-	expected := internal.Keccak(key)
+	expected := keccak.Keccak(key)
 	actual := []byte{
 		0x6c, 0x31, 0xfc, 0x15, 0x42, 0x2e, 0xba, 0xd2,
 		0x8a, 0xaf, 0x90, 0x89, 0xc3, 0x6, 0x70, 0x2f,

@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/triedb"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 )
 
 type preState struct {
@@ -52,7 +52,7 @@ func (g *GuestInput) makePreState() (*preState, error) {
 	statedb, _ := state.New(types.EmptyRootHash, sdb)
 	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
-		codeHash := internal.Keccak(contract)
+		codeHash := keccak.Keccak(contract)
 		contracts[common.BytesToHash(codeHash)] = contract
 	}
 	accounts := make(map[common.Address]*types.StateAccount, len(g.ParentStorage))

@@ -5,7 +5,7 @@ import (
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -30,7 +30,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return common.BytesToHash(internal.Keccak(b)), nil
+	return common.BytesToHash(keccak.Keccak(b)), nil
 }
 
 func NewPublicInput(

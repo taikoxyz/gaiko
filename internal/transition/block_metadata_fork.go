@@ -2,7 +2,7 @@ package transition
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
@@ -22,7 +22,7 @@ func (m *HeklaBlockMetadata) Encode() ([]byte, error) {
 
 func (m *HeklaBlockMetadata) Hash() common.Hash {
 	b, _ := m.Encode()
-	return common.BytesToHash(internal.Keccak(b))
+	return common.BytesToHash(keccak.Keccak(b))
 }
 
 type OntakeBlockMetadata struct {
@@ -35,7 +35,7 @@ func (m *OntakeBlockMetadata) Encode() ([]byte, error) {
 
 func (m *OntakeBlockMetadata) Hash() common.Hash {
 	b, _ := m.Encode()
-	return common.BytesToHash(internal.Keccak(b))
+	return common.BytesToHash(keccak.Keccak(b))
 }
 
 type PacayaBlockMetadata struct {
@@ -52,5 +52,5 @@ func (m *PacayaBlockMetadata) Encode() ([]byte, error) {
 
 func (m *PacayaBlockMetadata) Hash() common.Hash {
 	b, _ := m.Encode()
-	return common.BytesToHash(internal.Keccak(b))
+	return common.BytesToHash(keccak.Keccak(b))
 }

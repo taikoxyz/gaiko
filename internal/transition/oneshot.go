@@ -22,7 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/urfave/cli/v2"
 )
 
@@ -74,7 +74,7 @@ func Oneshot(ctx *cli.Context) error {
 			_, ok := collector[addr]
 			if !ok {
 				// Account is deleted
-				key := internal.Keccak(addr.Bytes())
+				key := keccak.Keccak(addr.Bytes())
 				if _, err := g.ParentStateTrie.Delete(key); err != nil {
 					return err
 				}
@@ -92,7 +92,7 @@ func Oneshot(ctx *cli.Context) error {
 				storageEntry.Trie.Clear()
 			}
 			for slot, value := range acc.Storage {
-				key := internal.Keccak(slot.Bytes())
+				key := keccak.Keccak(slot.Bytes())
 				if value == (common.Hash{}) {
 					if _, err := storageEntry.Trie.Delete(key); err != nil {
 						return err
@@ -111,7 +111,7 @@ func Oneshot(ctx *cli.Context) error {
 				Nonce:    acc.Nonce,
 				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
 				Root:     root,
-				CodeHash: internal.Keccak(acc.Code),
+				CodeHash: keccak.Keccak(acc.Code),
 			}
 
 			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
@@ -292,17 +292,6 @@ func loadBootstrap(secretsDir string) (*ecdsa.PrivateKey, error) {
 	}
 }
 
-// fn save_attestation_user_report_data(pubkey: Address) -> Result<()> {
-//     let mut extended_pubkey = pubkey.to_vec();
-//     extended_pubkey.resize(64, 0);
-//     let mut user_report_data_file = OpenOptions::new()
-//         .write(true)
-//         .open(ATTESTATION_USER_REPORT_DATA_DEVICE_FILE)?;
-//     user_report_data_file
-//         .write_all(&extended_pubkey)
-//         .map_err(|err| anyhow!("Failed to save user report data: {err}"))
-// }
-
 func saveAttestationUserReportData(pubkey common.Address) error {
 	extendedPubkey := make([]byte, 64)
 	copy(extendedPubkey, pubkey.Bytes())
@@ -316,13 +305,6 @@ func saveAttestationUserReportData(pubkey common.Address) error {
 	}
 	return nil
 }
-
-// fn get_sgx_quote() -> Result<Vec<u8>> {
-//     let mut quote_file = File::open(ATTESTATION_QUOTE_DEVICE_FILE)?;
-//     let mut quote = Vec::new();
-//     quote_file.read_to_end(&mut quote)?;
-//     Ok(quote)
-// }
 
 func getSgxQuote() ([]byte, error) {
 	quoteFile, err := os.Open(AttestationQuoteDeviceFile)

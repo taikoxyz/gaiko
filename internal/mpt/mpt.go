@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 )
 
 type MptNode struct {
@@ -427,7 +427,7 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 			if len(encoded) < 32 {
 				m.cachedRef = bytesMptNodeRef(encoded)
 			} else {
-				m.cachedRef = digestMptNodeRef(common.BytesToHash(internal.Keccak(encoded)))
+				m.cachedRef = digestMptNodeRef(common.BytesToHash(keccak.Keccak(encoded)))
 			}
 		}
 	}
@@ -447,7 +447,7 @@ func (b bytesMptNodeRef) encodeRLP(w rlp.EncoderBuffer) error {
 }
 
 func (b bytesMptNodeRef) hash() common.Hash {
-	return common.BytesToHash(internal.Keccak(b))
+	return common.BytesToHash(keccak.Keccak(b))
 }
 
 type digestMptNodeRef common.Hash

@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/mpt"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
@@ -123,7 +123,7 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 			return nil, err
 		}
 	} else {
-		txListHash = common.BytesToHash(internal.Keccak(g.Taiko.TxData))
+		txListHash = common.BytesToHash(keccak.Keccak(g.Taiko.TxData))
 	}
 
 	var extraData [32]byte

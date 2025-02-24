@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/taikoxyz/gaiko/internal"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
@@ -103,14 +103,14 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return common.BytesToHash(internal.Keccak(data)), nil
+	return common.BytesToHash(keccak.Keccak(data)), nil
 }
 
 func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
 	if err := g.verifyBatchModeBlobUsage(proofType); err != nil {
 		return nil, err
 	}
-	txListHash := common.BytesToHash(internal.Keccak(g.Taiko.TxDataFromCalldata))
+	txListHash := common.BytesToHash(keccak.Keccak(g.Taiko.TxDataFromCalldata))
 	txsHash, err := g.calculatePacayaTxsHash(txListHash, g.Taiko.BatchProposed.BlobHashes())
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 	if err != nil {
 		return nil, err
 	}
-	infoHash := internal.Keccak(data)
+	infoHash := keccak.Keccak(data)
 
 	return NewPacayaBlockMetadata(&pacaya.ITaikoInboxBatchMetadata{
 		InfoHash:   common.BytesToHash(infoHash),
