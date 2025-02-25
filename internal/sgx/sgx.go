@@ -16,6 +16,8 @@ const (
 	bootstrapInfoFilename = "bootstrap.json"
 )
 
+type Quote [432]byte
+
 type Provider interface {
 	LoadQuote(key common.Address) ([]byte, error)
 	LoadPrivateKey() (*ecdsa.PrivateKey, error)
@@ -24,10 +26,14 @@ type Provider interface {
 }
 
 func NewProvider(args *flags.Arguments) Provider {
-	if args.SgxType == flags.GramineSGXType {
+	switch args.SecretDir {
+	case flags.DebugSgxType:
+		return NewDebugProvider(args)
+	case flags.GramineSgxType:
 		return NewGramineProvider(args)
+	default:
+		return NewEgoProvider(args)
 	}
-	return NewEgoProvider(args)
 }
 
 type BootstrapData struct {

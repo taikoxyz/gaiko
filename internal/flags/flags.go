@@ -43,8 +43,9 @@ func init() {
 }
 
 const (
-	EgoSGXType     = "ego"
-	GramineSGXType = "gramine"
+	DebugSgxType   = "debug"
+	EgoSgxType     = "ego"
+	GramineSgxType = "gramine"
 )
 
 var GlobalFlags = []cli.Flag{
