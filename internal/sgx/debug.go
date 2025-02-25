@@ -2,6 +2,7 @@ package sgx
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taikoxyz/gaiko/internal/flags"
@@ -35,5 +36,6 @@ func (p *DebugProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 
 func (p *DebugProvider) SaveBootstrap(b *BootstrapData) error {
 	p.bootstrap = b
+	fmt.Printf("Bootstrap details: %v\n", b)
 	return nil
 }
