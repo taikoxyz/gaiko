@@ -51,29 +51,51 @@ func (h *HardForks) UnmarshalJSON(data []byte) error {
 		if !ok {
 			break
 		}
-		val := pair.Value.(map[string]interface{})
-		for key, value := range val {
-			switch key {
-			case "Block":
-				blockNumber := BlockNumber(value.(float64))
-				*h = append(*h, &HardFork{
-					SpecID:    SpecID(pair.Key),
-					Condition: blockNumber,
-				})
-			case "Timestamp":
-				blockTimestamp := BlockTimestamp(value.(float64))
-				*h = append(*h, &HardFork{
-					SpecID:    SpecID(pair.Key),
-					Condition: blockTimestamp,
-				})
-			case "TBD":
-				*h = append(*h, &HardFork{
-					SpecID:    SpecID(pair.Key),
-					Condition: TBD{},
-				})
-			default:
-				return fmt.Errorf("unknown key %s", key)
+		switch val := pair.Value.(type) {
+		case *ordered.OrderedMap:
+			iter := val.EntriesIter()
+			for {
+				pair, ok := iter()
+				if !ok {
+					break
+				}
+				key := pair.Key
+				value := pair.Value
+				switch key {
+				case "Block":
+					valueNumber, err := value.(json.Number).Int64()
+					if err != nil {
+						return err
+					}
+					blockNumber := BlockNumber(uint64(valueNumber))
+					*h = append(*h, &HardFork{
+						SpecID:    SpecID(pair.Key),
+						Condition: blockNumber,
+					})
+				case "Timestamp":
+					valueNumber, err := value.(json.Number).Int64()
+					if err != nil {
+						return err
+					}
+					blockTimestamp := BlockTimestamp(uint64(valueNumber))
+					*h = append(*h, &HardFork{
+						SpecID:    SpecID(pair.Key),
+						Condition: blockTimestamp,
+					})
+				default:
+					return fmt.Errorf("unknown key %s", key)
+				}
 			}
+		case string:
+			if val != "TBD" {
+				return fmt.Errorf("unsupported hardfork: %s", val)
+			}
+			*h = append(*h, &HardFork{
+				SpecID:    SpecID(pair.Key),
+				Condition: TBD{},
+			})
+		default:
+			return fmt.Errorf("unsupported type for hardfork: %T", val)
 		}
 	}
 
