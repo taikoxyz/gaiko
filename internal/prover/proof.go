@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -25,7 +26,30 @@ type ProofResponse struct {
 }
 
 func (p *ProofResponse) Stdout() error {
-	return json.NewEncoder(os.Stdout).Encode(p)
+	err := json.NewEncoder(os.Stdout).Encode(p)
+	if err != nil {
+		return err
+	}
+	quote := p.Quote
+
+	fmt.Printf("Detected attestation type: enclave")
+	fmt.Printf(
+		"Extracted SGX quote with size = %d and the following fields:\n",
+		len(quote),
+	)
+	fmt.Printf(
+		"  ATTRIBUTES.FLAGS: %s  [ Debug bit: %t ]\n",
+		hex.EncodeToString(quote[96:104]),
+		quote[96]&2 > 0,
+	)
+	fmt.Printf("  ATTRIBUTES.XFRM:  %s\n", hex.EncodeToString(quote[104:112]))
+	fmt.Printf("  MRENCLAVE:        %s\n", hex.EncodeToString(quote[112:144]))
+	fmt.Printf("  MRSIGNER:         %s\n", hex.EncodeToString(quote[176:208]))
+	fmt.Printf("  ISVPRODID:        %s\n", hex.EncodeToString(quote[304:306]))
+	fmt.Printf("  ISVSVN:           %s\n", hex.EncodeToString(quote[306:308]))
+	fmt.Printf("  REPORTDATA:       %s\n", hex.EncodeToString(quote[368:400]))
+	fmt.Printf("                    %s\n", hex.EncodeToString(quote[400:432]))
+	return nil
 }
 
 type OneshotProof [89]byte
