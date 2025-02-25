@@ -26,7 +26,7 @@ type Provider interface {
 }
 
 func NewProvider(args *flags.Arguments) Provider {
-	switch args.SecretDir {
+	switch args.SgxType {
 	case flags.DebugSgxType:
 		return NewDebugProvider(args)
 	case flags.GramineSgxType:
