@@ -9,24 +9,24 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
 const (
 	attestationQuoteDeviceFile          = "/dev/attestation/quote"
 	attestationTypeDeviceFile           = "/dev/attestation/attestation_type"
 	attestationUserReportDataDeviceFile = "/dev/attestation/user_report_data"
-	bootstrapInfoFilename               = "bootstrap.json"
 )
 
 type GramineProvider struct {
-	secretDir string
+	args *flags.Arguments
 }
 
 var _ Provider = (*GramineProvider)(nil)
 
-func NewGramineProvider(secretDir string) *GramineProvider {
+func NewGramineProvider(args *flags.Arguments) *GramineProvider {
 	return &GramineProvider{
-		secretDir: secretDir,
+		args: args,
 	}
 }
 
@@ -35,11 +35,16 @@ func (p *GramineProvider) LoadQuote(key common.Address) ([]byte, error) {
 }
 
 func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
-	return loadPrivKey(p.secretDir)
+	return loadPrivKey(p.args.SecretDir)
 }
 
 func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
-	return SavePrivKey(p.secretDir, privKey)
+	return SavePrivKey(p.args.SecretDir, privKey)
+}
+
+func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
+	filename := path.Join(p.args.ConfigDir, bootstrapInfoFilename)
+	return b.SaveToFile(filename)
 }
 
 func saveAttestationUserReportData(pubkey common.Address) error {

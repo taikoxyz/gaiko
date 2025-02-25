@@ -83,9 +83,9 @@ func genSgxProof(
 	}
 
 	return &ProofResponse{
-		Proof:           hexutil.Bytes(proof[:]),
-		Quote:           hexutil.Bytes(quote),
-		PublicKey:       hexutil.Bytes(crypto.FromECDSAPub(&prevPrivKey.PublicKey)),
+		Proof:           proof[:],
+		Quote:           quote,
+		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
 		Input:           piHash,
 	}, nil

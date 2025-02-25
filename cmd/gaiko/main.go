@@ -19,6 +19,15 @@ var oneshotCommand = &cli.Command{
 	},
 }
 
+var batchOneshotCommand = &cli.Command{
+	Name:   "boneshot",
+	Usage:  "Run multi states transition once",
+	Action: batchOneshot,
+	Flags: []cli.Flag{
+		flags.OneShotSgxInstanceID,
+	},
+}
+
 // newApp creates an app with sane defaults.
 func newApp(usage string) *cli.App {
 	git, _ := version.VCS()

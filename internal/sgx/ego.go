@@ -9,17 +9,18 @@ import (
 	"github.com/edgelesssys/ego/enclave"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
 type EgoProvider struct {
-	secretDir string
+	args *flags.Arguments
 }
 
 var _ Provider = (*EgoProvider)(nil)
 
-func NewEgoProvider(secretDir string) *EgoProvider {
+func NewEgoProvider(args *flags.Arguments) *EgoProvider {
 	return &EgoProvider{
-		secretDir: secretDir,
+		args: args,
 	}
 }
 
@@ -30,7 +31,7 @@ func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
 }
 
 func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
-	filename := path.Join(p.secretDir, privKeyFilename)
+	filename := path.Join(p.args.SecretDir, privKeyFilename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -48,8 +49,13 @@ func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	filename := path.Join(p.secretDir, privKeyFilename)
+	filename := path.Join(p.args.SecretDir, privKeyFilename)
 	return os.WriteFile(filename, sealedText, 0600)
+}
+
+func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
+	filename := path.Join(p.args.ConfigDir, bootstrapInfoFilename)
+	return b.SaveToFile(filename)
 }
 
 func getReport(userReport []byte) ([]byte, error) {

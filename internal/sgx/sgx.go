@@ -2,22 +2,47 @@ package sgx
 
 import (
 	"crypto/ecdsa"
+	"encoding/json"
+	"os"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
-const privKeyFilename = "priv.key"
+const (
+	privKeyFilename       = "priv.key"
+	bootstrapInfoFilename = "bootstrap.json"
+)
 
 type Provider interface {
 	LoadQuote(key common.Address) ([]byte, error)
 	LoadPrivateKey() (*ecdsa.PrivateKey, error)
 	SavePrivateKey(privKey *ecdsa.PrivateKey) error
+	SaveBootstrap(b *BootstrapData) error
 }
 
-func NewProvider(typ, secretDir string) Provider {
-	if typ == flags.GramineSGXType {
-		return NewGramineProvider(secretDir)
+func NewProvider(args *flags.Arguments) Provider {
+	if args.SgxType == flags.GramineSGXType {
+		return NewGramineProvider(args)
 	}
-	return NewEgoProvider(secretDir)
+	return NewEgoProvider(args)
+}
+
+type BootstrapData struct {
+	PublicKey   hexutil.Bytes  `json:"public_key"`
+	NewInstance common.Address `json:"new_instance"`
+	Quote       hexutil.Bytes  `json:"quote"`
+}
+
+func (b *BootstrapData) SaveToFile(filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(b)
 }

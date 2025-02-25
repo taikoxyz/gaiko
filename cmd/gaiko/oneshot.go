@@ -10,8 +10,19 @@ import (
 
 func oneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(cli.String(flags.GlobalSgxType.Name), args.SecretDir)
-	proof, err := sgxProver.Oneshot(context.Background(), args)
+	sgxProver := prover.NewSgxProver(args)
+	proof, err := sgxProver.Oneshot(context.Background())
+
+	if err != nil {
+		return err
+	}
+	return proof.Stdout()
+}
+
+func batchOneshot(cli *cli.Context) error {
+	args := flags.NewArguments(cli)
+	sgxProver := prover.NewSgxProver(args)
+	proof, err := sgxProver.BatchOneshot(context.Background())
 
 	if err != nil {
 		return err
