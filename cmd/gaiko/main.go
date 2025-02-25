@@ -28,6 +28,18 @@ var batchOneshotCommand = &cli.Command{
 	},
 }
 
+var bootstrapCommand = &cli.Command{
+	Name:   "bootstrap",
+	Usage:  "Run the bootstrap process",
+	Action: bootstrap,
+}
+
+var checkCommand = &cli.Command{
+	Name:   "check",
+	Usage:  "Run the check process",
+	Action: check,
+}
+
 // newApp creates an app with sane defaults.
 func newApp(usage string) *cli.App {
 	git, _ := version.VCS()
@@ -45,6 +57,9 @@ func init() {
 	app.Flags = flags.GlobalFlags
 	app.Commands = []*cli.Command{
 		oneshotCommand,
+		batchOneshotCommand,
+		bootstrapCommand,
+		checkCommand,
 	}
 }
 
