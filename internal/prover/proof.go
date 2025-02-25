@@ -77,11 +77,7 @@ func genSgxProof(
 	}
 
 	proof := NewProof(args.InstanceID, newInstance, sign)
-	if err = provider.SavePublicKey(newInstance); err != nil {
-		return nil, err
-	}
-
-	quote, err := provider.LoadQuote()
+	quote, err := provider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err
 	}

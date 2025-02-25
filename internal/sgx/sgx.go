@@ -10,10 +10,9 @@ import (
 const privKeyFilename = "priv.key"
 
 type Provider interface {
-	LoadQuote() ([]byte, error)
+	LoadQuote(key common.Address) ([]byte, error)
 	LoadPrivateKey() (*ecdsa.PrivateKey, error)
 	SavePrivateKey(privKey *ecdsa.PrivateKey) error
-	SavePublicKey(key common.Address) error
 }
 
 func NewProvider(typ, secretDir string) Provider {

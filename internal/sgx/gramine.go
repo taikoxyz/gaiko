@@ -30,8 +30,8 @@ func NewGramineProvider(secretDir string) *GramineProvider {
 	}
 }
 
-func (p *GramineProvider) LoadQuote() ([]byte, error) {
-	return getSgxQuote()
+func (p *GramineProvider) LoadQuote(key common.Address) ([]byte, error) {
+	return getSgxQuote(key)
 }
 
 func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -40,11 +40,6 @@ func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 
 func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 	return SavePrivKey(p.secretDir, privKey)
-}
-
-func (p *GramineProvider) SavePublicKey(key common.Address) error {
-	saveAttestationUserReportData(key)
-	return nil
 }
 
 func saveAttestationUserReportData(pubkey common.Address) error {
@@ -61,7 +56,11 @@ func saveAttestationUserReportData(pubkey common.Address) error {
 	return nil
 }
 
-func getSgxQuote() ([]byte, error) {
+func getSgxQuote(pubkey common.Address) ([]byte, error) {
+	err := saveAttestationUserReportData(pubkey)
+	if err != nil {
+		return nil, err
+	}
 	quoteFile, err := os.Open(attestationQuoteDeviceFile)
 	if err != nil {
 		return nil, err

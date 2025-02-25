@@ -2,7 +2,6 @@ package sgx
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"os"
 	"path"
 
@@ -13,8 +12,7 @@ import (
 )
 
 type EgoProvider struct {
-	secretDir  string
-	userReport common.Address
+	secretDir string
 }
 
 var _ Provider = (*EgoProvider)(nil)
@@ -25,12 +23,9 @@ func NewEgoProvider(secretDir string) *EgoProvider {
 	}
 }
 
-func (p *EgoProvider) LoadQuote() ([]byte, error) {
-	if len(p.userReport) == 0 {
-		return nil, errors.New("user report is not set")
-	}
+func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
 	var extendedPubkey [64]byte
-	copy(extendedPubkey[:], p.userReport.Bytes())
+	copy(extendedPubkey[:], key.Bytes())
 	return getReport(extendedPubkey[:])
 }
 
@@ -55,11 +50,6 @@ func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 	}
 	filename := path.Join(p.secretDir, privKeyFilename)
 	return os.WriteFile(filename, sealedText, 0600)
-}
-
-func (p *EgoProvider) SavePublicKey(key common.Address) error {
-	p.userReport = key
-	return nil
 }
 
 func getReport(userReport []byte) ([]byte, error) {
