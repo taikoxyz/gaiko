@@ -27,7 +27,7 @@
 - `internal/flags` cli arguments
 - `internal/keccak` keccak hasher
 - `internal/mpt` the golang porting of merkle trie from `raiko`
-- `internal/prover` prover abstracts
+- `internal/prover` prover abstracts, the main entry of `gaiko`
 - `internal/sgx` sgx provider, `gramine` or `ego`
 - `internal/transition` state transition of blocks
 - `internal/types` type bridge between `raiko` and `gaiko`
