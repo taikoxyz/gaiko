@@ -1,41 +1,52 @@
 {
-    "exe": "helloworld",
+    "exe": "gaiko",
     "key": "private.pem",
-    "debug": true,
-    "heapSize": 512,
+    "debug": false,
+    "heapSize": 4096,
     "executableHeap": false,
     "productID": 1,
     "securityVersion": 1,
     "mounts": [
         {
-            "source": "/home/user",
-            "target": "/data",
+            "source": "/root/.config/gaiko/config",
+            "target": "/root/.config/gaiko/config",
             "type": "hostfs",
             "readOnly": false
         },
         {
-            "target": "/tmp",
-            "type": "memfs"
+            "source": "/root/.config/gaiko/secrets",
+            "target": "/root/.config/gaiko/secrets",
+            "type": "hostfs",
+            "readOnly": false
+        },
+        {
+            "source": "/proc/self/mountinfo",
+            "target": "/proc/self/mountinfo",
+            "type": "hostfs",
+            "readOnly": true
+        },
+        {
+            "source": "/proc/self/cgroup",
+            "target": "/proc/self/cgroup",
+            "type": "hostfs",
+            "readOnly": true
+        },
+        {
+            "source": "/sys/fs/cgroup/",
+            "target": "/sys/fs/cgroup/",
+            "type": "hostfs",
+            "readOnly": true
         }
     ],
     "env": [
         {
-            "name": "LANG",
-            "fromHost": true
+            "name": "SGX_TYPE",
+            "value": "ego"
         },
         {
-            "name": "PWD",
-            "value": "/data"
+            "name": "HOME",
+            "value": "/root"
         }
     ],
-    "files": [
-        {
-            "source": "some_datafile",
-            "target": "/some/path/to/datafile"
-        },
-        {
-            "source": "/etc/ssl/certs/ca-certificates.crt",
-            "target": "/etc/ssl/certs/ca-certificates.crt"
-        }
-    ]
+    "files": []
 }
