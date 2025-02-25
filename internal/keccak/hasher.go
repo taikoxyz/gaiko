@@ -10,7 +10,7 @@ import (
 type keccakHasher struct{ sha crypto.KeccakState }
 
 var keccakHasherPool = sync.Pool{
-	New: func() interface{} { return &keccakHasher{sha: crypto.NewKeccakState()} },
+	New: func() any { return &keccakHasher{sha: crypto.NewKeccakState()} },
 }
 
 func newKeccakHasher() *keccakHasher {

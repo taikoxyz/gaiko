@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-type Requests []interface{}
+type Requests []any
 
 func (t *Requests) UnmarshalJSON(data []byte) error {
 	raw := []map[string]json.RawMessage{}

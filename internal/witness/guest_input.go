@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"iter"
 	"math/big"
+	"slices"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
@@ -83,7 +84,7 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 			}
 		}
 		txs := decompressTxList(txListBytes, blobUsed, isPacaya, chainID)
-		txs = append([]*types.Transaction{g.Taiko.AnchorTx}, txs...)
+		txs = slices.Insert(txs, 0, g.Taiko.AnchorTx)
 		if !yield(&Pair{g, txs}) {
 			return
 		}

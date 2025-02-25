@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -125,8 +126,7 @@ func (c *ChainSpec) getForkVerifierAddress(
 	blockNum uint64,
 	proofType ProofType,
 ) (common.Address, error) {
-	for i := len(c.HardForks) - 1; i >= 0; i-- {
-		fork := c.HardForks[i]
+	for _, fork := range slices.Backward(c.HardForks) {
 		if fork.Condition.Active(blockNum, 0) {
 			if verifierAddressFork, ok := c.VerifierAddressForks[fork.SpecID]; ok {
 				verifierAddress := verifierAddressFork[proofType]

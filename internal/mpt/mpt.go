@@ -88,7 +88,7 @@ func (m *MptNode) Insert(key []byte, value []byte) (bool, error) {
 	return m.insert(toNibs(key), value)
 }
 
-func (m *MptNode) InsertRLP(key []byte, value interface{}) (bool, error) {
+func (m *MptNode) InsertRLP(key []byte, value any) (bool, error) {
 	data, err := rlp.EncodeToBytes(value)
 	if err != nil {
 		return false, err
@@ -201,12 +201,9 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 }
 
 func lcp(a, b []byte) int {
-	minLen := len(a)
-	if len(b) < minLen {
-		minLen = len(b)
-	}
+	minLen := min(len(a), len(b))
 
-	for i := 0; i < minLen; i++ {
+	for i := range minLen {
 		if a[i] != b[i] {
 			return i
 		}
@@ -257,13 +254,14 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		if remaining == 1 {
 			switch data := nextChild.data.(type) {
 			case *leafNode:
-				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(data.prefix)...)
+				newNibs := slices.Concat([]byte{uint8(nextIdx)}, prefixNibs(data.prefix))
 				m.data = &leafNode{
 					prefix: toEncodedPath(newNibs, true),
 					value:  data.value,
 				}
 			case *extensionNode:
-				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(data.prefix)...)
+				newNibs := slices.Concat([]byte{uint8(nextIdx)}, prefixNibs(data.prefix))
+
 				m.data = &extensionNode{
 					prefix: toEncodedPath(newNibs, false),
 					child:  data.child,
@@ -301,13 +299,14 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		case *nullNode:
 			m.data = &nullNode{}
 		case *leafNode:
-			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = slices.Concat(selfNibs, prefixNibs(data.prefix))
 			m.data = &leafNode{
 				prefix: toEncodedPath(selfNibs, true),
 				value:  data.value,
 			}
 		case *extensionNode:
-			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = slices.Concat(selfNibs, prefixNibs(data.prefix))
+
 			m.data = &extensionNode{
 				prefix: toEncodedPath(selfNibs, false),
 				child:  data.child,
@@ -368,8 +367,8 @@ func toEncodedPath(nibs []byte, isLeaf bool) []byte {
 	}
 	res := make([]byte, 0, len(nibs)%2+1)
 	res = append(res, prefix)
-	for i := 0; i < len(nibs); i += 2 {
-		res = append(res, nibs[i]<<4+nibs[i+1])
+	for c := range slices.Chunk(nibs, 2) {
+		res = append(res, c[0]<<4+c[1])
 	}
 	return res
 }

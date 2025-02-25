@@ -1,6 +1,6 @@
 module github.com/taikoxyz/gaiko
 
-go 1.23.6
+go 1.24.0
 
 require (
 	github.com/ethereum-optimism/optimism v1.7.4

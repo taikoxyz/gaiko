@@ -29,7 +29,7 @@ type TransactionSigned struct {
 }
 
 type Transaction struct {
-	inner interface{}
+	inner any
 }
 
 func (t *TransactionSigned) GethType() *types.Transaction {
