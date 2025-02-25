@@ -1,6 +1,13 @@
-package sgx
+package bootstrap
 
-import "github.com/urfave/cli/v2"
+import (
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taikoxyz/gaiko/internal/flags"
+	"github.com/taikoxyz/gaiko/internal/util"
+	"github.com/urfave/cli/v2"
+)
 
 // pub fn bootstrap(global_opts: GlobalOpts) -> Result<()> {
 //     // Generate a new key pair
@@ -27,5 +34,18 @@ import "github.com/urfave/cli/v2"
 // }
 
 func BootStrap(ctx *cli.Context) error {
-	panic("todo")
+	privKey, err := crypto.GenerateKey()
+	if err != nil {
+		return err
+	}
+	privKeyPath := ctx.String(flags.GlobalSecretDir.Name)
+	err = util.SavePrivKey(privKeyPath, privKey)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Public key: %x\n", privKey.PublicKey)
+	newInstance := crypto.PubkeyToAddress(privKey.PublicKey)
+	fmt.Printf("Instance address: %x\n", newInstance)
+
+	return nil
 }

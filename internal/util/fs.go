@@ -41,3 +41,8 @@ func LoadPrivKey(secretsDir string) (*ecdsa.PrivateKey, error) {
 	}
 	return nil, errors.New("file does not exist")
 }
+
+func SavePrivKey(secretDir string, privKey *ecdsa.PrivateKey) error {
+	privKeyPath := path.Join(secretDir, privKeyFilename)
+	return crypto.SaveECDSA(privKeyPath, privKey)
+}

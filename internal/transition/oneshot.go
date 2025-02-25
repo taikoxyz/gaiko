@@ -20,6 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
+	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/util"
 	"github.com/urfave/cli/v2"
@@ -33,7 +34,7 @@ const (
 )
 
 func Oneshot(ctx *cli.Context) error {
-	prevPrivKey, err := util.LoadPrivKey(ctx.String(GlobalSecretPath.Name))
+	prevPrivKey, err := util.LoadPrivKey(ctx.String(flags.GlobalSecretDir.Name))
 	if err != nil {
 		return err
 	}
@@ -129,7 +130,7 @@ func Oneshot(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		instanceId := uint32(ctx.Uint64(OneShotSgxInstanceID.Name))
+		instanceId := uint32(ctx.Uint64(flags.OneShotSgxInstanceID.Name))
 
 		var proof [89]byte
 		binary.BigEndian.PutUint32(proof[:4], instanceId)

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/transition"
 	"github.com/taikoxyz/gaiko/internal/version"
 	"github.com/urfave/cli/v2"
@@ -15,7 +16,7 @@ var oneshotCommand = &cli.Command{
 	Usage:  "Run state transition once",
 	Action: transition.Oneshot,
 	Flags: []cli.Flag{
-		transition.OneShotSgxInstanceID,
+		flags.OneShotSgxInstanceID,
 	},
 }
 
@@ -33,7 +34,7 @@ func newApp(usage string) *cli.App {
 var app = newApp("The Gaiko command line interface")
 
 func init() {
-	app.Flags = transition.GlobalFlags
+	app.Flags = flags.GlobalFlags
 	app.Commands = []*cli.Command{
 		oneshotCommand,
 	}
