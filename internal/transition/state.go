@@ -38,7 +38,7 @@ type preState struct {
 //
 // *Note*:
 // This StateDB is only used for execution without trust its root.
-func makePreState(g *witness.GuestInput) (*preState, error) {
+func newPreState(g *witness.GuestInput) (*preState, error) {
 	parentRoot, err := g.ParentStateTrie.Hash()
 	if err != nil {
 		return nil, err

@@ -32,7 +32,7 @@ func ExecuteGuestDriver(
 	for pair := range driver.GuestInputs() {
 		g := pair.Input
 		txs := pair.Txs
-		preState, err := makePreState(g)
+		preState, err := newPreState(g)
 		if err != nil {
 			return err
 		}
