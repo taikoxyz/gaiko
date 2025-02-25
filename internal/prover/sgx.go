@@ -2,13 +2,19 @@ package prover
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/taikoxyz/gaiko/internal/flags"
+	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/sgx"
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
+
+var addressPadding [32 - common.AddressLength]byte
 
 type SgxProver struct {
 	provider sgx.Provider
@@ -41,7 +47,60 @@ func (p *SgxProver) BatchOneshot(
 func (p *SgxProver) Aggregate(
 	ctx context.Context,
 ) (*ProofResponse, error) {
-	panic("not implemented") // TODO: Implement
+	prevPrivKey, err := p.provider.LoadPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
+	var input witness.RawAggregationGuestInput
+	err = json.NewDecoder(os.Stdin).Decode(&input)
+	if err != nil {
+		return nil, err
+	}
+	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
+	curInstance := oldInstance
+	for i, proof := range input.Proofs {
+		pubKey, err := crypto.SigToPub(proof.Input.Bytes(), proof.Proof[24:])
+		if err != nil {
+			return nil, err
+		}
+		if crypto.PubkeyToAddress(*pubKey) != curInstance {
+			return nil, fmt.Errorf("invalid proof[%d]", i)
+		}
+		curInstance = common.BytesToAddress(proof.Proof[4:24])
+	}
+	if newInstance != curInstance {
+		return nil, fmt.Errorf("invalid instance: %s", curInstance)
+	}
+
+	aggOutputCombine := make([]byte, 0, (len(input.Proofs)+2)*32)
+	aggOutputCombine = append(aggOutputCombine, addressPadding[:]...)
+	aggOutputCombine = append(aggOutputCombine, oldInstance.Bytes()...)
+	aggOutputCombine = append(aggOutputCombine, addressPadding[:]...)
+	aggOutputCombine = append(aggOutputCombine, newInstance.Bytes()...)
+	for _, proof := range input.Proofs {
+		aggOutputCombine = append(aggOutputCombine, proof.Input.Bytes()...)
+	}
+
+	aggHash := keccak.Keccak(aggOutputCombine)
+	sig, err := crypto.Sign(aggHash, prevPrivKey)
+	if err != nil {
+		return nil, err
+	}
+
+	proof := NewAggregateProof(p.args.InstanceID, oldInstance, newInstance, sig)
+	quote, err := p.provider.LoadQuote(newInstance)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ProofResponse{
+		Proof:           proof[:],
+		Quote:           quote,
+		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
+		InstanceAddress: newInstance,
+		Input:           common.BytesToHash(aggHash),
+	}, nil
 }
 
 func (p *SgxProver) Bootstrap(ctx context.Context) error {
@@ -71,5 +130,6 @@ func (p *SgxProver) Bootstrap(ctx context.Context) error {
 }
 
 func (p *SgxProver) Check(ctx context.Context) error {
-	panic("not implemented") // TODO: Implement
+	_, err := p.provider.LoadPrivateKey()
+	return err
 }

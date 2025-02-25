@@ -28,17 +28,36 @@ func (p *ProofResponse) Stdout() error {
 	return json.NewEncoder(os.Stdout).Encode(p)
 }
 
-type Proof [89]byte
+type OneshotProof [89]byte
 
-func (p *Proof) Hex() string {
+func (p *OneshotProof) Hex() string {
 	return hex.EncodeToString(p[:])
 }
 
-func NewProof(instanceID uint32, newInstance common.Address, sign []byte) *Proof {
-	var proof Proof
+func NewOneshotProof(instanceID uint32, newInstance common.Address, sign []byte) *OneshotProof {
+	var proof OneshotProof
 	binary.BigEndian.PutUint32(proof[:4], instanceID)
 	copy(proof[4:24], newInstance.Bytes())
 	copy(proof[24:], sign)
+	return &proof
+}
+
+type AggregateProof [109]byte
+
+func (p *AggregateProof) Hex() string {
+	return hex.EncodeToString(p[:])
+}
+
+func NewAggregateProof(
+	instanceID uint32,
+	oldInstance, newInstance common.Address,
+	sign []byte,
+) *AggregateProof {
+	var proof AggregateProof
+	binary.BigEndian.PutUint32(proof[:4], instanceID)
+	copy(proof[4:24], oldInstance.Bytes())
+	copy(proof[24:44], newInstance.Bytes())
+	copy(proof[44:], sign)
 	return &proof
 }
 
@@ -76,7 +95,7 @@ func genSgxProof(
 		return nil, err
 	}
 
-	proof := NewProof(args.InstanceID, newInstance, sign)
+	proof := NewOneshotProof(args.InstanceID, newInstance, sign)
 	quote, err := provider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err
