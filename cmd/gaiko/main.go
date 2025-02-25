@@ -35,7 +35,7 @@ var bootstrapCommand = &cli.Command{
 }
 
 var aggregateCommand = &cli.Command{
-	Name:   "aggregate",
+	Name:   "agg",
 	Usage:  "Run the aggregate process",
 	Action: aggregate,
 }
