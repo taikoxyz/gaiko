@@ -1,4 +1,4 @@
-package transition
+package witness
 
 import (
 	"iter"

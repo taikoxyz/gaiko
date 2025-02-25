@@ -23,6 +23,7 @@ import (
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/util"
+	"github.com/taikoxyz/gaiko/internal/witness"
 	"github.com/urfave/cli/v2"
 )
 
@@ -40,7 +41,7 @@ func Oneshot(ctx *cli.Context) error {
 	}
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
 
-	var driver GuestDriver
+	var driver witness.GuestDriver
 	err = json.NewDecoder(os.Stdin).Decode(&driver)
 	if err != nil {
 		return err
@@ -52,7 +53,7 @@ func Oneshot(ctx *cli.Context) error {
 	for pair := range driver.GuestInputs() {
 		g := pair.Input
 		txs := pair.Txs
-		preState, err := g.makePreState()
+		preState, err := makePreState(g)
 		if err != nil {
 			return err
 		}
@@ -118,7 +119,7 @@ func Oneshot(ctx *cli.Context) error {
 			}
 		}
 
-		pi, err := NewPublicInput(driver, SgxProofType, newInstance)
+		pi, err := witness.NewPublicInput(driver, witness.SgxProofType, newInstance)
 		if err != nil {
 			return err
 		}

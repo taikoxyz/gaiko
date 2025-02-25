@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/triedb"
 	"github.com/taikoxyz/gaiko/internal/keccak"
+	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
 type preState struct {
@@ -37,7 +38,7 @@ type preState struct {
 //
 // *Note*:
 // This StateDB is only used for execution without trust its root.
-func (g *GuestInput) makePreState() (*preState, error) {
+func makePreState(g *witness.GuestInput) (*preState, error) {
 	parentRoot, err := g.ParentStateTrie.Hash()
 	if err != nil {
 		return nil, err
