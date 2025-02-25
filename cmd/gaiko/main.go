@@ -11,7 +11,7 @@ import (
 )
 
 var oneshotCommand = &cli.Command{
-	Name:   "oneshot",
+	Name:   "one-shot",
 	Usage:  "Run state transition once",
 	Action: oneshot,
 	Flags: []cli.Flag{
@@ -20,7 +20,7 @@ var oneshotCommand = &cli.Command{
 }
 
 var batchOneshotCommand = &cli.Command{
-	Name:   "boneshot",
+	Name:   "one-batch-shot",
 	Usage:  "Run multi states transition once",
 	Action: batchOneshot,
 	Flags: []cli.Flag{
@@ -35,7 +35,7 @@ var bootstrapCommand = &cli.Command{
 }
 
 var aggregateCommand = &cli.Command{
-	Name:   "agg",
+	Name:   "aggregate",
 	Usage:  "Run the aggregate process",
 	Action: aggregate,
 }

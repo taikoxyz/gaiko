@@ -1,28 +1,46 @@
 package flags
 
-import "github.com/urfave/cli/v2"
+import (
+	"os"
+	"path"
+
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/urfave/cli/v2"
+)
+
+const defaultGaikoUserConfigSubDir = ".config/gaiko"
 
 var (
 	GlobalSecretDir = &cli.StringFlag{
-		Name:  "global.secretDir",
+		Name:  "secret-dir",
 		Usage: "Directory for the secret files",
 	}
 
 	GlobalConfigDir = &cli.StringFlag{
-		Name:  "global.configDir",
+		Name:  "config-dir",
 		Usage: "Directory for configuration files",
 	}
 
 	GlobalSgxType = &cli.StringFlag{
-		Name:  "global.sgxType",
-		Usage: "Which SGX type? ego or gramine",
+		Name:    "sgx-type",
+		Usage:   "Which SGX type? ego or gramine",
+		EnvVars: []string{"SGX_TYPE"},
 	}
 
 	OneShotSgxInstanceID = &cli.Uint64Flag{
-		Name:  "oneshot.sgxInstanceID",
+		Name:  "sgx-instance-id",
 		Usage: "SGX Instance ID for one-shot operation",
 	}
 )
+
+func init() {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Crit("Get home dir failed", err)
+	}
+	GlobalSecretDir.DefaultText = path.Join(home, defaultGaikoUserConfigSubDir, "secrets")
+	GlobalConfigDir.DefaultText = path.Join(home, defaultGaikoUserConfigSubDir, "config")
+}
 
 const (
 	EgoSGXType     = "ego"
