@@ -13,8 +13,8 @@ import (
 func (b BlockParams) MarshalJSON() ([]byte, error) {
 	type BlockParams struct {
 		NumTransactions uint16        `json:"numTransactions" gencodec:"required"`
-		TimeShift       uint8         `json:"timeShift" gencodec:"required"`
-		SignalSlots     []common.Hash `json:"signalSlots" gencodec:"required"`
+		TimeShift       uint8         `json:"timeShift"       gencodec:"required"`
+		SignalSlots     []common.Hash `json:"signalSlots"     gencodec:"required"`
 	}
 	var enc BlockParams
 	enc.NumTransactions = b.NumTransactions
@@ -27,8 +27,8 @@ func (b BlockParams) MarshalJSON() ([]byte, error) {
 func (b *BlockParams) UnmarshalJSON(input []byte) error {
 	type BlockParams struct {
 		NumTransactions *uint16       `json:"numTransactions" gencodec:"required"`
-		TimeShift       *uint8        `json:"timeShift" gencodec:"required"`
-		SignalSlots     []common.Hash `json:"signalSlots" gencodec:"required"`
+		TimeShift       *uint8        `json:"timeShift"       gencodec:"required"`
+		SignalSlots     []common.Hash `json:"signalSlots"     gencodec:"required"`
 	}
 	var dec BlockParams
 	if err := json.Unmarshal(input, &dec); err != nil {

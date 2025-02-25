@@ -108,7 +108,7 @@ type ChainSpec struct {
 	ChainID              uint64                                   `json:"chain_id"               gencodec:"required"`
 	MaxSpecID            SpecID                                   `json:"max_spec_id"            gencodec:"required"`
 	HardForks            HardForks                                `json:"hard_forks"             gencodec:"required"`
-	Eip1559Constants     Eip1559Constants                         `json:"eip1559_constants"      gencodec:"required"`
+	Eip1559Constants     Eip1559Constants                         `json:"eip_1559_constants"     gencodec:"required"`
 	L1Contract           *common.Address                          `json:"l1_contract"`
 	L2Contract           *common.Address                          `json:"l2_contract"`
 	RPC                  string                                   `json:"rpc"                    gencodec:"required"`

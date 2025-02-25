@@ -17,15 +17,15 @@ var _ = (*txEip1559Marshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (t TxEip1559) MarshalJSON() ([]byte, error) {
 	type TxEip1559 struct {
-		ChainId              *math.HexOrDecimal256 `json:"chain_id" gencodec:"required"`
-		Nonce                math.HexOrDecimal64   `json:"nonce" gencodec:"required"`
-		GasLimit             math.HexOrDecimal64   `json:"gas_limit" gencodec:"required"`
-		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas" gencodec:"required"`
+		ChainId              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
+		Nonce                math.HexOrDecimal64   `json:"nonce"                    gencodec:"required"`
+		GasLimit             math.HexOrDecimal64   `json:"gas_limit"                gencodec:"required"`
+		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas"          gencodec:"required"`
 		MaxPriorityFeePerGas *math.HexOrDecimal256 `json:"max_priority_fee_per_gas" gencodec:"required"`
 		To                   *common.Address       `json:"to"`
-		Value                *math.HexOrDecimal256 `json:"value" gencodec:"required"`
+		Value                *math.HexOrDecimal256 `json:"value"                    gencodec:"required"`
 		AccessList           AccessList            `json:"access"`
-		Input                hexutil.Bytes         `json:"input" gencodec:"required"`
+		Input                hexutil.Bytes         `json:"input"                    gencodec:"required"`
 	}
 	var enc TxEip1559
 	enc.ChainId = (*math.HexOrDecimal256)(t.ChainId)
@@ -43,15 +43,15 @@ func (t TxEip1559) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (t *TxEip1559) UnmarshalJSON(input []byte) error {
 	type TxEip1559 struct {
-		ChainId              *math.HexOrDecimal256 `json:"chain_id" gencodec:"required"`
-		Nonce                *math.HexOrDecimal64  `json:"nonce" gencodec:"required"`
-		GasLimit             *math.HexOrDecimal64  `json:"gas_limit" gencodec:"required"`
-		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas" gencodec:"required"`
+		ChainId              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
+		Nonce                *math.HexOrDecimal64  `json:"nonce"                    gencodec:"required"`
+		GasLimit             *math.HexOrDecimal64  `json:"gas_limit"                gencodec:"required"`
+		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas"          gencodec:"required"`
 		MaxPriorityFeePerGas *math.HexOrDecimal256 `json:"max_priority_fee_per_gas" gencodec:"required"`
 		To                   *common.Address       `json:"to"`
-		Value                *math.HexOrDecimal256 `json:"value" gencodec:"required"`
+		Value                *math.HexOrDecimal256 `json:"value"                    gencodec:"required"`
 		AccessList           *AccessList           `json:"access"`
-		Input                *hexutil.Bytes        `json:"input" gencodec:"required"`
+		Input                *hexutil.Bytes        `json:"input"                    gencodec:"required"`
 	}
 	var dec TxEip1559
 	if err := json.Unmarshal(input, &dec); err != nil {

@@ -18,12 +18,12 @@ var _ = (*txLegacyMarshaling)(nil)
 func (t TxLegacy) MarshalJSON() ([]byte, error) {
 	type TxLegacy struct {
 		ChainId  *math.HexOrDecimal256 `json:"chain_id"`
-		Nonce    math.HexOrDecimal64   `json:"nonce" gencodec:"required"`
+		Nonce    math.HexOrDecimal64   `json:"nonce"     gencodec:"required"`
 		GasPrice *math.HexOrDecimal256 `json:"gas_price" gencodec:"required"`
-		GasLimit math.HexOrDecimal64   `json:"gas_limit"  gencodec:"required"`
+		GasLimit math.HexOrDecimal64   `json:"gas_limit" gencodec:"required"`
 		To       *common.Address       `json:"to"`
-		Value    *math.HexOrDecimal256 `json:"value"  gencodec:"required"`
-		Input    hexutil.Bytes         `json:"input"  gencodec:"required"`
+		Value    *math.HexOrDecimal256 `json:"value"     gencodec:"required"`
+		Input    hexutil.Bytes         `json:"input"     gencodec:"required"`
 	}
 	var enc TxLegacy
 	enc.ChainId = (*math.HexOrDecimal256)(t.ChainId)
@@ -40,12 +40,12 @@ func (t TxLegacy) MarshalJSON() ([]byte, error) {
 func (t *TxLegacy) UnmarshalJSON(input []byte) error {
 	type TxLegacy struct {
 		ChainId  *math.HexOrDecimal256 `json:"chain_id"`
-		Nonce    *math.HexOrDecimal64  `json:"nonce" gencodec:"required"`
+		Nonce    *math.HexOrDecimal64  `json:"nonce"     gencodec:"required"`
 		GasPrice *math.HexOrDecimal256 `json:"gas_price" gencodec:"required"`
-		GasLimit *math.HexOrDecimal64  `json:"gas_limit"  gencodec:"required"`
+		GasLimit *math.HexOrDecimal64  `json:"gas_limit" gencodec:"required"`
 		To       *common.Address       `json:"to"`
-		Value    *math.HexOrDecimal256 `json:"value"  gencodec:"required"`
-		Input    *hexutil.Bytes        `json:"input"  gencodec:"required"`
+		Value    *math.HexOrDecimal256 `json:"value"     gencodec:"required"`
+		Input    *hexutil.Bytes        `json:"input"     gencodec:"required"`
 	}
 	var dec TxLegacy
 	if err := json.Unmarshal(input, &dec); err != nil {

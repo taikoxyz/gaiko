@@ -16,8 +16,8 @@ var _ = (*consolidationRequestMarshaling)(nil)
 func (c ConsolidationRequest) MarshalJSON() ([]byte, error) {
 	type ConsolidationRequest struct {
 		SourceAddress common.Address `json:"sourceAddress" gencodec:"required"`
-		SourcePubkey  hexutil.Bytes  `json:"sourcePubkey" gencodec:"required"`
-		TargetPubkey  hexutil.Bytes  `json:"targetPubkey" gencodec:"required"`
+		SourcePubkey  hexutil.Bytes  `json:"sourcePubkey"  gencodec:"required"`
+		TargetPubkey  hexutil.Bytes  `json:"targetPubkey"  gencodec:"required"`
 	}
 	var enc ConsolidationRequest
 	enc.SourceAddress = c.SourceAddress
@@ -30,8 +30,8 @@ func (c ConsolidationRequest) MarshalJSON() ([]byte, error) {
 func (c *ConsolidationRequest) UnmarshalJSON(input []byte) error {
 	type ConsolidationRequest struct {
 		SourceAddress *common.Address `json:"sourceAddress" gencodec:"required"`
-		SourcePubkey  *hexutil.Bytes  `json:"sourcePubkey" gencodec:"required"`
-		TargetPubkey  *hexutil.Bytes  `json:"targetPubkey" gencodec:"required"`
+		SourcePubkey  *hexutil.Bytes  `json:"sourcePubkey"  gencodec:"required"`
+		TargetPubkey  *hexutil.Bytes  `json:"targetPubkey"  gencodec:"required"`
 	}
 	var dec ConsolidationRequest
 	if err := json.Unmarshal(input, &dec); err != nil {

@@ -15,20 +15,20 @@ var _ = (*blockMetadataMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BlockMetadata) MarshalJSON() ([]byte, error) {
 	type BlockMetadata struct {
-		L1Hash         common.Hash         `json:"l1Hash" gencodec:"required"`
-		Difficulty     common.Hash         `json:"difficulty" gencodec:"required"`
-		BlobHash       common.Hash         `json:"blobHash" gencodec:"required"`
-		ExtraData      common.Hash         `json:"extraData" gencodec:"required"`
-		DepositsHash   common.Hash         `json:"depositsHash" gencodec:"required"`
-		Coinbase       common.Address      `json:"coinbase" gencodec:"required"`
-		Id             math.HexOrDecimal64 `json:"id" gencodec:"required"`
-		GasLimit       uint32              `json:"gasLimit" gencodec:"required"`
-		Timestamp      math.HexOrDecimal64 `json:"timestamp" gencodec:"required"`
-		L1Height       math.HexOrDecimal64 `json:"l1Height" gencodec:"required"`
-		MinTier        uint16              `json:"minTier" gencodec:"required"`
-		BlobUsed       bool                `json:"blobUsed" gencodec:"required"`
+		L1Hash         common.Hash         `json:"l1Hash"         gencodec:"required"`
+		Difficulty     common.Hash         `json:"difficulty"     gencodec:"required"`
+		BlobHash       common.Hash         `json:"blobHash"       gencodec:"required"`
+		ExtraData      common.Hash         `json:"extraData"      gencodec:"required"`
+		DepositsHash   common.Hash         `json:"depositsHash"   gencodec:"required"`
+		Coinbase       common.Address      `json:"coinbase"       gencodec:"required"`
+		Id             math.HexOrDecimal64 `json:"id"             gencodec:"required"`
+		GasLimit       uint32              `json:"gasLimit"       gencodec:"required"`
+		Timestamp      math.HexOrDecimal64 `json:"timestamp"      gencodec:"required"`
+		L1Height       math.HexOrDecimal64 `json:"l1Height"       gencodec:"required"`
+		MinTier        uint16              `json:"minTier"        gencodec:"required"`
+		BlobUsed       bool                `json:"blobUsed"       gencodec:"required"`
 		ParentMetaHash common.Hash         `json:"parentMetaHash" gencodec:"required"`
-		Sender         common.Address      `json:"sender" gencodec:"required"`
+		Sender         common.Address      `json:"sender"         gencodec:"required"`
 	}
 	var enc BlockMetadata
 	enc.L1Hash = b.L1Hash
@@ -51,20 +51,20 @@ func (b BlockMetadata) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BlockMetadata) UnmarshalJSON(input []byte) error {
 	type BlockMetadata struct {
-		L1Hash         *common.Hash         `json:"l1Hash" gencodec:"required"`
-		Difficulty     *common.Hash         `json:"difficulty" gencodec:"required"`
-		BlobHash       *common.Hash         `json:"blobHash" gencodec:"required"`
-		ExtraData      *common.Hash         `json:"extraData" gencodec:"required"`
-		DepositsHash   *common.Hash         `json:"depositsHash" gencodec:"required"`
-		Coinbase       *common.Address      `json:"coinbase" gencodec:"required"`
-		Id             *math.HexOrDecimal64 `json:"id" gencodec:"required"`
-		GasLimit       *uint32              `json:"gasLimit" gencodec:"required"`
-		Timestamp      *math.HexOrDecimal64 `json:"timestamp" gencodec:"required"`
-		L1Height       *math.HexOrDecimal64 `json:"l1Height" gencodec:"required"`
-		MinTier        *uint16              `json:"minTier" gencodec:"required"`
-		BlobUsed       *bool                `json:"blobUsed" gencodec:"required"`
+		L1Hash         *common.Hash         `json:"l1Hash"         gencodec:"required"`
+		Difficulty     *common.Hash         `json:"difficulty"     gencodec:"required"`
+		BlobHash       *common.Hash         `json:"blobHash"       gencodec:"required"`
+		ExtraData      *common.Hash         `json:"extraData"      gencodec:"required"`
+		DepositsHash   *common.Hash         `json:"depositsHash"   gencodec:"required"`
+		Coinbase       *common.Address      `json:"coinbase"       gencodec:"required"`
+		Id             *math.HexOrDecimal64 `json:"id"             gencodec:"required"`
+		GasLimit       *uint32              `json:"gasLimit"       gencodec:"required"`
+		Timestamp      *math.HexOrDecimal64 `json:"timestamp"      gencodec:"required"`
+		L1Height       *math.HexOrDecimal64 `json:"l1Height"       gencodec:"required"`
+		MinTier        *uint16              `json:"minTier"        gencodec:"required"`
+		BlobUsed       *bool                `json:"blobUsed"       gencodec:"required"`
 		ParentMetaHash *common.Hash         `json:"parentMetaHash" gencodec:"required"`
-		Sender         *common.Address      `json:"sender" gencodec:"required"`
+		Sender         *common.Address      `json:"sender"         gencodec:"required"`
 	}
 	var dec BlockMetadata
 	if err := json.Unmarshal(input, &dec); err != nil {

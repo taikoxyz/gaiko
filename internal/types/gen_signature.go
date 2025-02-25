@@ -15,8 +15,8 @@ var _ = (*signatureMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (s Signature) MarshalJSON() ([]byte, error) {
 	type Signature struct {
-		R          *math.HexOrDecimal256 `json:"r" gencodec:"required"`
-		S          *math.HexOrDecimal256 `json:"s" gencodec:"required"`
+		R          *math.HexOrDecimal256 `json:"r"            gencodec:"required"`
+		S          *math.HexOrDecimal256 `json:"s"            gencodec:"required"`
 		OddYParity bool                  `json:"odd_y_parity" gencodec:"required"`
 	}
 	var enc Signature
@@ -29,8 +29,8 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (s *Signature) UnmarshalJSON(input []byte) error {
 	type Signature struct {
-		R          *math.HexOrDecimal256 `json:"r" gencodec:"required"`
-		S          *math.HexOrDecimal256 `json:"s" gencodec:"required"`
+		R          *math.HexOrDecimal256 `json:"r"            gencodec:"required"`
+		S          *math.HexOrDecimal256 `json:"s"            gencodec:"required"`
 		OddYParity *bool                 `json:"odd_y_parity" gencodec:"required"`
 	}
 	var dec Signature

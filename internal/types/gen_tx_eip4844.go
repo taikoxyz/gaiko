@@ -17,17 +17,17 @@ var _ = (*txEip4844Marshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (t TxEip4844) MarshalJSON() ([]byte, error) {
 	type TxEip4844 struct {
-		ChainId              *math.HexOrDecimal256 `json:"chain_id" gencodec:"required"`
-		Nonce                math.HexOrDecimal64   `json:"nonce" gencodec:"required"`
-		GasLimit             math.HexOrDecimal64   `json:"gas_limit" gencodec:"required"`
-		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas" gencodec:"required"`
+		ChainId              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
+		Nonce                math.HexOrDecimal64   `json:"nonce"                    gencodec:"required"`
+		GasLimit             math.HexOrDecimal64   `json:"gas_limit"                gencodec:"required"`
+		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas"          gencodec:"required"`
 		MaxPriorityFeePerGas *math.HexOrDecimal256 `json:"max_priority_fee_per_gas" gencodec:"required"`
-		To                   common.Address        `json:"to" gencodec:"required"`
-		Value                *math.HexOrDecimal256 `json:"value" gencodec:"required"`
-		AccessList           AccessList            `json:"access_list" gencodec:"required"`
-		BlobVersionedHashes  []common.Hash         `json:"blob_versioned_hashes" gencodec:"required"`
-		MaxFeePerBlobGas     *math.HexOrDecimal256 `json:"max_fee_per_blob_gas" gencodec:"required"`
-		Input                hexutil.Bytes         `json:"input" gencodec:"required"`
+		To                   common.Address        `json:"to"                       gencodec:"required"`
+		Value                *math.HexOrDecimal256 `json:"value"                    gencodec:"required"`
+		AccessList           AccessList            `json:"access_list"              gencodec:"required"`
+		BlobVersionedHashes  []common.Hash         `json:"blob_versioned_hashes"    gencodec:"required"`
+		MaxFeePerBlobGas     *math.HexOrDecimal256 `json:"max_fee_per_blob_gas"     gencodec:"required"`
+		Input                hexutil.Bytes         `json:"input"                    gencodec:"required"`
 	}
 	var enc TxEip4844
 	enc.ChainId = (*math.HexOrDecimal256)(t.ChainId)
@@ -47,17 +47,17 @@ func (t TxEip4844) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (t *TxEip4844) UnmarshalJSON(input []byte) error {
 	type TxEip4844 struct {
-		ChainId              *math.HexOrDecimal256 `json:"chain_id" gencodec:"required"`
-		Nonce                *math.HexOrDecimal64  `json:"nonce" gencodec:"required"`
-		GasLimit             *math.HexOrDecimal64  `json:"gas_limit" gencodec:"required"`
-		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas" gencodec:"required"`
+		ChainId              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
+		Nonce                *math.HexOrDecimal64  `json:"nonce"                    gencodec:"required"`
+		GasLimit             *math.HexOrDecimal64  `json:"gas_limit"                gencodec:"required"`
+		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas"          gencodec:"required"`
 		MaxPriorityFeePerGas *math.HexOrDecimal256 `json:"max_priority_fee_per_gas" gencodec:"required"`
-		To                   *common.Address       `json:"to" gencodec:"required"`
-		Value                *math.HexOrDecimal256 `json:"value" gencodec:"required"`
-		AccessList           *AccessList           `json:"access_list" gencodec:"required"`
-		BlobVersionedHashes  []common.Hash         `json:"blob_versioned_hashes" gencodec:"required"`
-		MaxFeePerBlobGas     *math.HexOrDecimal256 `json:"max_fee_per_blob_gas" gencodec:"required"`
-		Input                *hexutil.Bytes        `json:"input" gencodec:"required"`
+		To                   *common.Address       `json:"to"                       gencodec:"required"`
+		Value                *math.HexOrDecimal256 `json:"value"                    gencodec:"required"`
+		AccessList           *AccessList           `json:"access_list"              gencodec:"required"`
+		BlobVersionedHashes  []common.Hash         `json:"blob_versioned_hashes"    gencodec:"required"`
+		MaxFeePerBlobGas     *math.HexOrDecimal256 `json:"max_fee_per_blob_gas"     gencodec:"required"`
+		Input                *hexutil.Bytes        `json:"input"                    gencodec:"required"`
 	}
 	var dec TxEip4844
 	if err := json.Unmarshal(input, &dec); err != nil {
