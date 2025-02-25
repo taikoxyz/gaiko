@@ -6,14 +6,32 @@
 .
 ├── cmd
 │   └── gaiko
-├── ego                 // ego artifacts
-└── internal
-    ├── mpt             // golang porting mpt implementation from raiko
-    ├── transition      // state transition for some blocks
-    ├── types           // types compatible layer between gaiko/raiko
-    └── version         // binary version helper
-
+├── ego
+├── internal
+│   ├── flags
+│   ├── keccak
+│   ├── mpt
+│   ├── prover
+│   ├── sgx
+│   ├── transition
+│   ├── types
+│   ├── version
+│   └── witness
+└── test
+    └── fixtures
+        ├── batch
+        └── single
 ```
+
+- `ego` artifacts, e.g. config
+- `internal/flags` cli arguments
+- `internal/keccak` keccak hasher
+- `internal/mpt` the golang porting of merkle trie from `raiko`
+- `internal/prover` prover abstracts
+- `internal/sgx` sgx provider, `gramine` or `ego`
+- `internal/transition` state transition of blocks
+- `internal/types` type bridge between `raiko` and `gaiko`
+- `witness` proof witness, aka: `Batch/GuestInput` in `raiko`
 
 ## Command Help
 
