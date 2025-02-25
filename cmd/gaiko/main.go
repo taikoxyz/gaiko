@@ -34,6 +34,12 @@ var bootstrapCommand = &cli.Command{
 	Action: bootstrap,
 }
 
+var aggregateCommand = &cli.Command{
+	Name:   "aggregate",
+	Usage:  "Run the aggregate process",
+	Action: aggregate,
+}
+
 var checkCommand = &cli.Command{
 	Name:   "check",
 	Usage:  "Run the check process",
@@ -58,6 +64,7 @@ func init() {
 	app.Commands = []*cli.Command{
 		oneshotCommand,
 		batchOneshotCommand,
+		aggregateCommand,
 		bootstrapCommand,
 		checkCommand,
 	}
