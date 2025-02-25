@@ -4,13 +4,18 @@ import "github.com/urfave/cli/v2"
 
 var (
 	GlobalSecretDir = &cli.StringFlag{
-		Name:  "secret.dir",
+		Name:  "global.secretDir",
 		Usage: "Directory for the secret files",
 	}
 
 	GlobalConfigDir = &cli.StringFlag{
-		Name:  "config.dir",
+		Name:  "global.configDir",
 		Usage: "Directory for configuration files",
+	}
+
+	GlobalSgxType = &cli.StringFlag{
+		Name:  "global.sgxType",
+		Usage: "Which SGX type? ego or gramine",
 	}
 
 	OneShotSgxInstanceID = &cli.Uint64Flag{
@@ -19,9 +24,15 @@ var (
 	}
 )
 
+const (
+	EgoSGXType     = "ego"
+	GramineSGXType = "gramine"
+)
+
 var GlobalFlags = []cli.Flag{
 	GlobalSecretDir,
 	GlobalConfigDir,
+	GlobalSgxType,
 }
 
 type Arguments struct {
@@ -30,10 +41,10 @@ type Arguments struct {
 	InstanceID uint32
 }
 
-func NewArguments(ctx *cli.Context) *Arguments {
+func NewArguments(cli *cli.Context) *Arguments {
 	return &Arguments{
-		SecretDir:  ctx.String(GlobalSecretDir.Name),
-		ConfigDir:  ctx.String(GlobalConfigDir.Name),
-		InstanceID: uint32(ctx.Uint64(OneShotSgxInstanceID.Name)),
+		SecretDir:  cli.String(GlobalSecretDir.Name),
+		ConfigDir:  cli.String(GlobalConfigDir.Name),
+		InstanceID: uint32(cli.Uint64(OneShotSgxInstanceID.Name)),
 	}
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/flags"
-	"github.com/taikoxyz/gaiko/internal/transition"
 	"github.com/taikoxyz/gaiko/internal/version"
 	"github.com/urfave/cli/v2"
 )
@@ -14,7 +13,7 @@ import (
 var oneshotCommand = &cli.Command{
 	Name:   "oneshot",
 	Usage:  "Run state transition once",
-	Action: transition.Oneshot,
+	Action: oneshot,
 	Flags: []cli.Flag{
 		flags.OneShotSgxInstanceID,
 	},

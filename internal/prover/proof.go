@@ -3,6 +3,8 @@ package prover
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
+	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -14,6 +16,10 @@ type ProofResponse struct {
 	PublicKey       hexutil.Bytes  `json:"public_key"`
 	InstanceAddress common.Address `json:"instance_address"`
 	Input           common.Hash    `json:"input"`
+}
+
+func (p *ProofResponse) Stdout() error {
+	return json.NewEncoder(os.Stdout).Encode(p)
 }
 
 type Proof [89]byte
