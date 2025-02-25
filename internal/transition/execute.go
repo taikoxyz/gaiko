@@ -2,11 +2,9 @@ package transition
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -20,7 +18,6 @@ import (
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/witness"
-	"github.com/urfave/cli/v2"
 )
 
 func ExecuteGuestDriver(
@@ -114,133 +111,6 @@ func ExecuteGuestDriver(
 			)
 		}
 	}
-	return nil
-}
-
-func Oneshot(ctx *cli.Context) error {
-	// prevPrivKey, err := util.LoadPrivKey(ctx.String(flags.GlobalSecretDir.Name))
-	// if err != nil {
-	// 	return err
-	// }
-	// newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
-
-	var driver witness.GuestDriver
-	err := json.NewDecoder(os.Stdin).Decode(&driver)
-	if err != nil {
-		return err
-	}
-	chainConfig, err := driver.ChainConfig()
-	if err != nil {
-		return err
-	}
-	for pair := range driver.GuestInputs() {
-		g := pair.Input
-		txs := pair.Txs
-		preState, err := makePreState(g)
-		if err != nil {
-			return err
-		}
-		statedb, err := apply(
-			vm.Config{},
-			preState.statedb,
-			g.Block,
-			txs,
-			preState.getHash,
-			chainConfig,
-		)
-		if err != nil {
-			return err
-		}
-		collector := make(Dumper)
-		statedb.DumpToCollector(collector, nil)
-		for addr := range preState.accounts {
-			_, ok := collector[addr]
-			if !ok {
-				// Account is deleted
-				key := keccak.Keccak(addr.Bytes())
-				if _, err := g.ParentStateTrie.Delete(key); err != nil {
-					return err
-				}
-			}
-		}
-
-		for addr, acc := range collector {
-			storageEntry, ok := g.ParentStorage[addr]
-			if !ok {
-				return fmt.Errorf("account not found for address: %s", addr.Hex())
-			}
-			_, ok = preState.accounts[addr]
-			if !ok {
-				// New Account
-				storageEntry.Trie.Clear()
-			}
-			for slot, value := range acc.Storage {
-				key := keccak.Keccak(slot.Bytes())
-				if value == (common.Hash{}) {
-					if _, err := storageEntry.Trie.Delete(key); err != nil {
-						return err
-					}
-				} else {
-					if err := updateStorage(storageEntry.Trie, slot.Bytes(), value.Bytes()); err != nil {
-						return err
-					}
-				}
-			}
-			root, err := storageEntry.Trie.Hash()
-			if err != nil {
-				return err
-			}
-			stateAcc := &types.StateAccount{
-				Nonce:    acc.Nonce,
-				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
-				Root:     root,
-				CodeHash: keccak.Keccak(acc.Code),
-			}
-
-			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
-				return err
-			}
-		}
-
-	}
-	// pi, err := witness.NewPublicInput(driver, witness.SgxProofType, newInstance)
-	// if err != nil {
-	// 	return err
-	// }
-	// piHash, err := pi.Hash()
-	// if err != nil {
-	// 	return err
-	// }
-	// sign, err := crypto.Sign(piHash.Bytes(), prevPrivKey)
-	// if err != nil {
-	// 	return err
-	// }
-	// instanceId := uint32(ctx.Uint64(flags.OneShotSgxInstanceID.Name))
-
-	// var proof [89]byte
-	// binary.BigEndian.PutUint32(proof[:4], instanceId)
-	// copy(proof[4:24], newInstance.Bytes())
-	// copy(proof[24:], sign)
-	// proofHex := hex.EncodeToString(proof[:])
-	// if err = saveAttestationUserReportData(newInstance); err != nil {
-	// 	return err
-	// }
-	// quote, err := getSgxQuote()
-	// if err != nil {
-	// 	return err
-	// }
-	// data := map[string]interface{}{
-	// 	"proof":            proofHex,
-	// 	"quote":            hex.EncodeToString(quote),
-	// 	"public_key":       newInstance.Hex(),
-	// 	"instance_address": newInstance.Hex(),
-	// 	"input":            piHash.Hex(),
-	// }
-	// dataBytes, err := json.Marshal(data)
-	// if err != nil {
-	// 	return err
-	// }
-	// fmt.Println(string(dataBytes))
 	return nil
 }
 
