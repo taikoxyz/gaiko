@@ -10,13 +10,7 @@ import (
 
 func oneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	var sgxProver prover.Prover
-	switch cli.String(flags.GlobalSgxType.Name) {
-	case flags.GramineSGXType:
-		sgxProver = prover.NewGramineProver(args.SecretDir)
-	default:
-		sgxProver = prover.NewEgoProver(args.SecretDir)
-	}
+	sgxProver := prover.NewSgxProver(cli.String(flags.GlobalSgxType.Name), args.SecretDir)
 	proof, err := sgxProver.Oneshot(context.Background(), args)
 
 	if err != nil {

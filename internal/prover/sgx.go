@@ -8,42 +8,42 @@ import (
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
-type EgoProver struct {
+type SgxProver struct {
 	provider sgx.Provider
 }
 
-var _ Prover = (*EgoProver)(nil)
+var _ Prover = (*SgxProver)(nil)
 
-func NewEgoProver(secretDir string) *EgoProver {
-	return &EgoProver{
-		provider: sgx.NewEgoProvider(secretDir),
+func NewSgxProver(typ, secretDir string) *SgxProver {
+	return &SgxProver{
+		provider: sgx.NewProvider(typ, secretDir),
 	}
 }
 
-func (p *EgoProver) Oneshot(
+func (p *SgxProver) Oneshot(
 	ctx context.Context,
 	args *flags.Arguments,
 ) (*ProofResponse, error) {
 	var driver witness.GuestInput
-	return genProof(ctx, args, &driver, p.provider)
+	return genSgxProof(ctx, args, &driver, p.provider)
 }
 
-func (p *EgoProver) BatchOneshot(
+func (p *SgxProver) BatchOneshot(
 	ctx context.Context,
 	args *flags.Arguments,
 ) (*ProofResponse, error) {
 	var driver witness.BatchGuestInput
-	return genProof(ctx, args, &driver, p.provider)
+	return genSgxProof(ctx, args, &driver, p.provider)
 }
 
-func (p *EgoProver) Aggregate(
+func (p *SgxProver) Aggregate(
 	ctx context.Context,
 	args *flags.Arguments,
 ) (*ProofResponse, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (p *EgoProver) Bootstrap(ctx context.Context, args *flags.Arguments) error {
+func (p *SgxProver) Bootstrap(ctx context.Context, args *flags.Arguments) error {
 	panic("not implemented") // TODO: Implement
 	// func BootStrap(ctx *cli.Context) error {
 	// 	privKey, err := crypto.GenerateKey()
@@ -64,6 +64,6 @@ func (p *EgoProver) Bootstrap(ctx context.Context, args *flags.Arguments) error 
 
 }
 
-func (p *EgoProver) Check(ctx context.Context) error {
+func (p *SgxProver) Check(ctx context.Context) error {
 	panic("not implemented") // TODO: Implement
 }
