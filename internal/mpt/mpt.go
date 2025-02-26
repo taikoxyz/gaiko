@@ -376,12 +376,15 @@ func stripPrefix(nibs []byte, prefix []byte) []byte {
 	return nil
 }
 
-func toEncodedPath(nibs []byte, isLeaf bool) []byte {
-	isLeafVar := uint8(0)
-	if isLeaf {
-		isLeafVar = 1
+func boolToInt(b bool) (n int) {
+	if b {
+		n = 1
 	}
+	return
+}
 
+func toEncodedPath(nibs []byte, isLeaf bool) []byte {
+	isLeafVar := uint8(boolToInt(isLeaf))
 	prefix := isLeafVar * 0x20
 	if len(nibs)%2 != 0 {
 		prefix += 0x10 + nibs[0]
@@ -411,11 +414,8 @@ func prefixNibs(prefix []byte) []byte {
 
 	isOdd := ext&(1<<4) != 0
 
-	isOaddVar := 0
-	if isOdd {
-		isOaddVar = 1
-	}
-	res := make([]byte, 0, len(tail)*2+isOaddVar)
+	isOddVar := boolToInt(isOdd)
+	res := make([]byte, 0, len(tail)*2+isOddVar)
 	if isOdd {
 		res = append(res, ext&0xf)
 	}
