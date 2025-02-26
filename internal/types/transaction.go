@@ -12,9 +12,9 @@ import (
 	"github.com/holiman/uint256"
 )
 
-type TransactionSigneds []*TransactionSigned
+type TransactionSignedList []*TransactionSigned
 
-func (t TransactionSigneds) GethType() []*types.Transaction {
+func (t TransactionSignedList) GethType() []*types.Transaction {
 	txs := make([]*types.Transaction, len(t))
 	for i, tx := range t {
 		txs[i] = tx.GethType()
