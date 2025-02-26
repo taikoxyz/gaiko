@@ -15,7 +15,7 @@ import (
 )
 
 type preState struct {
-	statedb  *state.StateDB
+	stateDB  *state.StateDB
 	getHash  func(num uint64) common.Hash
 	accounts map[common.Address]*types.StateAccount
 }
@@ -50,7 +50,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	mdb := rawdb.NewMemoryDatabase()
 	tdb := triedb.NewDatabase(mdb, &triedb.Config{Preimages: true})
 	sdb := state.NewDatabase(tdb, nil)
-	statedb, _ := state.New(types.EmptyRootHash, sdb)
+	stateDB, _ := state.New(types.EmptyRootHash, sdb)
 	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
 		codeHash := keccak.Keccak(contract)
@@ -83,20 +83,20 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 				return nil, errors.New("missing code")
 			}
 		}
-		statedb.SetCode(addr, code)
-		statedb.SetNonce(addr, acc.Nonce)
-		statedb.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
+		stateDB.SetCode(addr, code)
+		stateDB.SetNonce(addr, acc.Nonce)
+		stateDB.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
 			value, err := getStorage(g.ParentStateTrie, key)
 			if err != nil && err != ErrNotFound {
 				return nil, err
 			}
-			statedb.SetState(addr, key, value)
+			stateDB.SetState(addr, key, value)
 		}
 	}
-	root, _ := statedb.Commit(0, false)
-	statedb, _ = state.New(root, sdb)
+	root, _ := stateDB.Commit(0, false)
+	stateDB, _ = state.New(root, sdb)
 
 	historyHashes := make(map[uint64]common.Hash, len(g.AncestorHeaders)+1)
 	historyHashes[g.ParentHeader.Number.Uint64()] = g.ParentHeader.Hash()
@@ -113,7 +113,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 		prev = header
 	}
 	return &preState{
-		statedb: statedb,
+		stateDB: stateDB,
 		getHash: func(num uint64) common.Hash {
 			return historyHashes[num]
 		},
