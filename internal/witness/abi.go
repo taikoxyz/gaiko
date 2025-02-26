@@ -64,7 +64,7 @@ func init() {
 // ABIEncoder is an interface for solidity structs encoding
 // See [`abi.encode`](https://docs.soliditylang.org/en/latest/abi-spec.html)
 type ABIEncoder interface {
-	Encode() ([]byte, error)
+	ABIEncode() ([]byte, error)
 }
 
 // generated binding doesn't have any struct specs, we can find them in the used places
