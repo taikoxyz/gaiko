@@ -20,7 +20,7 @@ type preState struct {
 	accounts map[common.Address]*types.StateAccount
 }
 
-// makePreStateAndGetHash initializes the state database with the provided guest input data,
+// newPreState initializes the state database with the provided guest input data,
 // commits the state, and returns the state database along with a function to retrieve historical
 // block hashes.
 //
