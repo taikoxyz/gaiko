@@ -468,11 +468,11 @@ type (
 
 // marker interface, only for type checking
 type mptNodeData interface {
-	_private()
+	sealed()
 }
 
-func (*nullNode) _private()      {}
-func (*branchNode) _private()    {}
-func (*leafNode) _private()      {}
-func (*extensionNode) _private() {}
-func (*digestNode) _private()    {}
+func (*nullNode) sealed()      {}
+func (*branchNode) sealed()    {}
+func (*leafNode) sealed()      {}
+func (*extensionNode) sealed() {}
+func (*digestNode) sealed()    {}
