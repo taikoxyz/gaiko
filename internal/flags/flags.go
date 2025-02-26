@@ -23,7 +23,7 @@ var (
 
 	GlobalSgxType = &cli.StringFlag{
 		Name:    "sgx-type",
-		Usage:   "Which SGX type? ego or gramine",
+		Usage:   `Which SGX type? "debug", "ego" or gramine`,
 		EnvVars: []string{"SGX_TYPE"},
 	}
 
