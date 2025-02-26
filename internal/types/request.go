@@ -21,7 +21,7 @@ func (t *Requests) UnmarshalJSON(data []byte) error {
 		for key, val := range req {
 			switch key {
 			case "DepositRequest":
-				var inner types.Deposit
+				var inner Deposit
 				if err := json.Unmarshal(val, &inner); err != nil {
 					return err
 				}
@@ -63,26 +63,47 @@ func (r Requests) GethType() []*types.Request {
 	return requests
 }
 
+//go:generate go run github.com/fjl/gencodec -type Deposit -field-override depositMarshaling -out gen_deposit.go
+
+type Deposit struct {
+	PublicKey             [48]byte    `json:"pubkey"`                 // public key of validator
+	WithdrawalCredentials common.Hash `json:"withdrawal_credentials"` // beneficiary of the validator funds
+	Amount                uint64      `json:"amount"`                 // deposit size in Gwei
+	Signature             [96]byte    `json:"signature"`              // signature over deposit msg
+	Index                 uint64      `json:"index"`                  // deposit count value
+}
+
+// field type overrides for gencodec
+type depositMarshaling struct {
+	PublicKey             hexutil.Bytes
+	WithdrawalCredentials hexutil.Bytes
+	Amount                hexutil.Uint64
+	Signature             hexutil.Bytes
+	Index                 hexutil.Uint64
+}
+
 //go:generate go run github.com/fjl/gencodec -type WithdrawalRequest -field-override withdrawalRequestMarshaling -out gen_withdrawal_request.go
+
 type WithdrawalRequest struct {
-	SourceAddress   common.Address `json:"sourceAddress"   gencodec:"required"`
-	ValidatorPubkey [48]byte       `json:"validatorPubkey" gencodec:"required"`
-	Amount          uint64         `json:"amount"          gencodec:"required"`
+	SourceAddress   common.Address `json:"source_address"   gencodec:"required"`
+	ValidatorPubkey [48]byte       `json:"validator_pubkey" gencodec:"required"`
+	Amount          uint64         `json:"amount"           gencodec:"required"`
 }
 
 type withdrawalRequestMarshaling struct {
-	ValidatorPubkey hexutil.Bytes       `json:"validatorPubkey" gencodec:"required"`
-	Amount          math.HexOrDecimal64 `json:"amount"          gencodec:"required"`
+	ValidatorPubkey hexutil.Bytes       `json:"validator_pubkey" gencodec:"required"`
+	Amount          math.HexOrDecimal64 `json:"amount"           gencodec:"required"`
 }
 
 //go:generate go run github.com/fjl/gencodec -type ConsolidationRequest -field-override consolidationRequestMarshaling -out gen_consolidation_request.go
+
 type ConsolidationRequest struct {
-	SourceAddress common.Address `json:"sourceAddress" gencodec:"required"`
-	SourcePubkey  [48]byte       `json:"sourcePubkey"  gencodec:"required"`
-	TargetPubkey  [48]byte       `json:"targetPubkey"  gencodec:"required"`
+	SourceAddress common.Address `json:"source_address" gencodec:"required"`
+	SourcePubkey  [48]byte       `json:"source_pubkey"  gencodec:"required"`
+	TargetPubkey  [48]byte       `json:"target_pubkey"  gencodec:"required"`
 }
 
 type consolidationRequestMarshaling struct {
-	SourcePubkey hexutil.Bytes `json:"sourcePubkey" gencodec:"required"`
-	TargetPubkey hexutil.Bytes `json:"targetPubkey" gencodec:"required"`
+	SourcePubkey hexutil.Bytes `json:"source_pubkey" gencodec:"required"`
+	TargetPubkey hexutil.Bytes `json:"target_pubkey" gencodec:"required"`
 }
