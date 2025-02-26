@@ -15,7 +15,7 @@ var oneshotCommand = &cli.Command{
 	Usage:  "Run state transition once",
 	Action: oneshot,
 	Flags: []cli.Flag{
-		flags.OneShotSgxInstanceID,
+		flags.SGXInstanceID,
 	},
 }
 
@@ -24,7 +24,7 @@ var batchOneshotCommand = &cli.Command{
 	Usage:  "Run multi states transition once",
 	Action: batchOneshot,
 	Flags: []cli.Flag{
-		flags.OneShotSgxInstanceID,
+		flags.SGXInstanceID,
 	},
 }
 

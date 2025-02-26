@@ -16,10 +16,10 @@ var _ = (*blockProposedMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BlockProposed) MarshalJSON() ([]byte, error) {
 	type BlockProposed struct {
-		BlockId           *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
-		AssignedProver    common.Address        `json:"assignedProver" gencodec:"required"`
-		LivenessBond      *math.HexOrDecimal256 `json:"livenessBond" gencodec:"required"`
-		Meta              *BlockMetadata        `json:"meta" gencodec:"required"`
+		BlockId           *math.HexOrDecimal256 `json:"blockId"           gencodec:"required"`
+		AssignedProver    common.Address        `json:"assignedProver"    gencodec:"required"`
+		LivenessBond      *math.HexOrDecimal256 `json:"livenessBond"      gencodec:"required"`
+		Meta              *BlockMetadata        `json:"meta"              gencodec:"required"`
 		DepositsProcessed []*EthDeposit         `json:"depositsProcessed" gencodec:"required"`
 	}
 	var enc BlockProposed
@@ -34,10 +34,10 @@ func (b BlockProposed) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BlockProposed) UnmarshalJSON(input []byte) error {
 	type BlockProposed struct {
-		BlockId           *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
-		AssignedProver    *common.Address       `json:"assignedProver" gencodec:"required"`
-		LivenessBond      *math.HexOrDecimal256 `json:"livenessBond" gencodec:"required"`
-		Meta              *BlockMetadata        `json:"meta" gencodec:"required"`
+		BlockId           *math.HexOrDecimal256 `json:"blockId"           gencodec:"required"`
+		AssignedProver    *common.Address       `json:"assignedProver"    gencodec:"required"`
+		LivenessBond      *math.HexOrDecimal256 `json:"livenessBond"      gencodec:"required"`
+		Meta              *BlockMetadata        `json:"meta"              gencodec:"required"`
 		DepositsProcessed []*EthDeposit         `json:"depositsProcessed" gencodec:"required"`
 	}
 	var dec BlockProposed

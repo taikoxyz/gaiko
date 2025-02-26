@@ -16,7 +16,7 @@ var _ = (*blockProposedV2Marshaling)(nil)
 func (b BlockProposedV2) MarshalJSON() ([]byte, error) {
 	type BlockProposedV2 struct {
 		BlockId *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
-		Meta    *BlockMetadataV2      `json:"meta" gencodec:"required"`
+		Meta    *BlockMetadataV2      `json:"meta"    gencodec:"required"`
 	}
 	var enc BlockProposedV2
 	enc.BlockId = (*math.HexOrDecimal256)(b.BlockId)
@@ -28,7 +28,7 @@ func (b BlockProposedV2) MarshalJSON() ([]byte, error) {
 func (b *BlockProposedV2) UnmarshalJSON(input []byte) error {
 	type BlockProposedV2 struct {
 		BlockId *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
-		Meta    *BlockMetadataV2      `json:"meta" gencodec:"required"`
+		Meta    *BlockMetadataV2      `json:"meta"    gencodec:"required"`
 	}
 	var dec BlockProposedV2
 	if err := json.Unmarshal(input, &dec); err != nil {

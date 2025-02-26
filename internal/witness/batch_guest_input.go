@@ -84,7 +84,7 @@ func (g *BatchGuestInput) BlockProposedFork() BlockProposedFork {
 
 func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
-	for i := 0; i < len(g.Taiko.TxDataFromBlob); i++ {
+	for i := range len(g.Taiko.TxDataFromBlob) {
 		blob := g.Taiko.TxDataFromBlob[i]
 		commitment := (*g.Taiko.BlobCommitments)[i]
 		proof := (*g.Taiko.BlobProofs)[i]

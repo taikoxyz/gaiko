@@ -16,26 +16,26 @@ var _ = (*blockMetadataV2Marshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BlockMetadataV2) MarshalJSON() ([]byte, error) {
 	type BlockMetadataV2 struct {
-		AnchorBlockHash  common.Hash                 `json:"anchorBlockHash" gencodec:"required"`
-		Difficulty       common.Hash                 `json:"difficulty" gencodec:"required"`
-		BlobHash         common.Hash                 `json:"blobHash" gencodec:"required"`
-		ExtraData        common.Hash                 `json:"extraData" gencodec:"required"`
-		Coinbase         common.Address              `json:"coinbase" gencodec:"required"`
-		Id               math.HexOrDecimal64         `json:"id" gencodec:"required"`
-		GasLimit         uint32                      `json:"gasLimit" gencodec:"required"`
-		Timestamp        math.HexOrDecimal64         `json:"timestamp" gencodec:"required"`
-		AnchorBlockId    math.HexOrDecimal64         `json:"anchorBlockId" gencodec:"required"`
-		MinTier          uint16                      `json:"minTier" gencodec:"required"`
-		BlobUsed         bool                        `json:"blobUsed" gencodec:"required"`
-		ParentMetaHash   common.Hash                 `json:"parentMetaHash" gencodec:"required"`
-		Proposer         common.Address              `json:"proposer" gencodec:"required"`
-		LivenessBond     *math.HexOrDecimal256       `json:"livenessBond" gencodec:"required"`
-		ProposedAt       math.HexOrDecimal64         `json:"proposedAt" gencodec:"required"`
-		ProposedIn       math.HexOrDecimal64         `json:"proposedIn" gencodec:"required"`
+		AnchorBlockHash  common.Hash                 `json:"anchorBlockHash"  gencodec:"required"`
+		Difficulty       common.Hash                 `json:"difficulty"       gencodec:"required"`
+		BlobHash         common.Hash                 `json:"blobHash"         gencodec:"required"`
+		ExtraData        common.Hash                 `json:"extraData"        gencodec:"required"`
+		Coinbase         common.Address              `json:"coinbase"         gencodec:"required"`
+		Id               math.HexOrDecimal64         `json:"id"               gencodec:"required"`
+		GasLimit         uint32                      `json:"gasLimit"         gencodec:"required"`
+		Timestamp        math.HexOrDecimal64         `json:"timestamp"        gencodec:"required"`
+		AnchorBlockId    math.HexOrDecimal64         `json:"anchorBlockId"    gencodec:"required"`
+		MinTier          uint16                      `json:"minTier"          gencodec:"required"`
+		BlobUsed         bool                        `json:"blobUsed"         gencodec:"required"`
+		ParentMetaHash   common.Hash                 `json:"parentMetaHash"   gencodec:"required"`
+		Proposer         common.Address              `json:"proposer"         gencodec:"required"`
+		LivenessBond     *math.HexOrDecimal256       `json:"livenessBond"     gencodec:"required"`
+		ProposedAt       math.HexOrDecimal64         `json:"proposedAt"       gencodec:"required"`
+		ProposedIn       math.HexOrDecimal64         `json:"proposedIn"       gencodec:"required"`
 		BlobTxListOffset uint32                      `json:"blobTxListOffset" gencodec:"required"`
 		BlobTxListLength uint32                      `json:"blobTxListLength" gencodec:"required"`
-		BlobIndex        uint8                       `json:"blobIndex" gencodec:"required"`
-		BaseFeeConfig    *LibSharedDataBaseFeeConfig `json:"baseFeeConfig" gencodec:"required"`
+		BlobIndex        uint8                       `json:"blobIndex"        gencodec:"required"`
+		BaseFeeConfig    *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"    gencodec:"required"`
 	}
 	var enc BlockMetadataV2
 	enc.AnchorBlockHash = b.AnchorBlockHash
@@ -64,26 +64,26 @@ func (b BlockMetadataV2) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BlockMetadataV2) UnmarshalJSON(input []byte) error {
 	type BlockMetadataV2 struct {
-		AnchorBlockHash  *common.Hash                `json:"anchorBlockHash" gencodec:"required"`
-		Difficulty       *common.Hash                `json:"difficulty" gencodec:"required"`
-		BlobHash         *common.Hash                `json:"blobHash" gencodec:"required"`
-		ExtraData        *common.Hash                `json:"extraData" gencodec:"required"`
-		Coinbase         *common.Address             `json:"coinbase" gencodec:"required"`
-		Id               *math.HexOrDecimal64        `json:"id" gencodec:"required"`
-		GasLimit         *uint32                     `json:"gasLimit" gencodec:"required"`
-		Timestamp        *math.HexOrDecimal64        `json:"timestamp" gencodec:"required"`
-		AnchorBlockId    *math.HexOrDecimal64        `json:"anchorBlockId" gencodec:"required"`
-		MinTier          *uint16                     `json:"minTier" gencodec:"required"`
-		BlobUsed         *bool                       `json:"blobUsed" gencodec:"required"`
-		ParentMetaHash   *common.Hash                `json:"parentMetaHash" gencodec:"required"`
-		Proposer         *common.Address             `json:"proposer" gencodec:"required"`
-		LivenessBond     *math.HexOrDecimal256       `json:"livenessBond" gencodec:"required"`
-		ProposedAt       *math.HexOrDecimal64        `json:"proposedAt" gencodec:"required"`
-		ProposedIn       *math.HexOrDecimal64        `json:"proposedIn" gencodec:"required"`
+		AnchorBlockHash  *common.Hash                `json:"anchorBlockHash"  gencodec:"required"`
+		Difficulty       *common.Hash                `json:"difficulty"       gencodec:"required"`
+		BlobHash         *common.Hash                `json:"blobHash"         gencodec:"required"`
+		ExtraData        *common.Hash                `json:"extraData"        gencodec:"required"`
+		Coinbase         *common.Address             `json:"coinbase"         gencodec:"required"`
+		Id               *math.HexOrDecimal64        `json:"id"               gencodec:"required"`
+		GasLimit         *uint32                     `json:"gasLimit"         gencodec:"required"`
+		Timestamp        *math.HexOrDecimal64        `json:"timestamp"        gencodec:"required"`
+		AnchorBlockId    *math.HexOrDecimal64        `json:"anchorBlockId"    gencodec:"required"`
+		MinTier          *uint16                     `json:"minTier"          gencodec:"required"`
+		BlobUsed         *bool                       `json:"blobUsed"         gencodec:"required"`
+		ParentMetaHash   *common.Hash                `json:"parentMetaHash"   gencodec:"required"`
+		Proposer         *common.Address             `json:"proposer"         gencodec:"required"`
+		LivenessBond     *math.HexOrDecimal256       `json:"livenessBond"     gencodec:"required"`
+		ProposedAt       *math.HexOrDecimal64        `json:"proposedAt"       gencodec:"required"`
+		ProposedIn       *math.HexOrDecimal64        `json:"proposedIn"       gencodec:"required"`
 		BlobTxListOffset *uint32                     `json:"blobTxListOffset" gencodec:"required"`
 		BlobTxListLength *uint32                     `json:"blobTxListLength" gencodec:"required"`
-		BlobIndex        *uint8                      `json:"blobIndex" gencodec:"required"`
-		BaseFeeConfig    *LibSharedDataBaseFeeConfig `json:"baseFeeConfig" gencodec:"required"`
+		BlobIndex        *uint8                      `json:"blobIndex"        gencodec:"required"`
+		BaseFeeConfig    *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"    gencodec:"required"`
 	}
 	var dec BlockMetadataV2
 	if err := json.Unmarshal(input, &dec); err != nil {

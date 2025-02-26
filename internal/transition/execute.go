@@ -38,7 +38,7 @@ func ExecuteGuestDriver(
 		}
 		statedb, err := apply(
 			vm.Config{},
-			preState.statedb,
+			preState.stateDB,
 			g.Block,
 			txs,
 			preState.getHash,

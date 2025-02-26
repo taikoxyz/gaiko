@@ -46,21 +46,13 @@ func (m *MptNode) Hash() (common.Hash, error) {
 }
 
 func (m *MptNode) IsEmpty() bool {
-	switch m.data.(type) {
-	case *nullNode:
-		return true
-	default:
-		return false
-	}
+	_, ok := m.data.(*nullNode)
+	return ok
 }
 
 func (m *MptNode) IsDigest() bool {
-	switch m.data.(type) {
-	case *digestNode:
-		return true
-	default:
-		return false
-	}
+	_, ok := m.data.(*digestNode)
+	return ok
 }
 
 func (m *MptNode) Nibs() []byte {
@@ -88,7 +80,7 @@ func (m *MptNode) Insert(key []byte, value []byte) (bool, error) {
 	return m.insert(toNibs(key), value)
 }
 
-func (m *MptNode) InsertRLP(key []byte, value interface{}) (bool, error) {
+func (m *MptNode) InsertRLP(key []byte, value any) (bool, error) {
 	data, err := rlp.EncodeToBytes(value)
 	if err != nil {
 		return false, err
@@ -201,12 +193,9 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 }
 
 func lcp(a, b []byte) int {
-	minLen := len(a)
-	if len(b) < minLen {
-		minLen = len(b)
-	}
+	minLen := min(len(a), len(b))
 
-	for i := 0; i < minLen; i++ {
+	for i := range minLen {
 		if a[i] != b[i] {
 			return i
 		}
@@ -257,13 +246,14 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		if remaining == 1 {
 			switch data := nextChild.data.(type) {
 			case *leafNode:
-				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(data.prefix)...)
+				newNibs := slices.Concat([]byte{uint8(nextIdx)}, prefixNibs(data.prefix))
 				m.data = &leafNode{
 					prefix: toEncodedPath(newNibs, true),
 					value:  data.value,
 				}
 			case *extensionNode:
-				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(data.prefix)...)
+				newNibs := slices.Concat([]byte{uint8(nextIdx)}, prefixNibs(data.prefix))
+
 				m.data = &extensionNode{
 					prefix: toEncodedPath(newNibs, false),
 					child:  data.child,
@@ -301,13 +291,14 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		case *nullNode:
 			m.data = &nullNode{}
 		case *leafNode:
-			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = slices.Concat(selfNibs, prefixNibs(data.prefix))
 			m.data = &leafNode{
 				prefix: toEncodedPath(selfNibs, true),
 				value:  data.value,
 			}
 		case *extensionNode:
-			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = slices.Concat(selfNibs, prefixNibs(data.prefix))
+
 			m.data = &extensionNode{
 				prefix: toEncodedPath(selfNibs, false),
 				child:  data.child,
@@ -348,62 +339,6 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func stripPrefix(nibs []byte, prefix []byte) []byte {
-	if bytes.HasPrefix(nibs, prefix) {
-		return nibs[len(prefix):]
-	}
-	return nil
-}
-
-func toEncodedPath(nibs []byte, isLeaf bool) []byte {
-	isLeafVar := uint8(0)
-	if isLeaf {
-		isLeafVar = 1
-	}
-
-	prefix := isLeafVar * 0x20
-	if len(nibs)%2 != 0 {
-		prefix += 0x10 + nibs[0]
-		nibs = nibs[1:]
-	}
-	res := make([]byte, 0, len(nibs)%2+1)
-	res = append(res, prefix)
-	for i := 0; i < len(nibs); i += 2 {
-		res = append(res, nibs[i]<<4+nibs[i+1])
-	}
-	return res
-}
-
-func toNibs(key []byte) []byte {
-	res := make([]byte, 0, len(key)*2)
-	for _, b := range key {
-		res = append(res, b>>4, b&0xf)
-	}
-	return res
-}
-
-func prefixNibs(prefix []byte) []byte {
-	if len(prefix) == 0 {
-		panic("prefix cannot be empty")
-	}
-	ext, tail := prefix[0], prefix[1:]
-
-	isOdd := ext&(1<<4) != 0
-
-	isOaddVar := 0
-	if isOdd {
-		isOaddVar = 1
-	}
-	res := make([]byte, 0, len(tail)*2+isOaddVar)
-	if isOdd {
-		res = append(res, ext&0xf)
-	}
-	for _, nib := range tail {
-		res = append(res, nib>>4, nib&0xf)
-	}
-	return res
-}
-
 func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
 	ref, err := m.ref()
 	if err != nil {
@@ -432,6 +367,62 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 		}
 	}
 	return m.cachedRef, nil
+}
+
+func stripPrefix(nibs []byte, prefix []byte) []byte {
+	if bytes.HasPrefix(nibs, prefix) {
+		return nibs[len(prefix):]
+	}
+	return nil
+}
+
+func boolToInt(b bool) (n int) {
+	if b {
+		n = 1
+	}
+	return
+}
+
+func toEncodedPath(nibs []byte, isLeaf bool) []byte {
+	isLeafVar := uint8(boolToInt(isLeaf))
+	prefix := isLeafVar * 0x20
+	if len(nibs)%2 != 0 {
+		prefix += 0x10 + nibs[0]
+		nibs = nibs[1:]
+	}
+	res := make([]byte, 0, len(nibs)%2+1)
+	res = append(res, prefix)
+	for c := range slices.Chunk(nibs, 2) {
+		res = append(res, c[0]<<4+c[1])
+	}
+	return res
+}
+
+func toNibs(key []byte) []byte {
+	res := make([]byte, 0, len(key)*2)
+	for _, b := range key {
+		res = append(res, b>>4, b&0xf)
+	}
+	return res
+}
+
+func prefixNibs(prefix []byte) []byte {
+	if len(prefix) == 0 {
+		panic("prefix cannot be empty")
+	}
+	ext, tail := prefix[0], prefix[1:]
+
+	isOdd := ext&(1<<4) != 0
+
+	isOddVar := boolToInt(isOdd)
+	res := make([]byte, 0, len(tail)*2+isOddVar)
+	if isOdd {
+		res = append(res, ext&0xf)
+	}
+	for _, nib := range tail {
+		res = append(res, nib>>4, nib&0xf)
+	}
+	return res
 }
 
 type mptNodeRef interface {
@@ -477,11 +468,11 @@ type (
 
 // marker interface, only for type checking
 type mptNodeData interface {
-	_private()
+	sealed()
 }
 
-func (*nullNode) _private()      {}
-func (*branchNode) _private()    {}
-func (*leafNode) _private()      {}
-func (*extensionNode) _private() {}
-func (*digestNode) _private()    {}
+func (*nullNode) sealed()      {}
+func (*branchNode) sealed()    {}
+func (*leafNode) sealed()      {}
+func (*extensionNode) sealed() {}
+func (*digestNode) sealed()    {}

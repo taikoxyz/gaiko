@@ -14,10 +14,10 @@ var _ = (*libSharedDataBaseFeeConfigMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (l LibSharedDataBaseFeeConfig) MarshalJSON() ([]byte, error) {
 	type LibSharedDataBaseFeeConfig struct {
-		AdjustmentQuotient     uint8               `json:"adjustmentQuotient" gencodec:"required"`
-		SharingPctg            uint8               `json:"sharingPctg" gencodec:"required"`
-		GasIssuancePerSecond   uint32              `json:"gasIssuancePerSecond" gencodec:"required"`
-		MinGasExcess           math.HexOrDecimal64 `json:"minGasExcess" gencodec:"required"`
+		AdjustmentQuotient     uint8               `json:"adjustmentQuotient"     gencodec:"required"`
+		SharingPctg            uint8               `json:"sharingPctg"            gencodec:"required"`
+		GasIssuancePerSecond   uint32              `json:"gasIssuancePerSecond"   gencodec:"required"`
+		MinGasExcess           math.HexOrDecimal64 `json:"minGasExcess"           gencodec:"required"`
 		MaxGasIssuancePerBlock uint32              `json:"maxGasIssuancePerBlock" gencodec:"required"`
 	}
 	var enc LibSharedDataBaseFeeConfig
@@ -32,10 +32,10 @@ func (l LibSharedDataBaseFeeConfig) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (l *LibSharedDataBaseFeeConfig) UnmarshalJSON(input []byte) error {
 	type LibSharedDataBaseFeeConfig struct {
-		AdjustmentQuotient     *uint8               `json:"adjustmentQuotient" gencodec:"required"`
-		SharingPctg            *uint8               `json:"sharingPctg" gencodec:"required"`
-		GasIssuancePerSecond   *uint32              `json:"gasIssuancePerSecond" gencodec:"required"`
-		MinGasExcess           *math.HexOrDecimal64 `json:"minGasExcess" gencodec:"required"`
+		AdjustmentQuotient     *uint8               `json:"adjustmentQuotient"     gencodec:"required"`
+		SharingPctg            *uint8               `json:"sharingPctg"            gencodec:"required"`
+		GasIssuancePerSecond   *uint32              `json:"gasIssuancePerSecond"   gencodec:"required"`
+		MinGasExcess           *math.HexOrDecimal64 `json:"minGasExcess"           gencodec:"required"`
 		MaxGasIssuancePerBlock *uint32              `json:"maxGasIssuancePerBlock" gencodec:"required"`
 	}
 	var dec LibSharedDataBaseFeeConfig

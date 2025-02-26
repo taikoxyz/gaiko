@@ -61,7 +61,7 @@ func NewPacayaBlockProposed(b *pacaya.TaikoInboxClientBatchProposed) *PacayaBloc
 	}
 }
 
-func (b *PacayaBlockProposed) Encode() ([]byte, error) {
+func (b *PacayaBlockProposed) ABIEncode() ([]byte, error) {
 	return batchProposedEvent.Inputs.Pack(b.Info, b.Meta, b.TxList)
 }
 
@@ -162,7 +162,7 @@ func NewHeklaBlockProposed(b *ontake.TaikoL1ClientBlockProposed) *HeklaBlockProp
 	return &HeklaBlockProposed{b}
 }
 
-func (b *HeklaBlockProposed) Encode() ([]byte, error) {
+func (b *HeklaBlockProposed) ABIEncode() ([]byte, error) {
 	return blockMetadataComponentsArgs.Pack(
 		b.BlockId,
 		b.AssignedProver,
@@ -270,7 +270,7 @@ func NewOntakeBlockProposed(b *ontake.TaikoL1ClientBlockProposedV2) *OntakeBlock
 	return &OntakeBlockProposed{b}
 }
 
-func (b *OntakeBlockProposed) Encode() ([]byte, error) {
+func (b *OntakeBlockProposed) ABIEncode() ([]byte, error) {
 	return blockMetadataV2ComponentsArgs.Pack(b.BlockId, b.Meta)
 }
 
@@ -366,7 +366,7 @@ type NotingBlockProposed struct{}
 
 var _ BlockProposedFork = (*NotingBlockProposed)(nil)
 
-func (b *NotingBlockProposed) Encode() ([]byte, error) {
+func (b *NotingBlockProposed) ABIEncode() ([]byte, error) {
 	return nil, nil
 }
 

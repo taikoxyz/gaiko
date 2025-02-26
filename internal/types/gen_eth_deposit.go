@@ -17,8 +17,8 @@ var _ = (*ethDepositMarshaling)(nil)
 func (e EthDeposit) MarshalJSON() ([]byte, error) {
 	type EthDeposit struct {
 		Recipient common.Address        `json:"recipient" gencodec:"required"`
-		Amount    *math.HexOrDecimal256 `json:"amount" gencodec:"required"`
-		Id        math.HexOrDecimal64   `json:"id" gencodec:"required"`
+		Amount    *math.HexOrDecimal256 `json:"amount"    gencodec:"required"`
+		Id        math.HexOrDecimal64   `json:"id"        gencodec:"required"`
 	}
 	var enc EthDeposit
 	enc.Recipient = e.Recipient
@@ -31,8 +31,8 @@ func (e EthDeposit) MarshalJSON() ([]byte, error) {
 func (e *EthDeposit) UnmarshalJSON(input []byte) error {
 	type EthDeposit struct {
 		Recipient *common.Address       `json:"recipient" gencodec:"required"`
-		Amount    *math.HexOrDecimal256 `json:"amount" gencodec:"required"`
-		Id        *math.HexOrDecimal64  `json:"id" gencodec:"required"`
+		Amount    *math.HexOrDecimal256 `json:"amount"    gencodec:"required"`
+		Id        *math.HexOrDecimal64  `json:"id"        gencodec:"required"`
 	}
 	var dec EthDeposit
 	if err := json.Unmarshal(input, &dec); err != nil {

@@ -64,7 +64,7 @@ func init() {
 // ABIEncoder is an interface for solidity structs encoding
 // See [`abi.encode`](https://docs.soliditylang.org/en/latest/abi-spec.html)
 type ABIEncoder interface {
-	Encode() ([]byte, error)
+	ABIEncode() ([]byte, error)
 }
 
 // generated binding doesn't have any struct specs, we can find them in the used places
@@ -78,7 +78,7 @@ func findArgumentInEventInputs(inputs abi.Arguments, name string) (abi.Argument,
 }
 
 func decodeAnchorV3Args_signalSlots(input []byte) ([][32]byte, error) {
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	err := anchorV3Method.Inputs.UnpackIntoMap(args, input)
 	if err != nil {
 		return nil, err

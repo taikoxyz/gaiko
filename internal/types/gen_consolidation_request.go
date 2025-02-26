@@ -15,9 +15,9 @@ var _ = (*consolidationRequestMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (c ConsolidationRequest) MarshalJSON() ([]byte, error) {
 	type ConsolidationRequest struct {
-		SourceAddress common.Address `json:"sourceAddress" gencodec:"required"`
-		SourcePubkey  hexutil.Bytes  `json:"sourcePubkey" gencodec:"required"`
-		TargetPubkey  hexutil.Bytes  `json:"targetPubkey" gencodec:"required"`
+		SourceAddress common.Address `json:"source_address" gencodec:"required"`
+		SourcePubkey  hexutil.Bytes  `json:"source_pubkey"  gencodec:"required"`
+		TargetPubkey  hexutil.Bytes  `json:"target_pubkey"  gencodec:"required"`
 	}
 	var enc ConsolidationRequest
 	enc.SourceAddress = c.SourceAddress
@@ -29,30 +29,30 @@ func (c ConsolidationRequest) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (c *ConsolidationRequest) UnmarshalJSON(input []byte) error {
 	type ConsolidationRequest struct {
-		SourceAddress *common.Address `json:"sourceAddress" gencodec:"required"`
-		SourcePubkey  *hexutil.Bytes  `json:"sourcePubkey" gencodec:"required"`
-		TargetPubkey  *hexutil.Bytes  `json:"targetPubkey" gencodec:"required"`
+		SourceAddress *common.Address `json:"source_address" gencodec:"required"`
+		SourcePubkey  *hexutil.Bytes  `json:"source_pubkey"  gencodec:"required"`
+		TargetPubkey  *hexutil.Bytes  `json:"target_pubkey"  gencodec:"required"`
 	}
 	var dec ConsolidationRequest
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.SourceAddress == nil {
-		return errors.New("missing required field 'sourceAddress' for ConsolidationRequest")
+		return errors.New("missing required field 'source_address' for ConsolidationRequest")
 	}
 	c.SourceAddress = *dec.SourceAddress
 	if dec.SourcePubkey == nil {
-		return errors.New("missing required field 'sourcePubkey' for ConsolidationRequest")
+		return errors.New("missing required field 'source_pubkey' for ConsolidationRequest")
 	}
 	if len(*dec.SourcePubkey) != len(c.SourcePubkey) {
-		return errors.New("field 'sourcePubkey' has wrong length, need 48 items")
+		return errors.New("field 'source_pubkey' has wrong length, need 48 items")
 	}
 	copy(c.SourcePubkey[:], *dec.SourcePubkey)
 	if dec.TargetPubkey == nil {
-		return errors.New("missing required field 'targetPubkey' for ConsolidationRequest")
+		return errors.New("missing required field 'target_pubkey' for ConsolidationRequest")
 	}
 	if len(*dec.TargetPubkey) != len(c.TargetPubkey) {
-		return errors.New("field 'targetPubkey' has wrong length, need 48 items")
+		return errors.New("field 'target_pubkey' has wrong length, need 48 items")
 	}
 	copy(c.TargetPubkey[:], *dec.TargetPubkey)
 	return nil

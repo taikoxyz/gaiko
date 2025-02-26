@@ -14,8 +14,8 @@ var _ = (*batchProposedMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BatchProposed) MarshalJSON() ([]byte, error) {
 	type BatchProposed struct {
-		Info   *BatchInfo     `json:"info" gencodec:"required"`
-		Meta   *BatchMetadata `json:"meta" gencodec:"required"`
+		Info   *BatchInfo     `json:"info"   gencodec:"required"`
+		Meta   *BatchMetadata `json:"meta"   gencodec:"required"`
 		TxList hexutil.Bytes  `json:"txList" gencodec:"required"`
 	}
 	var enc BatchProposed
@@ -28,8 +28,8 @@ func (b BatchProposed) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BatchProposed) UnmarshalJSON(input []byte) error {
 	type BatchProposed struct {
-		Info   *BatchInfo     `json:"info" gencodec:"required"`
-		Meta   *BatchMetadata `json:"meta" gencodec:"required"`
+		Info   *BatchInfo     `json:"info"   gencodec:"required"`
+		Meta   *BatchMetadata `json:"meta"   gencodec:"required"`
 		TxList *hexutil.Bytes `json:"txList" gencodec:"required"`
 	}
 	var dec BatchProposed

@@ -18,21 +18,21 @@ var _ = (*headerMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (h Header) MarshalJSON() ([]byte, error) {
 	type Header struct {
-		ParentHash            common.Hash           `json:"parent_hash" gencodec:"required"`
-		OmmerHash             common.Hash           `json:"ommers_hash" gencodec:"required"`
-		Coinbase              common.Address        `json:"beneficiary" gencodec:"required"`
-		Root                  common.Hash           `json:"state_root" gencodec:"required"`
-		TxHash                common.Hash           `json:"transactions_root" gencodec:"required"`
-		ReceiptHash           common.Hash           `json:"receipts_root" gencodec:"required"`
-		Bloom                 types.Bloom           `json:"logs_bloom" gencodec:"required"`
-		Difficulty            *math.HexOrDecimal256 `json:"difficulty" gencodec:"required"`
-		Number                *math.HexOrDecimal256 `json:"number" gencodec:"required"`
-		GasLimit              math.HexOrDecimal64   `json:"gas_limit" gencodec:"required"`
-		GasUsed               math.HexOrDecimal64   `json:"gas_used" gencodec:"required"`
-		Time                  math.HexOrDecimal64   `json:"timestamp" gencodec:"required"`
-		Extra                 hexutil.Bytes         `json:"extra_data" gencodec:"required"`
-		MixDigest             common.Hash           `json:"mix_hash" gencodec:"required"`
-		Nonce                 math.HexOrDecimal64   `json:"nonce" gencodec:"required"`
+		ParentHash            common.Hash           `json:"parent_hash"              gencodec:"required"`
+		OmmerHash             common.Hash           `json:"ommers_hash"              gencodec:"required"`
+		Coinbase              common.Address        `json:"beneficiary"              gencodec:"required"`
+		Root                  common.Hash           `json:"state_root"               gencodec:"required"`
+		TxHash                common.Hash           `json:"transactions_root"        gencodec:"required"`
+		ReceiptHash           common.Hash           `json:"receipts_root"            gencodec:"required"`
+		Bloom                 types.Bloom           `json:"logs_bloom"               gencodec:"required"`
+		Difficulty            *math.HexOrDecimal256 `json:"difficulty"               gencodec:"required"`
+		Number                *math.HexOrDecimal256 `json:"number"                   gencodec:"required"`
+		GasLimit              math.HexOrDecimal64   `json:"gas_limit"                gencodec:"required"`
+		GasUsed               math.HexOrDecimal64   `json:"gas_used"                 gencodec:"required"`
+		Time                  math.HexOrDecimal64   `json:"timestamp"                gencodec:"required"`
+		Extra                 hexutil.Bytes         `json:"extra_data"               gencodec:"required"`
+		MixDigest             common.Hash           `json:"mix_hash"                 gencodec:"required"`
+		Nonce                 math.HexOrDecimal64   `json:"nonce"                    gencodec:"required"`
 		BaseFee               *math.HexOrDecimal256 `json:"base_fee_per_gas"`
 		WithdrawalsHash       *common.Hash          `json:"withdrawals_root"`
 		BlobGasUsed           *math.HexOrDecimal64  `json:"blob_gas_used"`
@@ -68,21 +68,21 @@ func (h Header) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {
-		ParentHash            *common.Hash          `json:"parent_hash" gencodec:"required"`
-		OmmerHash             *common.Hash          `json:"ommers_hash" gencodec:"required"`
-		Coinbase              *common.Address       `json:"beneficiary" gencodec:"required"`
-		Root                  *common.Hash          `json:"state_root" gencodec:"required"`
-		TxHash                *common.Hash          `json:"transactions_root" gencodec:"required"`
-		ReceiptHash           *common.Hash          `json:"receipts_root" gencodec:"required"`
-		Bloom                 *types.Bloom          `json:"logs_bloom" gencodec:"required"`
-		Difficulty            *math.HexOrDecimal256 `json:"difficulty" gencodec:"required"`
-		Number                *math.HexOrDecimal256 `json:"number" gencodec:"required"`
-		GasLimit              *math.HexOrDecimal64  `json:"gas_limit" gencodec:"required"`
-		GasUsed               *math.HexOrDecimal64  `json:"gas_used" gencodec:"required"`
-		Time                  *math.HexOrDecimal64  `json:"timestamp" gencodec:"required"`
-		Extra                 *hexutil.Bytes        `json:"extra_data" gencodec:"required"`
-		MixDigest             *common.Hash          `json:"mix_hash" gencodec:"required"`
-		Nonce                 *math.HexOrDecimal64  `json:"nonce" gencodec:"required"`
+		ParentHash            *common.Hash          `json:"parent_hash"              gencodec:"required"`
+		OmmerHash             *common.Hash          `json:"ommers_hash"              gencodec:"required"`
+		Coinbase              *common.Address       `json:"beneficiary"              gencodec:"required"`
+		Root                  *common.Hash          `json:"state_root"               gencodec:"required"`
+		TxHash                *common.Hash          `json:"transactions_root"        gencodec:"required"`
+		ReceiptHash           *common.Hash          `json:"receipts_root"            gencodec:"required"`
+		Bloom                 *types.Bloom          `json:"logs_bloom"               gencodec:"required"`
+		Difficulty            *math.HexOrDecimal256 `json:"difficulty"               gencodec:"required"`
+		Number                *math.HexOrDecimal256 `json:"number"                   gencodec:"required"`
+		GasLimit              *math.HexOrDecimal64  `json:"gas_limit"                gencodec:"required"`
+		GasUsed               *math.HexOrDecimal64  `json:"gas_used"                 gencodec:"required"`
+		Time                  *math.HexOrDecimal64  `json:"timestamp"                gencodec:"required"`
+		Extra                 *hexutil.Bytes        `json:"extra_data"               gencodec:"required"`
+		MixDigest             *common.Hash          `json:"mix_hash"                 gencodec:"required"`
+		Nonce                 *math.HexOrDecimal64  `json:"nonce"                    gencodec:"required"`
 		BaseFee               *math.HexOrDecimal256 `json:"base_fee_per_gas"`
 		WithdrawalsHash       *common.Hash          `json:"withdrawals_root"`
 		BlobGasUsed           *math.HexOrDecimal64  `json:"blob_gas_used"`

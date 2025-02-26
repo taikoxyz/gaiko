@@ -15,9 +15,9 @@ var _ = (*batchMetadataMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BatchMetadata) MarshalJSON() ([]byte, error) {
 	type BatchMetadata struct {
-		InfoHash   common.Hash         `json:"infoHash" gencodec:"required"`
-		Proposer   common.Address      `json:"proposer" gencodec:"required"`
-		BatchId    math.HexOrDecimal64 `json:"batchId" gencodec:"required"`
+		InfoHash   common.Hash         `json:"infoHash"   gencodec:"required"`
+		Proposer   common.Address      `json:"proposer"   gencodec:"required"`
+		BatchId    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 		ProposedAt math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 	}
 	var enc BatchMetadata
@@ -31,9 +31,9 @@ func (b BatchMetadata) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BatchMetadata) UnmarshalJSON(input []byte) error {
 	type BatchMetadata struct {
-		InfoHash   *common.Hash         `json:"infoHash" gencodec:"required"`
-		Proposer   *common.Address      `json:"proposer" gencodec:"required"`
-		BatchId    *math.HexOrDecimal64 `json:"batchId" gencodec:"required"`
+		InfoHash   *common.Hash         `json:"infoHash"   gencodec:"required"`
+		Proposer   *common.Address      `json:"proposer"   gencodec:"required"`
+		BatchId    *math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 		ProposedAt *math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 	}
 	var dec BatchMetadata
