@@ -17,7 +17,7 @@ var _ = (*txEip4844Marshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (t TxEip4844) MarshalJSON() ([]byte, error) {
 	type TxEip4844 struct {
-		ChainId              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
+		ChainID              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
 		Nonce                math.HexOrDecimal64   `json:"nonce"                    gencodec:"required"`
 		GasLimit             math.HexOrDecimal64   `json:"gas_limit"                gencodec:"required"`
 		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas"          gencodec:"required"`
@@ -30,7 +30,7 @@ func (t TxEip4844) MarshalJSON() ([]byte, error) {
 		Input                hexutil.Bytes         `json:"input"                    gencodec:"required"`
 	}
 	var enc TxEip4844
-	enc.ChainId = (*math.HexOrDecimal256)(t.ChainId)
+	enc.ChainID = (*math.HexOrDecimal256)(t.ChainID)
 	enc.Nonce = math.HexOrDecimal64(t.Nonce)
 	enc.GasLimit = math.HexOrDecimal64(t.GasLimit)
 	enc.MaxFeePerGas = (*math.HexOrDecimal256)(t.MaxFeePerGas)
@@ -47,7 +47,7 @@ func (t TxEip4844) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (t *TxEip4844) UnmarshalJSON(input []byte) error {
 	type TxEip4844 struct {
-		ChainId              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
+		ChainID              *math.HexOrDecimal256 `json:"chain_id"                 gencodec:"required"`
 		Nonce                *math.HexOrDecimal64  `json:"nonce"                    gencodec:"required"`
 		GasLimit             *math.HexOrDecimal64  `json:"gas_limit"                gencodec:"required"`
 		MaxFeePerGas         *math.HexOrDecimal256 `json:"max_fee_per_gas"          gencodec:"required"`
@@ -63,10 +63,10 @@ func (t *TxEip4844) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.ChainId == nil {
+	if dec.ChainID == nil {
 		return errors.New("missing required field 'chain_id' for TxEip4844")
 	}
-	t.ChainId = (*big.Int)(dec.ChainId)
+	t.ChainID = (*big.Int)(dec.ChainID)
 	if dec.Nonce == nil {
 		return errors.New("missing required field 'nonce' for TxEip4844")
 	}
