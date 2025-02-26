@@ -18,10 +18,10 @@ func TestOneshot(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(fmt.Sprintf("block: %d", input.Block.NumberU64()), func(t *testing.T) {
 			args := &flags.Arguments{
-				SecretDir:  "",
-				ConfigDir:  "",
-				SgxType:    "debug",
-				InstanceID: 0,
+				SecretDir:     "",
+				ConfigDir:     "",
+				SGXType:       "debug",
+				SGXInstanceID: 0,
 			}
 			sgxProver := prover.NewSGXProver(args)
 			proof, err := sgxProver.Oneshot(context.Background())
