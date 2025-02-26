@@ -34,14 +34,14 @@ func (p *SGXProver) Oneshot(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	var driver witness.GuestInput
-	return genSGXProof(ctx, p.args, &driver, p.provider)
+	return genOneshotProof(ctx, p.args, &driver, p.provider)
 }
 
 func (p *SGXProver) BatchOneshot(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	var driver witness.BatchGuestInput
-	return genSGXProof(ctx, p.args, &driver, p.provider)
+	return genOneshotProof(ctx, p.args, &driver, p.provider)
 }
 
 func (p *SGXProver) Aggregate(

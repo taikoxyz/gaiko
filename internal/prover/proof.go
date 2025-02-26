@@ -85,7 +85,7 @@ func NewAggregateProof(
 	return &proof
 }
 
-func genSGXProof(
+func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
 	driver witness.GuestDriver,
