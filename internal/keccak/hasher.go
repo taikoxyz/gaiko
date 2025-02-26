@@ -7,10 +7,10 @@ import (
 )
 
 // keccakHasher is used to compute the sha256 hash of the provided data.
-type keccakHasher struct{ sha crypto.KeccakState }
+type keccakHasher struct{ crypto.KeccakState }
 
 var keccakHasherPool = sync.Pool{
-	New: func() any { return &keccakHasher{sha: crypto.NewKeccakState()} },
+	New: func() any { return &keccakHasher{crypto.NewKeccakState()} },
 }
 
 func newKeccakHasher() *keccakHasher {
@@ -19,9 +19,9 @@ func newKeccakHasher() *keccakHasher {
 
 func (h *keccakHasher) hash(data []byte) []byte {
 	b := make([]byte, 32)
-	h.sha.Reset()
-	h.sha.Write(data)
-	h.sha.Read(b)
+	h.Reset()
+	h.Write(data)
+	h.Read(b)
 	return b
 }
 
