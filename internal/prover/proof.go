@@ -119,7 +119,7 @@ func genSGXProof(
 		return nil, err
 	}
 
-	proof := NewOneshotProof(args.InstanceID, newInstance, sign)
+	proof := NewOneshotProof(args.SGXInstanceID, newInstance, sign)
 	quote, err := provider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err

@@ -21,15 +21,15 @@ var (
 		Usage: "Directory for configuration files",
 	}
 
-	GlobalSgxType = &cli.StringFlag{
+	GlobalSGXType = &cli.StringFlag{
 		Name:    "sgx-type",
-		Usage:   `Which SGX type? "debug", "ego" or gramine`,
+		Usage:   `Which SGX type? "debug", "ego" or "gramine"`,
 		EnvVars: []string{"SGX_TYPE"},
 	}
 
-	OneShotSgxInstanceID = &cli.Uint64Flag{
+	SGXInstanceID = &cli.Uint64Flag{
 		Name:  "sgx-instance-id",
-		Usage: "SGX Instance ID for one-shot operation",
+		Usage: "SGX Instance ID for one-(batch-)shot operation",
 	}
 )
 
@@ -51,21 +51,21 @@ const (
 var GlobalFlags = []cli.Flag{
 	GlobalSecretDir,
 	GlobalConfigDir,
-	GlobalSgxType,
+	GlobalSGXType,
 }
 
 type Arguments struct {
-	SecretDir  string
-	ConfigDir  string
-	SGXType    string
-	InstanceID uint32
+	SecretDir     string
+	ConfigDir     string
+	SGXType       string
+	SGXInstanceID uint32
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
 	return &Arguments{
-		SecretDir:  cli.String(GlobalSecretDir.Name),
-		ConfigDir:  cli.String(GlobalConfigDir.Name),
-		SGXType:    cli.String(GlobalSgxType.Name),
-		InstanceID: uint32(cli.Uint64(OneShotSgxInstanceID.Name)),
+		SecretDir:     cli.String(GlobalSecretDir.Name),
+		ConfigDir:     cli.String(GlobalConfigDir.Name),
+		SGXType:       cli.String(GlobalSGXType.Name),
+		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
 	}
 }

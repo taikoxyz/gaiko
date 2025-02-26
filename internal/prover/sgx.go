@@ -73,22 +73,22 @@ func (p *SGXProver) Aggregate(
 		return nil, fmt.Errorf("invalid instance: %s", curInstance)
 	}
 
-	aggOutputCombine := make([]byte, 0, (len(input.Proofs)+2)*32)
-	aggOutputCombine = append(aggOutputCombine, addr32Padding[:]...)
-	aggOutputCombine = append(aggOutputCombine, oldInstance.Bytes()...)
-	aggOutputCombine = append(aggOutputCombine, addr32Padding[:]...)
-	aggOutputCombine = append(aggOutputCombine, newInstance.Bytes()...)
+	combinedHashes := make([]byte, 0, (len(input.Proofs)+2)*32)
+	combinedHashes = append(combinedHashes, addr32Padding[:]...)
+	combinedHashes = append(combinedHashes, oldInstance.Bytes()...)
+	combinedHashes = append(combinedHashes, addr32Padding[:]...)
+	combinedHashes = append(combinedHashes, newInstance.Bytes()...)
 	for _, proof := range input.Proofs {
-		aggOutputCombine = append(aggOutputCombine, proof.Input.Bytes()...)
+		combinedHashes = append(combinedHashes, proof.Input.Bytes()...)
 	}
 
-	aggHash := keccak.Keccak(aggOutputCombine)
-	sig, err := crypto.Sign(aggHash, prevPrivKey)
+	aggHash := keccak.Keccak(combinedHashes)
+	sign, err := crypto.Sign(aggHash, prevPrivKey)
 	if err != nil {
 		return nil, err
 	}
 
-	proof := NewAggregateProof(p.args.InstanceID, oldInstance, newInstance, sig)
+	proof := NewAggregateProof(p.args.SGXInstanceID, oldInstance, newInstance, sign)
 	quote, err := p.provider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err
