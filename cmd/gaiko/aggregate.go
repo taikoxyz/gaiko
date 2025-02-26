@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
 	"github.com/urfave/cli/v2"
@@ -11,7 +9,7 @@ import (
 func aggregate(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
 	sgxProver := prover.NewSGXProver(args)
-	proof, err := sgxProver.Aggregate(context.Background())
+	proof, err := sgxProver.Aggregate(cli.Context)
 	if err != nil {
 		return err
 	}
