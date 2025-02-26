@@ -46,21 +46,13 @@ func (m *MptNode) Hash() (common.Hash, error) {
 }
 
 func (m *MptNode) IsEmpty() bool {
-	switch m.data.(type) {
-	case *nullNode:
-		return true
-	default:
-		return false
-	}
+	_, ok := m.data.(*nullNode)
+	return ok
 }
 
 func (m *MptNode) IsDigest() bool {
-	switch m.data.(type) {
-	case *digestNode:
-		return true
-	default:
-		return false
-	}
+	_, ok := m.data.(*digestNode)
+	return ok
 }
 
 func (m *MptNode) Nibs() []byte {
