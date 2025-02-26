@@ -39,7 +39,7 @@ func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 }
 
 func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
-	return SavePrivKey(p.args.SecretDir, privKey)
+	return savePrivKey(p.args.SecretDir, privKey)
 }
 
 func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
@@ -109,7 +109,7 @@ func loadPrivKey(secretsDir string) (*ecdsa.PrivateKey, error) {
 	return nil, errors.New("file does not exist")
 }
 
-func SavePrivKey(secretDir string, privKey *ecdsa.PrivateKey) error {
+func savePrivKey(secretDir string, privKey *ecdsa.PrivateKey) error {
 	privKeyPath := path.Join(secretDir, privKeyFilename)
 	return crypto.SaveECDSA(privKeyPath, privKey)
 }
