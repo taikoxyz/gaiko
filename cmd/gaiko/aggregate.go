@@ -10,7 +10,7 @@ import (
 
 func aggregate(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
+	sgxProver := prover.NewSGXProver(args)
 	proof, err := sgxProver.Aggregate(context.Background())
 	if err != nil {
 		return err

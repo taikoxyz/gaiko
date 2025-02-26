@@ -31,7 +31,7 @@ func NewGramineProvider(args *flags.Arguments) *GramineProvider {
 }
 
 func (p *GramineProvider) LoadQuote(key common.Address) ([]byte, error) {
-	return getSgxQuote(key)
+	return getQuote(key)
 }
 
 func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -61,7 +61,7 @@ func saveAttestationUserReportData(pubkey common.Address) error {
 	return nil
 }
 
-func getSgxQuote(pubkey common.Address) ([]byte, error) {
+func getQuote(pubkey common.Address) ([]byte, error) {
 	err := saveAttestationUserReportData(pubkey)
 	if err != nil {
 		return nil, err

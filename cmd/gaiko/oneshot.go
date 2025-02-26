@@ -10,7 +10,7 @@ import (
 
 func oneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
+	sgxProver := prover.NewSGXProver(args)
 	proof, err := sgxProver.Oneshot(context.Background())
 
 	if err != nil {
@@ -21,7 +21,7 @@ func oneshot(cli *cli.Context) error {
 
 func batchOneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
+	sgxProver := prover.NewSGXProver(args)
 	proof, err := sgxProver.BatchOneshot(context.Background())
 
 	if err != nil {

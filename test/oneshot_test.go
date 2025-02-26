@@ -23,7 +23,7 @@ func TestOneshot(t *testing.T) {
 				SgxType:    "debug",
 				InstanceID: 0,
 			}
-			sgxProver := prover.NewSgxProver(args)
+			sgxProver := prover.NewSGXProver(args)
 			proof, err := sgxProver.Oneshot(context.Background())
 			require.NoError(t, err)
 			t.Logf("proof: %s", proof)

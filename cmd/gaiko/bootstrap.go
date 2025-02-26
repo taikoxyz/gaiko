@@ -10,6 +10,6 @@ import (
 
 func bootstrap(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
+	sgxProver := prover.NewSGXProver(args)
 	return sgxProver.Bootstrap(context.Background())
 }

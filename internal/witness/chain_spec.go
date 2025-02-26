@@ -25,14 +25,9 @@ type ProofType string
 const (
 	NativeProofType ProofType = "NATIVE"
 	Sp1ProofType    ProofType = "SP1"
-	SgxProofType    ProofType = "SGX"
+	SGXProofType    ProofType = "SGX"
 	Risc0ProofType  ProofType = "RISC0"
 )
-
-type VerifierAddressFork struct {
-	SpecId    SpecID
-	Verifiers map[ProofType]*common.Address
-}
 
 type HardFork struct {
 	SpecID    SpecID

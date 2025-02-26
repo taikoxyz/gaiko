@@ -25,9 +25,9 @@ func NewEgoProvider(args *flags.Arguments) *EgoProvider {
 }
 
 func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
-	var extendedPubkey [64]byte
-	copy(extendedPubkey[:], key.Bytes())
-	return getReport(extendedPubkey[:])
+	var extendedPubKey [64]byte
+	copy(extendedPubKey[:], key.Bytes())
+	return getReport(extendedPubKey[:])
 }
 
 func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {

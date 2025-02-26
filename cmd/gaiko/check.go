@@ -10,6 +10,6 @@ import (
 
 func check(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
+	sgxProver := prover.NewSGXProver(args)
 	return sgxProver.Check(context.Background())
 }
