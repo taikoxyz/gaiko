@@ -4,6 +4,7 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -14,25 +15,30 @@ var _ = (*batchInfoMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BatchInfo) MarshalJSON() ([]byte, error) {
 	type BatchInfo struct {
-		TxsHash            common.Hash
-		Blocks             []*BlockParams
-		BlobHashes         []common.Hash
-		ExtraData          common.Hash
-		Coinbase           common.Address
-		ProposedIn         math.HexOrDecimal64
-		BlobByteOffset     uint32
-		BlobByteSize       uint32
-		GasLimit           uint32
-		LastBlockId        math.HexOrDecimal64
-		LastBlockTimestamp math.HexOrDecimal64
-		AnchorBlockId      math.HexOrDecimal64
-		AnchorBlockHash    common.Hash
-		BaseFeeConfig      *LibSharedDataBaseFeeConfig
+		TxsHash            common.Hash                 `json:"txsHash"            gencodec:"required"`
+		Blocks             []*BlockParams              `json:"blocks"             gencodec:"required"`
+		BlobHashes         []common.Hash               `json:"blobHashes"         gencodec:"required"`
+		ExtraData          common.Hash                 `json:"extraData"          gencodec:"required"`
+		Coinbase           common.Address              `json:"coinbase"           gencodec:"required"`
+		ProposedIn         math.HexOrDecimal64         `json:"proposedIn"         gencodec:"required"`
+		BlobByteOffset     uint32                      `json:"blobByteOffset"     gencodec:"required"`
+		BlobByteSize       uint32                      `json:"blobByteSize"       gencodec:"required"`
+		GasLimit           uint32                      `json:"gasLimit"           gencodec:"required"`
+		LastBlockId        math.HexOrDecimal64         `json:"lastBlockId"        gencodec:"required"`
+		LastBlockTimestamp math.HexOrDecimal64         `json:"lastBlockTimestamp" gencodec:"required"`
+		AnchorBlockId      math.HexOrDecimal64         `json:"anchorBlockId"      gencodec:"required"`
+		AnchorBlockHash    common.Hash                 `json:"anchorBlockHash"    gencodec:"required"`
+		BaseFeeConfig      *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"      gencodec:"required"`
 	}
 	var enc BatchInfo
 	enc.TxsHash = b.TxsHash
 	enc.Blocks = b.Blocks
-	enc.BlobHashes = b.BlobHashes
+	if b.BlobHashes != nil {
+		enc.BlobHashes = make([]common.Hash, len(b.BlobHashes))
+		for k, v := range b.BlobHashes {
+			enc.BlobHashes[k] = v
+		}
+	}
 	enc.ExtraData = b.ExtraData
 	enc.Coinbase = b.Coinbase
 	enc.ProposedIn = math.HexOrDecimal64(b.ProposedIn)
@@ -50,66 +56,83 @@ func (b BatchInfo) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BatchInfo) UnmarshalJSON(input []byte) error {
 	type BatchInfo struct {
-		TxsHash            *common.Hash
-		Blocks             []*BlockParams
-		BlobHashes         []common.Hash
-		ExtraData          *common.Hash
-		Coinbase           *common.Address
-		ProposedIn         *math.HexOrDecimal64
-		BlobByteOffset     *uint32
-		BlobByteSize       *uint32
-		GasLimit           *uint32
-		LastBlockId        *math.HexOrDecimal64
-		LastBlockTimestamp *math.HexOrDecimal64
-		AnchorBlockId      *math.HexOrDecimal64
-		AnchorBlockHash    *common.Hash
-		BaseFeeConfig      *LibSharedDataBaseFeeConfig
+		TxsHash            *common.Hash                `json:"txsHash"            gencodec:"required"`
+		Blocks             []*BlockParams              `json:"blocks"             gencodec:"required"`
+		BlobHashes         []common.Hash               `json:"blobHashes"         gencodec:"required"`
+		ExtraData          *common.Hash                `json:"extraData"          gencodec:"required"`
+		Coinbase           *common.Address             `json:"coinbase"           gencodec:"required"`
+		ProposedIn         *math.HexOrDecimal64        `json:"proposedIn"         gencodec:"required"`
+		BlobByteOffset     *uint32                     `json:"blobByteOffset"     gencodec:"required"`
+		BlobByteSize       *uint32                     `json:"blobByteSize"       gencodec:"required"`
+		GasLimit           *uint32                     `json:"gasLimit"           gencodec:"required"`
+		LastBlockId        *math.HexOrDecimal64        `json:"lastBlockId"        gencodec:"required"`
+		LastBlockTimestamp *math.HexOrDecimal64        `json:"lastBlockTimestamp" gencodec:"required"`
+		AnchorBlockId      *math.HexOrDecimal64        `json:"anchorBlockId"      gencodec:"required"`
+		AnchorBlockHash    *common.Hash                `json:"anchorBlockHash"    gencodec:"required"`
+		BaseFeeConfig      *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"      gencodec:"required"`
 	}
 	var dec BatchInfo
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.TxsHash != nil {
-		b.TxsHash = *dec.TxsHash
+	if dec.TxsHash == nil {
+		return errors.New("missing required field 'txsHash' for BatchInfo")
 	}
-	if dec.Blocks != nil {
-		b.Blocks = dec.Blocks
+	b.TxsHash = *dec.TxsHash
+	if dec.Blocks == nil {
+		return errors.New("missing required field 'blocks' for BatchInfo")
 	}
-	if dec.BlobHashes != nil {
-		b.BlobHashes = dec.BlobHashes
+	b.Blocks = dec.Blocks
+	if dec.BlobHashes == nil {
+		return errors.New("missing required field 'blobHashes' for BatchInfo")
 	}
-	if dec.ExtraData != nil {
-		b.ExtraData = *dec.ExtraData
+	b.BlobHashes = make([][32]byte, len(dec.BlobHashes))
+	for k, v := range dec.BlobHashes {
+		b.BlobHashes[k] = v
 	}
-	if dec.Coinbase != nil {
-		b.Coinbase = *dec.Coinbase
+	if dec.ExtraData == nil {
+		return errors.New("missing required field 'extraData' for BatchInfo")
 	}
-	if dec.ProposedIn != nil {
-		b.ProposedIn = uint64(*dec.ProposedIn)
+	b.ExtraData = *dec.ExtraData
+	if dec.Coinbase == nil {
+		return errors.New("missing required field 'coinbase' for BatchInfo")
 	}
-	if dec.BlobByteOffset != nil {
-		b.BlobByteOffset = *dec.BlobByteOffset
+	b.Coinbase = *dec.Coinbase
+	if dec.ProposedIn == nil {
+		return errors.New("missing required field 'proposedIn' for BatchInfo")
 	}
-	if dec.BlobByteSize != nil {
-		b.BlobByteSize = *dec.BlobByteSize
+	b.ProposedIn = uint64(*dec.ProposedIn)
+	if dec.BlobByteOffset == nil {
+		return errors.New("missing required field 'blobByteOffset' for BatchInfo")
 	}
-	if dec.GasLimit != nil {
-		b.GasLimit = *dec.GasLimit
+	b.BlobByteOffset = *dec.BlobByteOffset
+	if dec.BlobByteSize == nil {
+		return errors.New("missing required field 'blobByteSize' for BatchInfo")
 	}
-	if dec.LastBlockId != nil {
-		b.LastBlockId = uint64(*dec.LastBlockId)
+	b.BlobByteSize = *dec.BlobByteSize
+	if dec.GasLimit == nil {
+		return errors.New("missing required field 'gasLimit' for BatchInfo")
 	}
-	if dec.LastBlockTimestamp != nil {
-		b.LastBlockTimestamp = uint64(*dec.LastBlockTimestamp)
+	b.GasLimit = *dec.GasLimit
+	if dec.LastBlockId == nil {
+		return errors.New("missing required field 'lastBlockId' for BatchInfo")
 	}
-	if dec.AnchorBlockId != nil {
-		b.AnchorBlockId = uint64(*dec.AnchorBlockId)
+	b.LastBlockId = uint64(*dec.LastBlockId)
+	if dec.LastBlockTimestamp == nil {
+		return errors.New("missing required field 'lastBlockTimestamp' for BatchInfo")
 	}
-	if dec.AnchorBlockHash != nil {
-		b.AnchorBlockHash = *dec.AnchorBlockHash
+	b.LastBlockTimestamp = uint64(*dec.LastBlockTimestamp)
+	if dec.AnchorBlockId == nil {
+		return errors.New("missing required field 'anchorBlockId' for BatchInfo")
 	}
-	if dec.BaseFeeConfig != nil {
-		b.BaseFeeConfig = dec.BaseFeeConfig
+	b.AnchorBlockId = uint64(*dec.AnchorBlockId)
+	if dec.AnchorBlockHash == nil {
+		return errors.New("missing required field 'anchorBlockHash' for BatchInfo")
 	}
+	b.AnchorBlockHash = *dec.AnchorBlockHash
+	if dec.BaseFeeConfig == nil {
+		return errors.New("missing required field 'baseFeeConfig' for BatchInfo")
+	}
+	b.BaseFeeConfig = dec.BaseFeeConfig
 	return nil
 }

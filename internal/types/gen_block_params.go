@@ -9,6 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+var _ = (*blockParamsMarshaling)(nil)
+
 // MarshalJSON marshals as JSON.
 func (b BlockParams) MarshalJSON() ([]byte, error) {
 	type BlockParams struct {
@@ -19,7 +21,12 @@ func (b BlockParams) MarshalJSON() ([]byte, error) {
 	var enc BlockParams
 	enc.NumTransactions = b.NumTransactions
 	enc.TimeShift = b.TimeShift
-	enc.SignalSlots = b.SignalSlots
+	if b.SignalSlots != nil {
+		enc.SignalSlots = make([]common.Hash, len(b.SignalSlots))
+		for k, v := range b.SignalSlots {
+			enc.SignalSlots[k] = v
+		}
+	}
 	return json.Marshal(&enc)
 }
 
@@ -45,6 +52,9 @@ func (b *BlockParams) UnmarshalJSON(input []byte) error {
 	if dec.SignalSlots == nil {
 		return errors.New("missing required field 'signalSlots' for BlockParams")
 	}
-	b.SignalSlots = dec.SignalSlots
+	b.SignalSlots = make([][32]byte, len(dec.SignalSlots))
+	for k, v := range dec.SignalSlots {
+		b.SignalSlots[k] = v
+	}
 	return nil
 }
