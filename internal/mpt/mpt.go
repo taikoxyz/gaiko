@@ -339,6 +339,36 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 	return nil, nil
 }
 
+func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
+	ref, err := m.ref()
+	if err != nil {
+		return err
+	}
+	return ref.encodeRLP(w)
+}
+
+func (m *MptNode) ref() (mptNodeRef, error) {
+	if m.cachedRef == nil {
+		switch data := m.data.(type) {
+		case *nullNode:
+			m.cachedRef = bytesMptNodeRef(rlp.EmptyString)
+		case *digestNode:
+			m.cachedRef = digestMptNodeRef(*data)
+		default:
+			encoded, err := rlp.EncodeToBytes(m)
+			if err != nil {
+				return nil, err
+			}
+			if len(encoded) < 32 {
+				m.cachedRef = bytesMptNodeRef(encoded)
+			} else {
+				m.cachedRef = digestMptNodeRef(common.BytesToHash(keccak.Keccak(encoded)))
+			}
+		}
+	}
+	return m.cachedRef, nil
+}
+
 func stripPrefix(nibs []byte, prefix []byte) []byte {
 	if bytes.HasPrefix(nibs, prefix) {
 		return nibs[len(prefix):]
@@ -393,36 +423,6 @@ func prefixNibs(prefix []byte) []byte {
 		res = append(res, nib>>4, nib&0xf)
 	}
 	return res
-}
-
-func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
-	ref, err := m.ref()
-	if err != nil {
-		return err
-	}
-	return ref.encodeRLP(w)
-}
-
-func (m *MptNode) ref() (mptNodeRef, error) {
-	if m.cachedRef == nil {
-		switch data := m.data.(type) {
-		case *nullNode:
-			m.cachedRef = bytesMptNodeRef(rlp.EmptyString)
-		case *digestNode:
-			m.cachedRef = digestMptNodeRef(*data)
-		default:
-			encoded, err := rlp.EncodeToBytes(m)
-			if err != nil {
-				return nil, err
-			}
-			if len(encoded) < 32 {
-				m.cachedRef = bytesMptNodeRef(encoded)
-			} else {
-				m.cachedRef = digestMptNodeRef(common.BytesToHash(keccak.Keccak(encoded)))
-			}
-		}
-	}
-	return m.cachedRef, nil
 }
 
 type mptNodeRef interface {
