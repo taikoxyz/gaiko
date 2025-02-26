@@ -14,7 +14,7 @@ import (
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
-var addressPadding [32 - common.AddressLength]byte
+var addr32Padding [32 - common.AddressLength]byte
 
 type SGXProver struct {
 	provider sgx.Provider
@@ -74,9 +74,9 @@ func (p *SGXProver) Aggregate(
 	}
 
 	aggOutputCombine := make([]byte, 0, (len(input.Proofs)+2)*32)
-	aggOutputCombine = append(aggOutputCombine, addressPadding[:]...)
+	aggOutputCombine = append(aggOutputCombine, addr32Padding[:]...)
 	aggOutputCombine = append(aggOutputCombine, oldInstance.Bytes()...)
-	aggOutputCombine = append(aggOutputCombine, addressPadding[:]...)
+	aggOutputCombine = append(aggOutputCombine, addr32Padding[:]...)
 	aggOutputCombine = append(aggOutputCombine, newInstance.Bytes()...)
 	for _, proof := range input.Proofs {
 		aggOutputCombine = append(aggOutputCombine, proof.Input.Bytes()...)
