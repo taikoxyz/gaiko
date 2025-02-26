@@ -47,9 +47,9 @@ func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
 	return b.SaveToFile(filename)
 }
 
-func saveAttestationUserReportData(pubkey common.Address) error {
+func saveAttestationUserReportData(pubKey common.Address) error {
 	extendedPubkey := make([]byte, 64)
-	copy(extendedPubkey, pubkey.Bytes())
+	copy(extendedPubkey, pubKey.Bytes())
 	userReportDataFile, err := os.OpenFile(attestationUserReportDataDeviceFile, os.O_WRONLY, 0666)
 	if err != nil {
 		return err
