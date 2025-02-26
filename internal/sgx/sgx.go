@@ -26,7 +26,7 @@ type Provider interface {
 }
 
 func NewProvider(args *flags.Arguments) Provider {
-	switch args.SgxType {
+	switch args.SGXType {
 	case flags.DebugSGXType:
 		return NewDebugProvider(args)
 	case flags.GramineSGXType:

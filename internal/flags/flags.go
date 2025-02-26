@@ -57,7 +57,7 @@ var GlobalFlags = []cli.Flag{
 type Arguments struct {
 	SecretDir  string
 	ConfigDir  string
-	SgxType    string
+	SGXType    string
 	InstanceID uint32
 }
 
@@ -65,7 +65,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 	return &Arguments{
 		SecretDir:  cli.String(GlobalSecretDir.Name),
 		ConfigDir:  cli.String(GlobalConfigDir.Name),
-		SgxType:    cli.String(GlobalSgxType.Name),
+		SGXType:    cli.String(GlobalSgxType.Name),
 		InstanceID: uint32(cli.Uint64(OneShotSgxInstanceID.Name)),
 	}
 }
