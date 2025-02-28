@@ -36,6 +36,7 @@ func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
+	// decrypt private key with a key derived from a measurement of the enclave.
 	plainText, err := ecrypto.Unseal(sealedText, nil)
 	if err != nil {
 		return nil, err
@@ -45,6 +46,7 @@ func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 
 func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 	plainText := crypto.FromECDSA(privKey)
+	// encrypt private key with a key derived from a measurement of the enclave.
 	sealedText, err := ecrypto.SealWithUniqueKey(plainText, nil)
 	if err != nil {
 		return err
