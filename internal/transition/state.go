@@ -3,6 +3,7 @@ package transition
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -101,7 +102,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	historyHashes := make(map[uint64]common.Hash, len(g.AncestorHeaders)+1)
 	historyHashes[g.ParentHeader.Number.Uint64()] = g.ParentHeader.Hash()
 	prev := g.ParentHeader
-	for _, header := range g.AncestorHeaders {
+	for header := range slices.Values(g.AncestorHeaders) {
 		if prev.ParentHash != header.Hash() {
 			return nil, fmt.Errorf(
 				"parent hash mismatch: expected %s, got %s",
