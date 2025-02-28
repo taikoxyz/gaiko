@@ -38,16 +38,15 @@ func (m *MptNode) Clear() {
 // For null nodes, it returns the EmptyRootHash.
 // For other nodes, it computes the hash from the node reference.
 func (m *MptNode) Hash() (common.Hash, error) {
-	switch m.data.(type) {
-	case *nullNode:
+	_, ok := m.data.(*nullNode)
+	if ok {
 		return types.EmptyRootHash, nil
-	default:
-		ref, err := m.ref()
-		if err != nil {
-			return common.Hash{}, err
-		}
-		return ref.hash(), nil
 	}
+	ref, err := m.ref()
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return ref.hash(), nil
 }
 
 // IsEmpty returns true if the node is a null node.
