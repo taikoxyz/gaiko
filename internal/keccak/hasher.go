@@ -3,6 +3,7 @@ package keccak
 import (
 	"sync"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -21,12 +22,8 @@ func newKeccakHasher() *keccakHasher {
 // hash computes the keccak256 hash of the input data
 // Note: This could return errors from Write/Read operations but follows
 // the go-ethereum pattern where these operations are assumed to succeed
-func (h *keccakHasher) hash(data []byte) []byte {
-	b := make([]byte, 32)
-	h.Reset()
-	h.Write(data)
-	h.Read(b)
-	return b
+func (h *keccakHasher) hash(data []byte) common.Hash {
+	return crypto.HashData(h.KeccakState, data)
 }
 
 // release returns the hasher to the pool for reuse
@@ -36,7 +33,7 @@ func (h *keccakHasher) release() {
 
 // Keccak computes the keccak256 hash of the input data
 // using a pooled hasher for better performance.
-func Keccak(data []byte) []byte {
+func Keccak(data []byte) common.Hash {
 	h := newKeccakHasher()
 	defer h.release()
 	return h.hash(data)

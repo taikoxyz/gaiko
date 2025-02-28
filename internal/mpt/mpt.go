@@ -378,7 +378,7 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 			if len(encoded) < 32 {
 				m.cachedRef = bytesMptNodeRef(encoded)
 			} else {
-				m.cachedRef = digestMptNodeRef(common.BytesToHash(keccak.Keccak(encoded)))
+				m.cachedRef = digestMptNodeRef(keccak.Keccak(encoded))
 			}
 		}
 	}
@@ -454,7 +454,7 @@ func (b bytesMptNodeRef) encodeRLP(w rlp.EncoderBuffer) error {
 }
 
 func (b bytesMptNodeRef) hash() common.Hash {
-	return common.BytesToHash(keccak.Keccak(b))
+	return keccak.Keccak(b)
 }
 
 type digestMptNodeRef common.Hash

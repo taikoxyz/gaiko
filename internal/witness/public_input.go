@@ -30,7 +30,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return common.BytesToHash(keccak.Keccak(b)), nil
+	return keccak.Keccak(b), nil
 }
 
 func NewPublicInput(

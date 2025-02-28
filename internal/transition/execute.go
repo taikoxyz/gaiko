@@ -54,7 +54,7 @@ func ExecuteGuestDriver(
 			if !ok {
 				// Account is deleted
 				key := keccak.Keccak(addr.Bytes())
-				if _, err := g.ParentStateTrie.Delete(key); err != nil {
+				if _, err := g.ParentStateTrie.Delete(key.Bytes()); err != nil {
 					return err
 				}
 			}
@@ -73,7 +73,7 @@ func ExecuteGuestDriver(
 			for slot, value := range acc.Storage {
 				key := keccak.Keccak(slot.Bytes())
 				if value == (common.Hash{}) {
-					if _, err := storageEntry.Trie.Delete(key); err != nil {
+					if _, err := storageEntry.Trie.Delete(key.Bytes()); err != nil {
 						return err
 					}
 				} else {
@@ -90,7 +90,7 @@ func ExecuteGuestDriver(
 				Nonce:    acc.Nonce,
 				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
 				Root:     root,
-				CodeHash: keccak.Keccak(acc.Code),
+				CodeHash: keccak.Keccak(acc.Code).Bytes(),
 			}
 
 			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {

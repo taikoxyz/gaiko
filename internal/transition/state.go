@@ -55,7 +55,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
 		codeHash := keccak.Keccak(contract)
-		contracts[common.BytesToHash(codeHash)] = contract
+		contracts[codeHash] = contract
 	}
 	accounts := make(map[common.Address]*types.StateAccount, len(g.ParentStorage))
 	for addr, storage := range g.ParentStorage {

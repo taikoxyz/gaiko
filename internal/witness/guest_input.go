@@ -124,7 +124,7 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 			return nil, err
 		}
 	} else {
-		txListHash = common.BytesToHash(keccak.Keccak(g.Taiko.TxData))
+		txListHash = keccak.Keccak(g.Taiko.TxData)
 	}
 
 	var extraData [32]byte

@@ -83,7 +83,7 @@ func (p *SGXProver) Aggregate(
 	}
 
 	aggHash := keccak.Keccak(combinedHashes)
-	sign, err := crypto.Sign(aggHash, prevPrivKey)
+	sign, err := crypto.Sign(aggHash.Bytes(), prevPrivKey)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (p *SGXProver) Aggregate(
 		Quote:           quote,
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
-		Input:           common.BytesToHash(aggHash),
+		Input:           aggHash,
 	}, nil
 }
 

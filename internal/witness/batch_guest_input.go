@@ -103,14 +103,14 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return common.BytesToHash(keccak.Keccak(data)), nil
+	return keccak.Keccak(data), nil
 }
 
 func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
 	if err := g.verifyBatchModeBlobUsage(proofType); err != nil {
 		return nil, err
 	}
-	txListHash := common.BytesToHash(keccak.Keccak(g.Taiko.TxDataFromCalldata))
+	txListHash := keccak.Keccak(g.Taiko.TxDataFromCalldata)
 	txsHash, err := g.calculatePacayaTxsHash(txListHash, g.Taiko.BatchProposed.BlobHashes())
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 	infoHash := keccak.Keccak(data)
 
 	return NewPacayaBlockMetadata(&pacaya.ITaikoInboxBatchMetadata{
-		InfoHash:   common.BytesToHash(infoHash),
+		InfoHash:   infoHash,
 		Proposer:   g.Taiko.BatchProposed.Proposer(),
 		BatchId:    g.Taiko.BatchId,
 		ProposedAt: g.Taiko.BatchProposed.ProposedAt(),

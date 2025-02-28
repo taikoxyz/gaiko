@@ -22,7 +22,7 @@ func (m *HeklaBlockMetadata) ABIEncode() ([]byte, error) {
 
 func (m *HeklaBlockMetadata) Hash() common.Hash {
 	b, _ := m.ABIEncode()
-	return common.BytesToHash(keccak.Keccak(b))
+	return keccak.Keccak(b)
 }
 
 type OntakeBlockMetadata struct {
@@ -35,7 +35,7 @@ func (m *OntakeBlockMetadata) ABIEncode() ([]byte, error) {
 
 func (m *OntakeBlockMetadata) Hash() common.Hash {
 	b, _ := m.ABIEncode()
-	return common.BytesToHash(keccak.Keccak(b))
+	return keccak.Keccak(b)
 }
 
 type PacayaBlockMetadata struct {
@@ -52,5 +52,5 @@ func (m *PacayaBlockMetadata) ABIEncode() ([]byte, error) {
 
 func (m *PacayaBlockMetadata) Hash() common.Hash {
 	b, _ := m.ABIEncode()
-	return common.BytesToHash(keccak.Keccak(b))
+	return keccak.Keccak(b)
 }
