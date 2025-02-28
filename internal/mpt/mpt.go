@@ -23,15 +23,20 @@ func newMptNode(data mptNodeData) *MptNode {
 	}
 }
 
+// New creates a new empty MPT node.
 func New() *MptNode {
 	return newMptNode(&nullNode{})
 }
 
+// Clear resets the node to an empty state.
 func (m *MptNode) Clear() {
 	m.data = &nullNode{}
 	m.cachedRef = nil
 }
 
+// Hash returns the Keccak-256 hash of the node.
+// For null nodes, it returns the EmptyRootHash.
+// For other nodes, it computes the hash from the node reference.
 func (m *MptNode) Hash() (common.Hash, error) {
 	switch m.data.(type) {
 	case *nullNode:
@@ -45,16 +50,20 @@ func (m *MptNode) Hash() (common.Hash, error) {
 	}
 }
 
+// IsEmpty returns true if the node is a null node.
 func (m *MptNode) IsEmpty() bool {
 	_, ok := m.data.(*nullNode)
 	return ok
 }
 
+// IsDigest returns true if the node is a digest node.
 func (m *MptNode) IsDigest() bool {
 	_, ok := m.data.(*digestNode)
 	return ok
 }
 
+// Nibs returns the nibble-encoded path prefix of the node.
+// Returns nil for null, branch, and digest nodes.
 func (m *MptNode) Nibs() []byte {
 	switch data := m.data.(type) {
 	case *nullNode, *branchNode, *digestNode:
@@ -68,18 +77,26 @@ func (m *MptNode) Nibs() []byte {
 	}
 }
 
+// Get retrieves a value from the trie by its key.
+// Returns nil if the key does not exist in the trie.
 func (m *MptNode) Get(key []byte) ([]byte, error) {
 	return m.get(toNibs(key))
 }
 
+// Delete removes a key-value pair from the trie.
+// Returns true if the key was successfully deleted, false if the key wasn't found.
 func (m *MptNode) Delete(key []byte) (bool, error) {
 	return m.delete(toNibs(key))
 }
 
+// Insert adds or updates a key-value pair in the trie.
+// Returns true if the key was added or modified, false otherwise.
 func (m *MptNode) Insert(key []byte, value []byte) (bool, error) {
 	return m.insert(toNibs(key), value)
 }
 
+// InsertRLP encodes the provided value using RLP encoding and inserts it into the trie.
+// Returns true if the key was added or modified, false otherwise.
 func (m *MptNode) InsertRLP(key []byte, value any) (bool, error) {
 	data, err := rlp.EncodeToBytes(value)
 	if err != nil {
