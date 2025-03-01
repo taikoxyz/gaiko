@@ -128,12 +128,12 @@ func apply(
 			new(big.Int).SetUint64(block.NumberU64()),
 			block.Time(),
 		)
-		gaspool = new(core.GasPool)
+		gasPool = new(core.GasPool)
 		gasUsed = uint64(0)
 		txIndex = 0
 	)
 
-	gaspool.AddGas(block.GasLimit())
+	gasPool.AddGas(block.GasLimit())
 
 	rnd := block.MixDigest()
 	vmContext := vm.BlockContext{
@@ -176,12 +176,12 @@ func apply(
 		var (
 			txContext = core.NewEVMTxContext(msg)
 			snapshot  = statedb.Snapshot()
-			prevGas   = gaspool.Gas()
+			prevGas   = gasPool.Gas()
 		)
 		evm := vm.NewEVM(vmContext, txContext, statedb, chainConfig, vmConfig)
 
 		// (ret []byte, usedGas uint64, failed bool, err error)
-		msgResult, err := core.ApplyMessage(evm, msg, gaspool)
+		msgResult, err := core.ApplyMessage(evm, msg, gasPool)
 		if err != nil {
 			if isAnchor {
 				return nil, err
@@ -194,7 +194,7 @@ func apply(
 				"error", err,
 			)
 			statedb.RevertToSnapshot(snapshot)
-			gaspool.SetGas(prevGas)
+			gasPool.SetGas(prevGas)
 			continue
 		}
 
