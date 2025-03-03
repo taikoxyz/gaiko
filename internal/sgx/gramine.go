@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -43,7 +43,7 @@ func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 }
 
 func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := path.Join(p.args.ConfigDir, bootstrapInfoFilename)
+	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 
@@ -93,7 +93,7 @@ func isFile(fileInfo os.FileInfo) bool {
 }
 
 func loadPrivKey(secretsDir string) (*ecdsa.PrivateKey, error) {
-	privKeyPath := path.Join(secretsDir, privKeyFilename)
+	privKeyPath := filepath.Join(secretsDir, privKeyFilename)
 	fileInfo, err := os.Stat(privKeyPath)
 	if err != nil {
 		return nil, err
@@ -110,6 +110,6 @@ func loadPrivKey(secretsDir string) (*ecdsa.PrivateKey, error) {
 }
 
 func savePrivKey(secretDir string, privKey *ecdsa.PrivateKey) error {
-	privKeyPath := path.Join(secretDir, privKeyFilename)
+	privKeyPath := filepath.Join(secretDir, privKeyFilename)
 	return crypto.SaveECDSA(privKeyPath, privKey)
 }

@@ -2,7 +2,7 @@ package flags
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/urfave/cli/v2"
@@ -38,8 +38,8 @@ func init() {
 	if err != nil {
 		log.Crit("Get home dir failed", err)
 	}
-	GlobalSecretDir.DefaultText = path.Join(home, defaultGaikoUserConfigSubDir, "secrets")
-	GlobalConfigDir.DefaultText = path.Join(home, defaultGaikoUserConfigSubDir, "config")
+	GlobalSecretDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
+	GlobalConfigDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
 }
 
 const (

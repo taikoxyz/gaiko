@@ -3,7 +3,7 @@ package sgx
 import (
 	"crypto/ecdsa"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/edgelesssys/ego/ecrypto"
 	"github.com/edgelesssys/ego/enclave"
@@ -31,7 +31,7 @@ func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
 }
 
 func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
-	filename := path.Join(p.args.SecretDir, privKeyFilename)
+	filename := filepath.Join(p.args.SecretDir, privKeyFilename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -51,12 +51,12 @@ func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	filename := path.Join(p.args.SecretDir, privKeyFilename)
+	filename := filepath.Join(p.args.SecretDir, privKeyFilename)
 	return os.WriteFile(filename, sealedText, 0600)
 }
 
 func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := path.Join(p.args.ConfigDir, bootstrapInfoFilename)
+	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 
