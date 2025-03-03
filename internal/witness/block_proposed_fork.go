@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/taikoxyz/gaiko/internal/types"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
@@ -362,7 +363,7 @@ func (b *OntakeBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
 }
 
-type NotingBlockProposed struct{}
+type NotingBlockProposed types.Empty
 
 var _ BlockProposedFork = (*NotingBlockProposed)(nil)
 
