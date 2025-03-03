@@ -117,6 +117,17 @@ type ChainSpec struct {
 
 var _ json.Unmarshaler = (*ChainSpec)(nil)
 
+// DefaultChainSpecs unmarshals the JSON data from supportedChainSpecsJSON
+// into a SupportedChainSpecs struct and returns it. If there is an error
+// during unmarshaling, it returns the error.
+func DefaultChainSpecs() (SupportedChainSpecs, error) {
+	var chainSpecs SupportedChainSpecs
+	if err := json.Unmarshal(supportedChainSpecsJSON, &chainSpecs); err != nil {
+		return nil, err
+	}
+	return chainSpecs, nil
+}
+
 func (c *ChainSpec) getForkVerifierAddress(
 	blockNum uint64,
 	proofType ProofType,
