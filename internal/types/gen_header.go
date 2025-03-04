@@ -19,7 +19,7 @@ var _ = (*headerMarshaling)(nil)
 func (h Header) MarshalJSON() ([]byte, error) {
 	type Header struct {
 		ParentHash            common.Hash           `json:"parent_hash"              gencodec:"required"`
-		OmmerHash             common.Hash           `json:"ommers_hash"              gencodec:"required"`
+		OmmersHash            common.Hash           `json:"ommers_hash"              gencodec:"required"`
 		Coinbase              common.Address        `json:"beneficiary"              gencodec:"required"`
 		Root                  common.Hash           `json:"state_root"               gencodec:"required"`
 		TxHash                common.Hash           `json:"transactions_root"        gencodec:"required"`
@@ -42,7 +42,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	}
 	var enc Header
 	enc.ParentHash = h.ParentHash
-	enc.OmmerHash = h.OmmerHash
+	enc.OmmersHash = h.OmmersHash
 	enc.Coinbase = h.Coinbase
 	enc.Root = h.Root
 	enc.TxHash = h.TxHash
@@ -69,7 +69,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {
 		ParentHash            *common.Hash          `json:"parent_hash"              gencodec:"required"`
-		OmmerHash             *common.Hash          `json:"ommers_hash"              gencodec:"required"`
+		OmmersHash            *common.Hash          `json:"ommers_hash"              gencodec:"required"`
 		Coinbase              *common.Address       `json:"beneficiary"              gencodec:"required"`
 		Root                  *common.Hash          `json:"state_root"               gencodec:"required"`
 		TxHash                *common.Hash          `json:"transactions_root"        gencodec:"required"`
@@ -98,10 +98,10 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'parent_hash' for Header")
 	}
 	h.ParentHash = *dec.ParentHash
-	if dec.OmmerHash == nil {
+	if dec.OmmersHash == nil {
 		return errors.New("missing required field 'ommers_hash' for Header")
 	}
-	h.OmmerHash = *dec.OmmerHash
+	h.OmmersHash = *dec.OmmersHash
 	if dec.Coinbase == nil {
 		return errors.New("missing required field 'beneficiary' for Header")
 	}
