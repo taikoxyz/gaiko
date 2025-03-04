@@ -145,6 +145,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 		AnchorBlockId:      g.Taiko.L1Header.Number.Uint64(),
 		AnchorBlockHash:    g.Taiko.L1Header.Hash(),
 		BaseFeeConfig:      *g.Taiko.BatchProposed.BaseFeeConfig(),
+		BlobCreatedIn:      g.Taiko.BatchProposed.BlobCreatedIn(),
 	}
 
 	data, err := batchInfoComponentsArgs.Pack(batchInfo)

@@ -23,6 +23,7 @@ func (b BatchInfo) MarshalJSON() ([]byte, error) {
 		ProposedIn         math.HexOrDecimal64         `json:"proposedIn"         gencodec:"required"`
 		BlobByteOffset     uint32                      `json:"blobByteOffset"     gencodec:"required"`
 		BlobByteSize       uint32                      `json:"blobByteSize"       gencodec:"required"`
+		BlobCreatedIn      math.HexOrDecimal64         `json:"blobCreatedIn"      gencodec:"required"`
 		GasLimit           uint32                      `json:"gasLimit"           gencodec:"required"`
 		LastBlockId        math.HexOrDecimal64         `json:"lastBlockId"        gencodec:"required"`
 		LastBlockTimestamp math.HexOrDecimal64         `json:"lastBlockTimestamp" gencodec:"required"`
@@ -44,6 +45,7 @@ func (b BatchInfo) MarshalJSON() ([]byte, error) {
 	enc.ProposedIn = math.HexOrDecimal64(b.ProposedIn)
 	enc.BlobByteOffset = b.BlobByteOffset
 	enc.BlobByteSize = b.BlobByteSize
+	enc.BlobCreatedIn = math.HexOrDecimal64(b.BlobCreatedIn)
 	enc.GasLimit = b.GasLimit
 	enc.LastBlockId = math.HexOrDecimal64(b.LastBlockId)
 	enc.LastBlockTimestamp = math.HexOrDecimal64(b.LastBlockTimestamp)
@@ -64,6 +66,7 @@ func (b *BatchInfo) UnmarshalJSON(input []byte) error {
 		ProposedIn         *math.HexOrDecimal64        `json:"proposedIn"         gencodec:"required"`
 		BlobByteOffset     *uint32                     `json:"blobByteOffset"     gencodec:"required"`
 		BlobByteSize       *uint32                     `json:"blobByteSize"       gencodec:"required"`
+		BlobCreatedIn      *math.HexOrDecimal64        `json:"blobCreatedIn"      gencodec:"required"`
 		GasLimit           *uint32                     `json:"gasLimit"           gencodec:"required"`
 		LastBlockId        *math.HexOrDecimal64        `json:"lastBlockId"        gencodec:"required"`
 		LastBlockTimestamp *math.HexOrDecimal64        `json:"lastBlockTimestamp" gencodec:"required"`
@@ -110,6 +113,10 @@ func (b *BatchInfo) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'blobByteSize' for BatchInfo")
 	}
 	b.BlobByteSize = *dec.BlobByteSize
+	if dec.BlobCreatedIn == nil {
+		return errors.New("missing required field 'blobCreatedIn' for BatchInfo")
+	}
+	b.BlobCreatedIn = uint64(*dec.BlobCreatedIn)
 	if dec.GasLimit == nil {
 		return errors.New("missing required field 'gasLimit' for BatchInfo")
 	}

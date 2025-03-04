@@ -38,6 +38,7 @@ func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 			AnchorBlockId:      b.Info.AnchorBlockId,
 			AnchorBlockHash:    b.Info.AnchorBlockHash,
 			BaseFeeConfig:      pacaya.LibSharedDataBaseFeeConfig(*b.Info.BaseFeeConfig),
+			BlobCreatedIn:      b.Info.BlobCreatedIn,
 		},
 		Meta:   pacaya.ITaikoInboxBatchMetadata(*b.Meta),
 		TxList: b.TxList,
@@ -104,6 +105,7 @@ type BatchInfo struct {
 	ProposedIn         uint64                      `json:"proposedIn"         gencodec:"required"`
 	BlobByteOffset     uint32                      `json:"blobByteOffset"     gencodec:"required"`
 	BlobByteSize       uint32                      `json:"blobByteSize"       gencodec:"required"`
+	BlobCreatedIn      uint64                      `json:"blobCreatedIn"      gencodec:"required"`
 	GasLimit           uint32                      `json:"gasLimit"           gencodec:"required"`
 	LastBlockId        uint64                      `json:"lastBlockId"        gencodec:"required"`
 	LastBlockTimestamp uint64                      `json:"lastBlockTimestamp" gencodec:"required"`
@@ -115,6 +117,7 @@ type BatchInfo struct {
 type batchInfoMarshaling struct {
 	BlobHashes         []common.Hash       `json:"blobHashes"         gencodec:"required"`
 	ProposedIn         math.HexOrDecimal64 `json:"proposedIn"         gencodec:"required"`
+	BlobCreatedIn      math.HexOrDecimal64 `json:"blobCreatedIn"      gencodec:"required"`
 	LastBlockId        math.HexOrDecimal64 `json:"lastBlockId"        gencodec:"required"`
 	LastBlockTimestamp math.HexOrDecimal64 `json:"lastBlockTimestamp" gencodec:"required"`
 	AnchorBlockId      math.HexOrDecimal64 `json:"anchorBlockId"      gencodec:"required"`
