@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taikoxyz/gaiko/internal/types"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
@@ -376,7 +375,7 @@ func (b *OntakeBlockProposed) BlobCreatedIn() uint64 {
 	return 0
 }
 
-type NotingBlockProposed types.Empty
+type NotingBlockProposed struct{}
 
 var _ BlockProposedFork = (*NotingBlockProposed)(nil)
 

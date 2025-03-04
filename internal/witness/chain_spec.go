@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/taikoxyz/gaiko/internal/types"
 	"gitlab.com/c0b/go-ordered-json"
 )
 
@@ -209,7 +208,7 @@ func (b BlockTimestamp) Active(_ uint64, timestamp uint64) bool {
 	return timestamp >= uint64(b)
 }
 
-type TBD types.Empty
+type TBD struct{}
 
 func (t TBD) Active(_ uint64, _ uint64) bool {
 	return false

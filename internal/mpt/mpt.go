@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taikoxyz/gaiko/internal/keccak"
-	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 )
 
 type MptNode struct {
@@ -470,7 +469,7 @@ func (d digestMptNodeRef) hash() common.Hash {
 }
 
 type (
-	nullNode   gaikoTypes.Empty
+	nullNode   struct{}
 	branchNode [16]*MptNode
 	leafNode   struct {
 		prefix []byte
