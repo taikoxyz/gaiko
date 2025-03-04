@@ -22,7 +22,7 @@ func (h Headers) GethType() []*types.Header {
 //go:generate go run github.com/fjl/gencodec -type Header -field-override headerMarshaling -out gen_header.go
 type Header struct {
 	ParentHash            common.Hash    `json:"parent_hash"              gencodec:"required"`
-	OmmersHash            common.Hash    `json:"ommers_hash"              gencodec:"required"`
+	OmmerHash             common.Hash    `json:"ommers_hash"              gencodec:"required"`
 	Coinbase              common.Address `json:"beneficiary"              gencodec:"required"`
 	Root                  common.Hash    `json:"state_root"               gencodec:"required"`
 	TxHash                common.Hash    `json:"transactions_root"        gencodec:"required"`
@@ -60,7 +60,7 @@ type headerMarshaling struct {
 func (h *Header) GethType() *types.Header {
 	return &types.Header{
 		ParentHash:       h.ParentHash,
-		UncleHash:        h.OmmersHash,
+		UncleHash:        h.OmmerHash,
 		Coinbase:         h.Coinbase,
 		Root:             h.Root,
 		TxHash:           h.TxHash,
