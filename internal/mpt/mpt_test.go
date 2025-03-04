@@ -196,16 +196,16 @@ func keyFunc(i int) []byte {
 func TestMpt(t *testing.T) {
 	const N = 512
 	trie := New()
-	for i := 0; i < N; i++ {
+	for i := range N {
 		key := keyFunc(i)
-		ok, err := trie.InsertRLP(keccak.Keccak(key), uint(i))
+		ok, err := trie.InsertRLP(keccak.Keccak(key).Bytes(), uint(i))
 		require.NoError(t, err)
 		require.True(t, ok)
 
 		ref := New()
 		for j := i; j >= 0; j-- {
 			key := keyFunc(j)
-			ok, err := ref.InsertRLP(keccak.Keccak(key), uint(j))
+			ok, err := ref.InsertRLP(keccak.Keccak(key).Bytes(), uint(j))
 			require.NoError(t, err)
 			require.True(t, ok)
 		}
@@ -219,9 +219,9 @@ func TestMpt(t *testing.T) {
 	expected, err := trie.Hash()
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
-	for i := 0; i < N; i++ {
+	for i := range N {
 		key := keyFunc(i)
-		data, err := trie.Get(keccak.Keccak(key))
+		data, err := trie.Get(keccak.Keccak(key).Bytes())
 		require.NoError(t, err)
 		var val uint64
 		err = rlp.DecodeBytes(data, &val)
@@ -239,7 +239,7 @@ func TestKeccak(t *testing.T) {
 		0x67, 0x54, 0xb, 0x53, 0xc7, 0xee, 0xa8, 0xb7,
 		0xd2, 0x94, 0x10, 0x44, 0xb0, 0x27, 0x10, 0xf,
 	}
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expected.Bytes(), actual)
 }
 
 func TestIndexTrie(t *testing.T) {
@@ -247,7 +247,7 @@ func TestIndexTrie(t *testing.T) {
 
 	trie := New()
 	// insert
-	for i := 0; i < N; i++ {
+	for i := range N {
 		key, err := rlp.EncodeToBytes(uint(i))
 		require.NoError(t, err)
 		ok, err := trie.InsertRLP(key, uint(i))
@@ -270,7 +270,7 @@ func TestIndexTrie(t *testing.T) {
 		require.Equal(t, expected, actual)
 	}
 	// get
-	for i := 0; i < N; i++ {
+	for i := range N {
 		key, err := rlp.EncodeToBytes(uint(i))
 		require.NoError(t, err)
 		data, err := trie.Get(key)
@@ -287,7 +287,7 @@ func TestIndexTrie(t *testing.T) {
 		require.Nil(t, notFound)
 	}
 	// delete
-	for i := 0; i < N; i++ {
+	for i := range N {
 		key, err := rlp.EncodeToBytes(uint(i))
 		require.NoError(t, err)
 		ok, err := trie.Delete(key)

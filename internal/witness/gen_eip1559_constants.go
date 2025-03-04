@@ -15,10 +15,10 @@ var _ = (*eip1559ConstantsMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (e Eip1559Constants) MarshalJSON() ([]byte, error) {
 	type Eip1559Constants struct {
-		BaseFeeChangeDenominator      *hexutil.Big `json:"base_fee_change_denominator" gencodec:"required"`
+		BaseFeeChangeDenominator      *hexutil.Big `json:"base_fee_change_denominator"       gencodec:"required"`
 		BaseFeeMaxIncreaseDenominator *hexutil.Big `json:"base_fee_max_increase_denominator" gencodec:"required"`
 		BaseFeeMaxDecreaseDenominator *hexutil.Big `json:"base_fee_max_decrease_denominator" gencodec:"required"`
-		ElasticityMultiplier          *hexutil.Big `json:"elasticity_multiplier" gencodec:"required"`
+		ElasticityMultiplier          *hexutil.Big `json:"elasticity_multiplier"             gencodec:"required"`
 	}
 	var enc Eip1559Constants
 	enc.BaseFeeChangeDenominator = (*hexutil.Big)(e.BaseFeeChangeDenominator)
@@ -31,10 +31,10 @@ func (e Eip1559Constants) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *Eip1559Constants) UnmarshalJSON(input []byte) error {
 	type Eip1559Constants struct {
-		BaseFeeChangeDenominator      *hexutil.Big `json:"base_fee_change_denominator" gencodec:"required"`
+		BaseFeeChangeDenominator      *hexutil.Big `json:"base_fee_change_denominator"       gencodec:"required"`
 		BaseFeeMaxIncreaseDenominator *hexutil.Big `json:"base_fee_max_increase_denominator" gencodec:"required"`
 		BaseFeeMaxDecreaseDenominator *hexutil.Big `json:"base_fee_max_decrease_denominator" gencodec:"required"`
-		ElasticityMultiplier          *hexutil.Big `json:"elasticity_multiplier" gencodec:"required"`
+		ElasticityMultiplier          *hexutil.Big `json:"elasticity_multiplier"             gencodec:"required"`
 	}
 	var dec Eip1559Constants
 	if err := json.Unmarshal(input, &dec); err != nil {

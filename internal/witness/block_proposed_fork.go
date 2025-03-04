@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/taikoxyz/gaiko/internal/types"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
@@ -40,6 +41,7 @@ type BlockProposedFork interface {
 	BlobHashes() [][32]byte
 	ExtraData() [32]byte
 	BlockParams() []*pacaya.ITaikoInboxBlockParams
+	BlobCreatedIn() uint64
 }
 
 var _ BlockProposedFork = (*PacayaBlockProposed)(nil)
@@ -61,7 +63,7 @@ func NewPacayaBlockProposed(b *pacaya.TaikoInboxClientBatchProposed) *PacayaBloc
 	}
 }
 
-func (b *PacayaBlockProposed) Encode() ([]byte, error) {
+func (b *PacayaBlockProposed) ABIEncode() ([]byte, error) {
 	return batchProposedEvent.Inputs.Pack(b.Info, b.Meta, b.TxList)
 }
 
@@ -152,6 +154,10 @@ func (b *PacayaBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return b.blockParams
 }
 
+func (b *PacayaBlockProposed) BlobCreatedIn() uint64 {
+	return b.Info.BlobCreatedIn
+}
+
 type HeklaBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposed
 }
@@ -162,7 +168,7 @@ func NewHeklaBlockProposed(b *ontake.TaikoL1ClientBlockProposed) *HeklaBlockProp
 	return &HeklaBlockProposed{b}
 }
 
-func (b *HeklaBlockProposed) Encode() ([]byte, error) {
+func (b *HeklaBlockProposed) ABIEncode() ([]byte, error) {
 	return blockMetadataComponentsArgs.Pack(
 		b.BlockId,
 		b.AssignedProver,
@@ -260,6 +266,10 @@ func (b *HeklaBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
 }
 
+func (b *HeklaBlockProposed) BlobCreatedIn() uint64 {
+	return 0
+}
+
 type OntakeBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposedV2
 }
@@ -270,7 +280,7 @@ func NewOntakeBlockProposed(b *ontake.TaikoL1ClientBlockProposedV2) *OntakeBlock
 	return &OntakeBlockProposed{b}
 }
 
-func (b *OntakeBlockProposed) Encode() ([]byte, error) {
+func (b *OntakeBlockProposed) ABIEncode() ([]byte, error) {
 	return blockMetadataV2ComponentsArgs.Pack(b.BlockId, b.Meta)
 }
 
@@ -362,11 +372,15 @@ func (b *OntakeBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
 }
 
-type NotingBlockProposed struct{}
+func (b *OntakeBlockProposed) BlobCreatedIn() uint64 {
+	return 0
+}
+
+type NotingBlockProposed types.Empty
 
 var _ BlockProposedFork = (*NotingBlockProposed)(nil)
 
-func (b *NotingBlockProposed) Encode() ([]byte, error) {
+func (b *NotingBlockProposed) ABIEncode() ([]byte, error) {
 	return nil, nil
 }
 
@@ -456,4 +470,8 @@ func (b *NotingBlockProposed) ExtraData() [32]byte {
 
 func (b *NotingBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 	return nil
+}
+
+func (b *NotingBlockProposed) BlobCreatedIn() uint64 {
+	return 0
 }

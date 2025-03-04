@@ -3,6 +3,7 @@ package transition
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -15,12 +16,12 @@ import (
 )
 
 type preState struct {
-	statedb  *state.StateDB
+	stateDB  *state.StateDB
 	getHash  func(num uint64) common.Hash
 	accounts map[common.Address]*types.StateAccount
 }
 
-// makePreStateAndGetHash initializes the state database with the provided guest input data,
+// newPreState initializes the state database with the provided guest input data,
 // commits the state, and returns the state database along with a function to retrieve historical
 // block hashes.
 //
@@ -50,11 +51,11 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	mdb := rawdb.NewMemoryDatabase()
 	tdb := triedb.NewDatabase(mdb, &triedb.Config{Preimages: true})
 	sdb := state.NewDatabase(tdb, nil)
-	statedb, _ := state.New(types.EmptyRootHash, sdb)
+	stateDB, _ := state.New(types.EmptyRootHash, sdb)
 	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
 		codeHash := keccak.Keccak(contract)
-		contracts[common.BytesToHash(codeHash)] = contract
+		contracts[codeHash] = contract
 	}
 	accounts := make(map[common.Address]*types.StateAccount, len(g.ParentStorage))
 	for addr, storage := range g.ParentStorage {
@@ -83,25 +84,25 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 				return nil, errors.New("missing code")
 			}
 		}
-		statedb.SetCode(addr, code)
-		statedb.SetNonce(addr, acc.Nonce)
-		statedb.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
+		stateDB.SetCode(addr, code)
+		stateDB.SetNonce(addr, acc.Nonce)
+		stateDB.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
 			value, err := getStorage(g.ParentStateTrie, key)
 			if err != nil && err != ErrNotFound {
 				return nil, err
 			}
-			statedb.SetState(addr, key, value)
+			stateDB.SetState(addr, key, value)
 		}
 	}
-	root, _ := statedb.Commit(0, false)
-	statedb, _ = state.New(root, sdb)
+	root, _ := stateDB.Commit(0, false)
+	stateDB, _ = state.New(root, sdb)
 
 	historyHashes := make(map[uint64]common.Hash, len(g.AncestorHeaders)+1)
 	historyHashes[g.ParentHeader.Number.Uint64()] = g.ParentHeader.Hash()
 	prev := g.ParentHeader
-	for _, header := range g.AncestorHeaders {
+	for header := range slices.Values(g.AncestorHeaders) {
 		if prev.ParentHash != header.Hash() {
 			return nil, fmt.Errorf(
 				"parent hash mismatch: expected %s, got %s",
@@ -113,7 +114,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 		prev = header
 	}
 	return &preState{
-		statedb: statedb,
+		stateDB: stateDB,
 		getHash: func(num uint64) common.Hash {
 			return historyHashes[num]
 		},

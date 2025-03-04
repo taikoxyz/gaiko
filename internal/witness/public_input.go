@@ -30,7 +30,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return common.BytesToHash(keccak.Keccak(b)), nil
+	return keccak.Keccak(b), nil
 }
 
 func NewPublicInput(
@@ -58,8 +58,8 @@ func NewPublicInput(
 	}
 
 	if driver.IsTaiko() {
-		got, _ := pi.block_metadata.Encode()
-		want, _ := driver.BlockProposedFork().Encode()
+		got, _ := pi.block_metadata.ABIEncode()
+		want, _ := driver.BlockProposedFork().ABIEncode()
 		if !slices.Equal(got, want) {
 			return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", want, got)
 		}

@@ -5,11 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math/big"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/taikoxyz/gaiko/internal/types"
 	"gitlab.com/c0b/go-ordered-json"
 )
 
@@ -18,20 +22,50 @@ var supportedChainSpecsJSON []byte
 
 type SupportedChainSpecs map[string]ChainSpec
 
+var defaultSupportedChainSpecs SupportedChainSpecs
+
+func init() {
+	if err := json.Unmarshal(supportedChainSpecsJSON, &defaultSupportedChainSpecs); err != nil {
+		log.Crit("Unmarshal supported chain specs failed", err)
+	}
+}
+
+func (s SupportedChainSpecs) verifyChainSpec(other *ChainSpec) error {
+	for chainSpec := range maps.Values(s) {
+		if chainSpec.ChainID != other.ChainID {
+			continue
+		}
+		if chainSpec.MaxSpecID != other.MaxSpecID {
+			return errors.New("unexpected max_spec_id")
+		}
+		if !slices.Equal(chainSpec.HardForks, other.HardForks) {
+			return errors.New("unexpected hard_forks")
+		}
+		if chainSpec.Eip1559Constants != other.Eip1559Constants {
+			return errors.New("unexpected eip_1559_constants")
+		}
+		if chainSpec.L1Contract != other.L1Contract {
+			return errors.New("unexpected l1_contract")
+		}
+		if chainSpec.L2Contract != other.L2Contract {
+			return errors.New("unexpected l2_contract")
+		}
+		if chainSpec.IsTaiko != other.IsTaiko {
+			return errors.New("unexpected is_taiko")
+		}
+	}
+	return nil
+}
+
 type SpecID string
 type ProofType string
 
 const (
 	NativeProofType ProofType = "NATIVE"
 	Sp1ProofType    ProofType = "SP1"
-	SgxProofType    ProofType = "SGX"
+	SGXProofType    ProofType = "SGX"
 	Risc0ProofType  ProofType = "RISC0"
 )
-
-type VerifierAddressFork struct {
-	SpecId    SpecID
-	Verifiers map[ProofType]*common.Address
-}
 
 type HardFork struct {
 	SpecID    SpecID
@@ -51,29 +85,51 @@ func (h *HardForks) UnmarshalJSON(data []byte) error {
 		if !ok {
 			break
 		}
-		val := pair.Value.(map[string]interface{})
-		for key, value := range val {
-			switch key {
-			case "Block":
-				blockNumber := BlockNumber(value.(float64))
-				*h = append(*h, &HardFork{
-					SpecID:    SpecID(pair.Key),
-					Condition: blockNumber,
-				})
-			case "Timestamp":
-				blockTimestamp := BlockTimestamp(value.(float64))
-				*h = append(*h, &HardFork{
-					SpecID:    SpecID(pair.Key),
-					Condition: blockTimestamp,
-				})
-			case "TBD":
-				*h = append(*h, &HardFork{
-					SpecID:    SpecID(pair.Key),
-					Condition: TBD{},
-				})
-			default:
-				return fmt.Errorf("unknown key %s", key)
+		switch val := pair.Value.(type) {
+		case *ordered.OrderedMap:
+			iter := val.EntriesIter()
+			for {
+				pair, ok := iter()
+				if !ok {
+					break
+				}
+				key := pair.Key
+				value := pair.Value
+				switch key {
+				case "Block":
+					valueNumber, err := value.(json.Number).Int64()
+					if err != nil {
+						return err
+					}
+					blockNumber := BlockNumber(uint64(valueNumber))
+					*h = append(*h, &HardFork{
+						SpecID:    SpecID(pair.Key),
+						Condition: blockNumber,
+					})
+				case "Timestamp":
+					valueNumber, err := value.(json.Number).Int64()
+					if err != nil {
+						return err
+					}
+					blockTimestamp := BlockTimestamp(uint64(valueNumber))
+					*h = append(*h, &HardFork{
+						SpecID:    SpecID(pair.Key),
+						Condition: blockTimestamp,
+					})
+				default:
+					return fmt.Errorf("unknown key %s", key)
+				}
 			}
+		case string:
+			if val != "TBD" {
+				return fmt.Errorf("unsupported hardfork: %s", val)
+			}
+			*h = append(*h, &HardFork{
+				SpecID:    SpecID(pair.Key),
+				Condition: TBD{},
+			})
+		default:
+			return fmt.Errorf("unsupported type for hardfork: %T", val)
 		}
 	}
 
@@ -86,7 +142,7 @@ type ChainSpec struct {
 	ChainID              uint64                                   `json:"chain_id"               gencodec:"required"`
 	MaxSpecID            SpecID                                   `json:"max_spec_id"            gencodec:"required"`
 	HardForks            HardForks                                `json:"hard_forks"             gencodec:"required"`
-	Eip1559Constants     Eip1559Constants                         `json:"eip1559_constants"      gencodec:"required"`
+	Eip1559Constants     Eip1559Constants                         `json:"eip_1559_constants"     gencodec:"required"`
 	L1Contract           *common.Address                          `json:"l1_contract"`
 	L2Contract           *common.Address                          `json:"l2_contract"`
 	RPC                  string                                   `json:"rpc"                    gencodec:"required"`
@@ -103,8 +159,7 @@ func (c *ChainSpec) getForkVerifierAddress(
 	blockNum uint64,
 	proofType ProofType,
 ) (common.Address, error) {
-	for i := len(c.HardForks) - 1; i >= 0; i-- {
-		fork := c.HardForks[i]
+	for _, fork := range slices.Backward(c.HardForks) {
 		if fork.Condition.Active(blockNum, 0) {
 			if verifierAddressFork, ok := c.VerifierAddressForks[fork.SpecID]; ok {
 				verifierAddress := verifierAddressFork[proofType]
@@ -154,7 +209,7 @@ func (b BlockTimestamp) Active(_ uint64, timestamp uint64) bool {
 	return timestamp >= uint64(b)
 }
 
-type TBD struct{}
+type TBD types.Empty
 
 func (t TBD) Active(_ uint64, _ uint64) bool {
 	return false

@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taikoxyz/gaiko/internal/keccak"
+	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 )
 
 type MptNode struct {
@@ -23,46 +24,46 @@ func newMptNode(data mptNodeData) *MptNode {
 	}
 }
 
+// New creates a new empty MPT node.
 func New() *MptNode {
 	return newMptNode(&nullNode{})
 }
 
+// Clear resets the node to an empty state.
 func (m *MptNode) Clear() {
 	m.data = &nullNode{}
 	m.cachedRef = nil
 }
 
+// Hash returns the Keccak-256 hash of the node.
+// For null nodes, it returns the EmptyRootHash.
+// For other nodes, it computes the hash from the node reference.
 func (m *MptNode) Hash() (common.Hash, error) {
-	switch m.data.(type) {
-	case *nullNode:
+	_, ok := m.data.(*nullNode)
+	if ok {
 		return types.EmptyRootHash, nil
-	default:
-		ref, err := m.ref()
-		if err != nil {
-			return common.Hash{}, err
-		}
-		return ref.hash(), nil
 	}
+	ref, err := m.ref()
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return ref.hash(), nil
 }
 
+// IsEmpty returns true if the node is a null node.
 func (m *MptNode) IsEmpty() bool {
-	switch m.data.(type) {
-	case *nullNode:
-		return true
-	default:
-		return false
-	}
+	_, ok := m.data.(*nullNode)
+	return ok
 }
 
+// IsDigest returns true if the node is a digest node.
 func (m *MptNode) IsDigest() bool {
-	switch m.data.(type) {
-	case *digestNode:
-		return true
-	default:
-		return false
-	}
+	_, ok := m.data.(*digestNode)
+	return ok
 }
 
+// Nibs returns the nibble-encoded path prefix of the node.
+// Returns nil for null, branch, and digest nodes.
 func (m *MptNode) Nibs() []byte {
 	switch data := m.data.(type) {
 	case *nullNode, *branchNode, *digestNode:
@@ -76,19 +77,27 @@ func (m *MptNode) Nibs() []byte {
 	}
 }
 
+// Get retrieves a value from the trie by its key.
+// Returns nil if the key does not exist in the trie.
 func (m *MptNode) Get(key []byte) ([]byte, error) {
 	return m.get(toNibs(key))
 }
 
+// Delete removes a key-value pair from the trie.
+// Returns true if the key was successfully deleted, false if the key wasn't found.
 func (m *MptNode) Delete(key []byte) (bool, error) {
 	return m.delete(toNibs(key))
 }
 
+// Insert adds or updates a key-value pair in the trie.
+// Returns true if the key was added or modified, false otherwise.
 func (m *MptNode) Insert(key []byte, value []byte) (bool, error) {
 	return m.insert(toNibs(key), value)
 }
 
-func (m *MptNode) InsertRLP(key []byte, value interface{}) (bool, error) {
+// InsertRLP encodes the provided value using RLP encoding and inserts it into the trie.
+// Returns true if the key was added or modified, false otherwise.
+func (m *MptNode) InsertRLP(key []byte, value any) (bool, error) {
 	data, err := rlp.EncodeToBytes(value)
 	if err != nil {
 		return false, err
@@ -201,12 +210,9 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 }
 
 func lcp(a, b []byte) int {
-	minLen := len(a)
-	if len(b) < minLen {
-		minLen = len(b)
-	}
+	minLen := min(len(a), len(b))
 
-	for i := 0; i < minLen; i++ {
+	for i := range minLen {
 		if a[i] != b[i] {
 			return i
 		}
@@ -257,13 +263,14 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		if remaining == 1 {
 			switch data := nextChild.data.(type) {
 			case *leafNode:
-				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(data.prefix)...)
+				newNibs := slices.Concat([]byte{uint8(nextIdx)}, prefixNibs(data.prefix))
 				m.data = &leafNode{
 					prefix: toEncodedPath(newNibs, true),
 					value:  data.value,
 				}
 			case *extensionNode:
-				newNibs := append([]byte{uint8(nextIdx)}, prefixNibs(data.prefix)...)
+				newNibs := slices.Concat([]byte{uint8(nextIdx)}, prefixNibs(data.prefix))
+
 				m.data = &extensionNode{
 					prefix: toEncodedPath(newNibs, false),
 					child:  data.child,
@@ -301,13 +308,14 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		case *nullNode:
 			m.data = &nullNode{}
 		case *leafNode:
-			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = slices.Concat(selfNibs, prefixNibs(data.prefix))
 			m.data = &leafNode{
 				prefix: toEncodedPath(selfNibs, true),
 				value:  data.value,
 			}
 		case *extensionNode:
-			selfNibs = append(selfNibs, prefixNibs(data.prefix)...)
+			selfNibs = slices.Concat(selfNibs, prefixNibs(data.prefix))
+
 			m.data = &extensionNode{
 				prefix: toEncodedPath(selfNibs, false),
 				child:  data.child,
@@ -348,62 +356,6 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func stripPrefix(nibs []byte, prefix []byte) []byte {
-	if bytes.HasPrefix(nibs, prefix) {
-		return nibs[len(prefix):]
-	}
-	return nil
-}
-
-func toEncodedPath(nibs []byte, isLeaf bool) []byte {
-	isLeafVar := uint8(0)
-	if isLeaf {
-		isLeafVar = 1
-	}
-
-	prefix := isLeafVar * 0x20
-	if len(nibs)%2 != 0 {
-		prefix += 0x10 + nibs[0]
-		nibs = nibs[1:]
-	}
-	res := make([]byte, 0, len(nibs)%2+1)
-	res = append(res, prefix)
-	for i := 0; i < len(nibs); i += 2 {
-		res = append(res, nibs[i]<<4+nibs[i+1])
-	}
-	return res
-}
-
-func toNibs(key []byte) []byte {
-	res := make([]byte, 0, len(key)*2)
-	for _, b := range key {
-		res = append(res, b>>4, b&0xf)
-	}
-	return res
-}
-
-func prefixNibs(prefix []byte) []byte {
-	if len(prefix) == 0 {
-		panic("prefix cannot be empty")
-	}
-	ext, tail := prefix[0], prefix[1:]
-
-	isOdd := ext&(1<<4) != 0
-
-	isOaddVar := 0
-	if isOdd {
-		isOaddVar = 1
-	}
-	res := make([]byte, 0, len(tail)*2+isOaddVar)
-	if isOdd {
-		res = append(res, ext&0xf)
-	}
-	for _, nib := range tail {
-		res = append(res, nib>>4, nib&0xf)
-	}
-	return res
-}
-
 func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
 	ref, err := m.ref()
 	if err != nil {
@@ -427,11 +379,67 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 			if len(encoded) < 32 {
 				m.cachedRef = bytesMptNodeRef(encoded)
 			} else {
-				m.cachedRef = digestMptNodeRef(common.BytesToHash(keccak.Keccak(encoded)))
+				m.cachedRef = digestMptNodeRef(keccak.Keccak(encoded))
 			}
 		}
 	}
 	return m.cachedRef, nil
+}
+
+func stripPrefix(nibs []byte, prefix []byte) []byte {
+	if bytes.HasPrefix(nibs, prefix) {
+		return nibs[len(prefix):]
+	}
+	return nil
+}
+
+func boolToInt(b bool) (n int) {
+	if b {
+		n = 1
+	}
+	return
+}
+
+func toEncodedPath(nibs []byte, isLeaf bool) []byte {
+	isLeafVar := uint8(boolToInt(isLeaf))
+	prefix := isLeafVar * 0x20
+	if len(nibs)%2 != 0 {
+		prefix += 0x10 + nibs[0]
+		nibs = nibs[1:]
+	}
+	res := make([]byte, 0, len(nibs)%2+1)
+	res = append(res, prefix)
+	for c := range slices.Chunk(nibs, 2) {
+		res = append(res, c[0]<<4+c[1])
+	}
+	return res
+}
+
+func toNibs(key []byte) []byte {
+	res := make([]byte, 0, len(key)*2)
+	for _, b := range key {
+		res = append(res, b>>4, b&0xf)
+	}
+	return res
+}
+
+func prefixNibs(prefix []byte) []byte {
+	if len(prefix) == 0 {
+		panic("prefix cannot be empty")
+	}
+	ext, tail := prefix[0], prefix[1:]
+
+	isOdd := ext&(1<<4) != 0
+
+	isOddVar := boolToInt(isOdd)
+	res := make([]byte, 0, len(tail)*2+isOddVar)
+	if isOdd {
+		res = append(res, ext&0xf)
+	}
+	for _, nib := range tail {
+		res = append(res, nib>>4, nib&0xf)
+	}
+	return res
 }
 
 type mptNodeRef interface {
@@ -447,7 +455,7 @@ func (b bytesMptNodeRef) encodeRLP(w rlp.EncoderBuffer) error {
 }
 
 func (b bytesMptNodeRef) hash() common.Hash {
-	return common.BytesToHash(keccak.Keccak(b))
+	return keccak.Keccak(b)
 }
 
 type digestMptNodeRef common.Hash
@@ -462,7 +470,7 @@ func (d digestMptNodeRef) hash() common.Hash {
 }
 
 type (
-	nullNode   struct{}
+	nullNode   gaikoTypes.Empty
 	branchNode [16]*MptNode
 	leafNode   struct {
 		prefix []byte
@@ -477,11 +485,11 @@ type (
 
 // marker interface, only for type checking
 type mptNodeData interface {
-	_private()
+	sealed()
 }
 
-func (*nullNode) _private()      {}
-func (*branchNode) _private()    {}
-func (*leafNode) _private()      {}
-func (*extensionNode) _private() {}
-func (*digestNode) _private()    {}
+func (*nullNode) sealed()      {}
+func (*branchNode) sealed()    {}
+func (*leafNode) sealed()      {}
+func (*extensionNode) sealed() {}
+func (*digestNode) sealed()    {}

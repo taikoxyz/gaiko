@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -31,7 +31,7 @@ func NewGramineProvider(args *flags.Arguments) *GramineProvider {
 }
 
 func (p *GramineProvider) LoadQuote(key common.Address) ([]byte, error) {
-	return getSgxQuote(key)
+	return getQuote(key)
 }
 
 func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -39,17 +39,17 @@ func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 }
 
 func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
-	return SavePrivKey(p.args.SecretDir, privKey)
+	return savePrivKey(p.args.SecretDir, privKey)
 }
 
 func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := path.Join(p.args.ConfigDir, bootstrapInfoFilename)
+	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 
-func saveAttestationUserReportData(pubkey common.Address) error {
+func saveAttestationUserReportData(pubKey common.Address) error {
 	extendedPubkey := make([]byte, 64)
-	copy(extendedPubkey, pubkey.Bytes())
+	copy(extendedPubkey, pubKey.Bytes())
 	userReportDataFile, err := os.OpenFile(attestationUserReportDataDeviceFile, os.O_WRONLY, 0666)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func saveAttestationUserReportData(pubkey common.Address) error {
 	return nil
 }
 
-func getSgxQuote(pubkey common.Address) ([]byte, error) {
+func getQuote(pubkey common.Address) ([]byte, error) {
 	err := saveAttestationUserReportData(pubkey)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func isFile(fileInfo os.FileInfo) bool {
 }
 
 func loadPrivKey(secretsDir string) (*ecdsa.PrivateKey, error) {
-	privKeyPath := path.Join(secretsDir, privKeyFilename)
+	privKeyPath := filepath.Join(secretsDir, privKeyFilename)
 	fileInfo, err := os.Stat(privKeyPath)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func loadPrivKey(secretsDir string) (*ecdsa.PrivateKey, error) {
 	return nil, errors.New("file does not exist")
 }
 
-func SavePrivKey(secretDir string, privKey *ecdsa.PrivateKey) error {
-	privKeyPath := path.Join(secretDir, privKeyFilename)
+func savePrivKey(secretDir string, privKey *ecdsa.PrivateKey) error {
+	privKeyPath := filepath.Join(secretDir, privKeyFilename)
 	return crypto.SaveECDSA(privKeyPath, privKey)
 }

@@ -2,7 +2,7 @@ package flags
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/urfave/cli/v2"
@@ -21,15 +21,15 @@ var (
 		Usage: "Directory for configuration files",
 	}
 
-	GlobalSgxType = &cli.StringFlag{
+	GlobalSGXType = &cli.StringFlag{
 		Name:    "sgx-type",
-		Usage:   "Which SGX type? ego or gramine",
+		Usage:   `Which SGX type? "debug", "ego" or "gramine"`,
 		EnvVars: []string{"SGX_TYPE"},
 	}
 
-	OneShotSgxInstanceID = &cli.Uint64Flag{
+	SGXInstanceID = &cli.Uint64Flag{
 		Name:  "sgx-instance-id",
-		Usage: "SGX Instance ID for one-shot operation",
+		Usage: "SGX Instance ID for one-(batch-)shot operation",
 	}
 )
 
@@ -38,34 +38,34 @@ func init() {
 	if err != nil {
 		log.Crit("Get home dir failed", err)
 	}
-	GlobalSecretDir.DefaultText = path.Join(home, defaultGaikoUserConfigSubDir, "secrets")
-	GlobalConfigDir.DefaultText = path.Join(home, defaultGaikoUserConfigSubDir, "config")
+	GlobalSecretDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
+	GlobalConfigDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
 }
 
 const (
-	DebugSgxType   = "debug"
-	EgoSgxType     = "ego"
-	GramineSgxType = "gramine"
+	DebugSGXType   = "debug"
+	EgoSGXType     = "ego"
+	GramineSGXType = "gramine"
 )
 
 var GlobalFlags = []cli.Flag{
 	GlobalSecretDir,
 	GlobalConfigDir,
-	GlobalSgxType,
+	GlobalSGXType,
 }
 
 type Arguments struct {
-	SecretDir  string
-	ConfigDir  string
-	SgxType    string
-	InstanceID uint32
+	SecretDir     string
+	ConfigDir     string
+	SGXType       string
+	SGXInstanceID uint32
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
 	return &Arguments{
-		SecretDir:  cli.String(GlobalSecretDir.Name),
-		ConfigDir:  cli.String(GlobalConfigDir.Name),
-		SgxType:    cli.String(GlobalSgxType.Name),
-		InstanceID: uint32(cli.Uint64(OneShotSgxInstanceID.Name)),
+		SecretDir:     cli.String(GlobalSecretDir.Name),
+		ConfigDir:     cli.String(GlobalConfigDir.Name),
+		SGXType:       cli.String(GlobalSGXType.Name),
+		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
 	}
 }

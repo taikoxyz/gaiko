@@ -16,26 +16,26 @@ type HeklaBlockMetadata struct {
 	*ontake.TaikoDataBlockMetadata
 }
 
-func (m *HeklaBlockMetadata) Encode() ([]byte, error) {
+func (m *HeklaBlockMetadata) ABIEncode() ([]byte, error) {
 	return blockMetadataComponentsArgs.Pack(m.TaikoDataBlockMetadata)
 }
 
 func (m *HeklaBlockMetadata) Hash() common.Hash {
-	b, _ := m.Encode()
-	return common.BytesToHash(keccak.Keccak(b))
+	b, _ := m.ABIEncode()
+	return keccak.Keccak(b)
 }
 
 type OntakeBlockMetadata struct {
 	*ontake.TaikoDataBlockMetadataV2
 }
 
-func (m *OntakeBlockMetadata) Encode() ([]byte, error) {
+func (m *OntakeBlockMetadata) ABIEncode() ([]byte, error) {
 	return blockMetadataV2ComponentsArgs.Pack(m.TaikoDataBlockMetadataV2)
 }
 
 func (m *OntakeBlockMetadata) Hash() common.Hash {
-	b, _ := m.Encode()
-	return common.BytesToHash(keccak.Keccak(b))
+	b, _ := m.ABIEncode()
+	return keccak.Keccak(b)
 }
 
 type PacayaBlockMetadata struct {
@@ -46,11 +46,11 @@ func NewPacayaBlockMetadata(meta *pacaya.ITaikoInboxBatchMetadata) *PacayaBlockM
 	return &PacayaBlockMetadata{meta}
 }
 
-func (m *PacayaBlockMetadata) Encode() ([]byte, error) {
+func (m *PacayaBlockMetadata) ABIEncode() ([]byte, error) {
 	return blockMetadataComponentsArgs.Pack(m.ITaikoInboxBatchMetadata)
 }
 
 func (m *PacayaBlockMetadata) Hash() common.Hash {
-	b, _ := m.Encode()
-	return common.BytesToHash(keccak.Keccak(b))
+	b, _ := m.ABIEncode()
+	return keccak.Keccak(b)
 }

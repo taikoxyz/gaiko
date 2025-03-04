@@ -71,7 +71,7 @@ func (t *taikoGuestInputJSON) GethType() *TaikoGuestInput {
 }
 
 type blockProposedForkJSON struct {
-	inner interface{}
+	inner any
 }
 
 func (b *blockProposedForkJSON) GethType() BlockProposedFork {

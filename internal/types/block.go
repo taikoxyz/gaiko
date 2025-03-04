@@ -6,11 +6,11 @@ import (
 )
 
 type Block struct {
-	Header      *Header            `json:"header"      gencodec:"required"`
-	Body        TransactionSigneds `json:"body"        gencodec:"required"`
-	Ommers      Headers            `json:"ommers"      gencodec:"required"`
-	Withdrawals types.Withdrawals  `json:"withdrawals"`
-	Requests    Requests           `json:"requests"`
+	Header      *Header               `json:"header"      gencodec:"required"`
+	Body        TransactionSignedList `json:"body"        gencodec:"required"`
+	Ommers      Headers               `json:"ommers"      gencodec:"required"`
+	Withdrawals types.Withdrawals     `json:"withdrawals"`
+	Requests    Requests              `json:"requests"`
 }
 
 func (b *Block) GethType() *types.Block {

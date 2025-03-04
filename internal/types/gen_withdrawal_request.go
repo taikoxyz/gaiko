@@ -16,9 +16,9 @@ var _ = (*withdrawalRequestMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (w WithdrawalRequest) MarshalJSON() ([]byte, error) {
 	type WithdrawalRequest struct {
-		SourceAddress   common.Address      `json:"sourceAddress" gencodec:"required"`
-		ValidatorPubkey hexutil.Bytes       `json:"validatorPubkey" gencodec:"required"`
-		Amount          math.HexOrDecimal64 `json:"amount" gencodec:"required"`
+		SourceAddress   common.Address      `json:"source_address"   gencodec:"required"`
+		ValidatorPubkey hexutil.Bytes       `json:"validator_pubkey" gencodec:"required"`
+		Amount          math.HexOrDecimal64 `json:"amount"           gencodec:"required"`
 	}
 	var enc WithdrawalRequest
 	enc.SourceAddress = w.SourceAddress
@@ -30,23 +30,23 @@ func (w WithdrawalRequest) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (w *WithdrawalRequest) UnmarshalJSON(input []byte) error {
 	type WithdrawalRequest struct {
-		SourceAddress   *common.Address      `json:"sourceAddress" gencodec:"required"`
-		ValidatorPubkey *hexutil.Bytes       `json:"validatorPubkey" gencodec:"required"`
-		Amount          *math.HexOrDecimal64 `json:"amount" gencodec:"required"`
+		SourceAddress   *common.Address      `json:"source_address"   gencodec:"required"`
+		ValidatorPubkey *hexutil.Bytes       `json:"validator_pubkey" gencodec:"required"`
+		Amount          *math.HexOrDecimal64 `json:"amount"           gencodec:"required"`
 	}
 	var dec WithdrawalRequest
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.SourceAddress == nil {
-		return errors.New("missing required field 'sourceAddress' for WithdrawalRequest")
+		return errors.New("missing required field 'source_address' for WithdrawalRequest")
 	}
 	w.SourceAddress = *dec.SourceAddress
 	if dec.ValidatorPubkey == nil {
-		return errors.New("missing required field 'validatorPubkey' for WithdrawalRequest")
+		return errors.New("missing required field 'validator_pubkey' for WithdrawalRequest")
 	}
 	if len(*dec.ValidatorPubkey) != len(w.ValidatorPubkey) {
-		return errors.New("field 'validatorPubkey' has wrong length, need 48 items")
+		return errors.New("field 'validator_pubkey' has wrong length, need 48 items")
 	}
 	copy(w.ValidatorPubkey[:], *dec.ValidatorPubkey)
 	if dec.Amount == nil {

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
 	"github.com/urfave/cli/v2"
@@ -10,9 +8,8 @@ import (
 
 func oneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
-	proof, err := sgxProver.Oneshot(context.Background())
-
+	sgxProver := prover.NewSGXProver(args)
+	proof, err := sgxProver.Oneshot(cli.Context)
 	if err != nil {
 		return err
 	}
@@ -21,9 +18,8 @@ func oneshot(cli *cli.Context) error {
 
 func batchOneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSgxProver(args)
-	proof, err := sgxProver.BatchOneshot(context.Background())
-
+	sgxProver := prover.NewSGXProver(args)
+	proof, err := sgxProver.BatchOneshot(cli.Context)
 	if err != nil {
 		return err
 	}

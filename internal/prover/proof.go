@@ -85,7 +85,7 @@ func NewAggregateProof(
 	return &proof
 }
 
-func genSgxProof(
+func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
 	driver witness.GuestDriver,
@@ -105,7 +105,7 @@ func genSgxProof(
 	}
 
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
-	pi, err := witness.NewPublicInput(driver, witness.SgxProofType, newInstance)
+	pi, err := witness.NewPublicInput(driver, witness.SGXProofType, newInstance)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func genSgxProof(
 		return nil, err
 	}
 
-	proof := NewOneshotProof(args.InstanceID, newInstance, sign)
+	proof := NewOneshotProof(args.SGXInstanceID, newInstance, sign)
 	quote, err := provider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err

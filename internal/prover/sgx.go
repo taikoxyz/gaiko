@@ -14,37 +14,37 @@ import (
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
-var addressPadding [32 - common.AddressLength]byte
+var addr32Padding [32 - common.AddressLength]byte
 
-type SgxProver struct {
+type SGXProver struct {
 	provider sgx.Provider
 	args     *flags.Arguments
 }
 
-var _ Prover = (*SgxProver)(nil)
+var _ Prover = (*SGXProver)(nil)
 
-func NewSgxProver(args *flags.Arguments) *SgxProver {
-	return &SgxProver{
+func NewSGXProver(args *flags.Arguments) *SGXProver {
+	return &SGXProver{
 		args:     args,
 		provider: sgx.NewProvider(args),
 	}
 }
 
-func (p *SgxProver) Oneshot(
+func (p *SGXProver) Oneshot(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	var driver witness.GuestInput
-	return genSgxProof(ctx, p.args, &driver, p.provider)
+	return genOneshotProof(ctx, p.args, &driver, p.provider)
 }
 
-func (p *SgxProver) BatchOneshot(
+func (p *SGXProver) BatchOneshot(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	var driver witness.BatchGuestInput
-	return genSgxProof(ctx, p.args, &driver, p.provider)
+	return genOneshotProof(ctx, p.args, &driver, p.provider)
 }
 
-func (p *SgxProver) Aggregate(
+func (p *SGXProver) Aggregate(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	prevPrivKey, err := p.provider.LoadPrivateKey()
@@ -73,22 +73,22 @@ func (p *SgxProver) Aggregate(
 		return nil, fmt.Errorf("invalid instance: %s", curInstance)
 	}
 
-	aggOutputCombine := make([]byte, 0, (len(input.Proofs)+2)*32)
-	aggOutputCombine = append(aggOutputCombine, addressPadding[:]...)
-	aggOutputCombine = append(aggOutputCombine, oldInstance.Bytes()...)
-	aggOutputCombine = append(aggOutputCombine, addressPadding[:]...)
-	aggOutputCombine = append(aggOutputCombine, newInstance.Bytes()...)
+	combinedHashes := make([]byte, 0, (len(input.Proofs)+2)*32)
+	combinedHashes = append(combinedHashes, addr32Padding[:]...)
+	combinedHashes = append(combinedHashes, oldInstance.Bytes()...)
+	combinedHashes = append(combinedHashes, addr32Padding[:]...)
+	combinedHashes = append(combinedHashes, newInstance.Bytes()...)
 	for _, proof := range input.Proofs {
-		aggOutputCombine = append(aggOutputCombine, proof.Input.Bytes()...)
+		combinedHashes = append(combinedHashes, proof.Input.Bytes()...)
 	}
 
-	aggHash := keccak.Keccak(aggOutputCombine)
-	sig, err := crypto.Sign(aggHash, prevPrivKey)
+	aggHash := keccak.Keccak(combinedHashes)
+	sign, err := crypto.Sign(aggHash.Bytes(), prevPrivKey)
 	if err != nil {
 		return nil, err
 	}
 
-	proof := NewAggregateProof(p.args.InstanceID, oldInstance, newInstance, sig)
+	proof := NewAggregateProof(p.args.SGXInstanceID, oldInstance, newInstance, sign)
 	quote, err := p.provider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err
@@ -99,11 +99,11 @@ func (p *SgxProver) Aggregate(
 		Quote:           quote,
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
-		Input:           common.BytesToHash(aggHash),
+		Input:           aggHash,
 	}, nil
 }
 
-func (p *SgxProver) Bootstrap(ctx context.Context) error {
+func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	privKey, err := crypto.GenerateKey()
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (p *SgxProver) Bootstrap(ctx context.Context) error {
 	return p.provider.SaveBootstrap(b)
 }
 
-func (p *SgxProver) Check(ctx context.Context) error {
+func (p *SGXProver) Check(ctx context.Context) error {
 	_, err := p.provider.LoadPrivateKey()
 	return err
 }

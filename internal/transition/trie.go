@@ -13,7 +13,7 @@ import (
 var ErrNotFound = errors.New("not found")
 
 func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount, error) {
-	res, err := trie.Get(keccak.Keccak(address.Bytes()))
+	res, err := trie.Get(keccak.Keccak(address.Bytes()).Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount,
 }
 
 func getStorage(trie *mpt.MptNode, key common.Hash) (common.Hash, error) {
-	enc, err := trie.Get(keccak.Keccak(key.Bytes()))
+	enc, err := trie.Get(keccak.Keccak(key.Bytes()).Bytes())
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -51,7 +51,7 @@ func updateAccount(trie *mpt.MptNode, address common.Address, acc *types.StateAc
 	if err != nil {
 		return err
 	}
-	_, err = trie.Insert(hk, data)
+	_, err = trie.Insert(hk.Bytes(), data)
 	return err
 }
 
@@ -61,6 +61,6 @@ func updateStorage(trie *mpt.MptNode, key, value []byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = trie.Insert(hk, v)
+	_, err = trie.Insert(hk.Bytes(), v)
 	return err
 }

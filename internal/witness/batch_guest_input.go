@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"iter"
 	"math/big"
+	"slices"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
@@ -84,7 +85,7 @@ func (g *BatchGuestInput) BlockProposedFork() BlockProposedFork {
 
 func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
-	for i := 0; i < len(g.Taiko.TxDataFromBlob); i++ {
+	for i := range len(g.Taiko.TxDataFromBlob) {
 		blob := g.Taiko.TxDataFromBlob[i]
 		commitment := (*g.Taiko.BlobCommitments)[i]
 		proof := (*g.Taiko.BlobProofs)[i]
@@ -103,14 +104,20 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return common.BytesToHash(keccak.Keccak(data)), nil
+	return keccak.Keccak(data), nil
 }
 
 func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
 	if err := g.verifyBatchModeBlobUsage(proofType); err != nil {
 		return nil, err
 	}
-	txListHash := common.BytesToHash(keccak.Keccak(g.Taiko.TxDataFromCalldata))
+	for input := range slices.Values(g.Inputs) {
+		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
+			return nil, err
+		}
+
+	}
+	txListHash := keccak.Keccak(g.Taiko.TxDataFromCalldata)
 	txsHash, err := g.calculatePacayaTxsHash(txListHash, g.Taiko.BatchProposed.BlobHashes())
 	if err != nil {
 		return nil, err
@@ -145,6 +152,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 		AnchorBlockId:      g.Taiko.L1Header.Number.Uint64(),
 		AnchorBlockHash:    g.Taiko.L1Header.Hash(),
 		BaseFeeConfig:      *g.Taiko.BatchProposed.BaseFeeConfig(),
+		BlobCreatedIn:      g.Taiko.BatchProposed.BlobCreatedIn(),
 	}
 
 	data, err := batchInfoComponentsArgs.Pack(batchInfo)
@@ -154,7 +162,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 	infoHash := keccak.Keccak(data)
 
 	return NewPacayaBlockMetadata(&pacaya.ITaikoInboxBatchMetadata{
-		InfoHash:   common.BytesToHash(infoHash),
+		InfoHash:   infoHash,
 		Proposer:   g.Taiko.BatchProposed.Proposer(),
 		BatchId:    g.Taiko.BatchId,
 		ProposedAt: g.Taiko.BatchProposed.ProposedAt(),

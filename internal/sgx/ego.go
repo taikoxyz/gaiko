@@ -3,7 +3,7 @@ package sgx
 import (
 	"crypto/ecdsa"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/edgelesssys/ego/ecrypto"
 	"github.com/edgelesssys/ego/enclave"
@@ -25,17 +25,18 @@ func NewEgoProvider(args *flags.Arguments) *EgoProvider {
 }
 
 func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
-	var extendedPubkey [64]byte
-	copy(extendedPubkey[:], key.Bytes())
-	return getReport(extendedPubkey[:])
+	var extendedPubKey [64]byte
+	copy(extendedPubKey[:], key.Bytes())
+	return getReport(extendedPubKey[:])
 }
 
 func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
-	filename := path.Join(p.args.SecretDir, privKeyFilename)
+	filename := filepath.Join(p.args.SecretDir, privKeyFilename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
+	// decrypt private key with a key derived from a measurement of the enclave.
 	plainText, err := ecrypto.Unseal(sealedText, nil)
 	if err != nil {
 		return nil, err
@@ -45,16 +46,17 @@ func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 
 func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 	plainText := crypto.FromECDSA(privKey)
+	// encrypt private key with a key derived from a measurement of the enclave.
 	sealedText, err := ecrypto.SealWithUniqueKey(plainText, nil)
 	if err != nil {
 		return err
 	}
-	filename := path.Join(p.args.SecretDir, privKeyFilename)
+	filename := filepath.Join(p.args.SecretDir, privKeyFilename)
 	return os.WriteFile(filename, sealedText, 0600)
 }
 
 func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := path.Join(p.args.ConfigDir, bootstrapInfoFilename)
+	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 

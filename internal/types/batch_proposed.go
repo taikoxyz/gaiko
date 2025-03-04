@@ -19,26 +19,14 @@ type BatchProposed struct {
 func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 	blocks := make([]pacaya.ITaikoInboxBlockParams, len(b.Info.Blocks))
 	for i, block := range b.Info.Blocks {
-		signalSlots := make([][32]byte, len(block.SignalSlots))
-		for j, slot := range block.SignalSlots {
-			signalSlots[j] = slot
-		}
-		blocks[i] = pacaya.ITaikoInboxBlockParams{
-			NumTransactions: block.NumTransactions,
-			TimeShift:       block.TimeShift,
-			SignalSlots:     signalSlots,
-		}
+		blocks[i] = pacaya.ITaikoInboxBlockParams(*block)
 	}
 
-	blobHashes := make([][32]byte, len(b.Info.BlobHashes))
-	for i, hash := range b.Info.BlobHashes {
-		blobHashes[i] = hash
-	}
 	return &pacaya.TaikoInboxClientBatchProposed{
 		Info: pacaya.ITaikoInboxBatchInfo{
 			TxsHash:            b.Info.TxsHash,
 			Blocks:             blocks,
-			BlobHashes:         blobHashes,
+			BlobHashes:         b.Info.BlobHashes,
 			ExtraData:          b.Info.ExtraData,
 			Coinbase:           b.Info.Coinbase,
 			ProposedIn:         b.Info.ProposedIn,
@@ -49,20 +37,10 @@ func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 			LastBlockTimestamp: b.Info.LastBlockTimestamp,
 			AnchorBlockId:      b.Info.AnchorBlockId,
 			AnchorBlockHash:    b.Info.AnchorBlockHash,
-			BaseFeeConfig: pacaya.LibSharedDataBaseFeeConfig{
-				AdjustmentQuotient:     b.Info.BaseFeeConfig.AdjustmentQuotient,
-				SharingPctg:            b.Info.BaseFeeConfig.SharingPctg,
-				GasIssuancePerSecond:   b.Info.BaseFeeConfig.GasIssuancePerSecond,
-				MinGasExcess:           b.Info.BaseFeeConfig.MinGasExcess,
-				MaxGasIssuancePerBlock: b.Info.BaseFeeConfig.MaxGasIssuancePerBlock,
-			},
+			BaseFeeConfig:      pacaya.LibSharedDataBaseFeeConfig(*b.Info.BaseFeeConfig),
+			BlobCreatedIn:      b.Info.BlobCreatedIn,
 		},
-		Meta: pacaya.ITaikoInboxBatchMetadata{
-			InfoHash:   b.Meta.InfoHash,
-			Proposer:   b.Meta.Proposer,
-			BatchId:    b.Meta.BatchId,
-			ProposedAt: b.Meta.ProposedAt,
-		},
+		Meta:   pacaya.ITaikoInboxBatchMetadata(*b.Meta),
 		TxList: b.TxList,
 	}
 }
@@ -75,13 +53,14 @@ type batchProposedMarshaling struct {
 
 // BatchMetadata is an auto generated low-level Go binding around an user-defined struct.
 type BatchMetadata struct {
-	InfoHash   common.Hash    `json:"infoHash"   gencodec:"required"`
+	InfoHash   [32]byte       `json:"infoHash"   gencodec:"required"`
 	Proposer   common.Address `json:"proposer"   gencodec:"required"`
 	BatchId    uint64         `json:"batchId"    gencodec:"required"`
 	ProposedAt uint64         `json:"proposedAt" gencodec:"required"`
 }
 
 type batchMetadataMarshaling struct {
+	InfoHash   common.Hash         `json:"infoHash"   gencodec:"required"`
 	BatchId    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 	ProposedAt math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 }
@@ -101,37 +80,44 @@ type libSharedDataBaseFeeConfigMarshaling struct {
 	MinGasExcess math.HexOrDecimal64 `json:"minGasExcess" gencodec:"required"`
 }
 
-//go:generate go run github.com/fjl/gencodec -type BlockParams  -out gen_block_params.go
+//go:generate go run github.com/fjl/gencodec -type BlockParams  -field-override  blockParamsMarshaling -out gen_block_params.go
 
 // BlockParams is an auto generated low-level Go binding around an user-defined struct.
 type BlockParams struct {
-	NumTransactions uint16        `json:"numTransactions" gencodec:"required"`
-	TimeShift       uint8         `json:"timeShift"       gencodec:"required"`
-	SignalSlots     []common.Hash `json:"signalSlots"     gencodec:"required"`
+	NumTransactions uint16     `json:"numTransactions" gencodec:"required"`
+	TimeShift       uint8      `json:"timeShift"       gencodec:"required"`
+	SignalSlots     [][32]byte `json:"signalSlots"     gencodec:"required"`
+}
+
+type blockParamsMarshaling struct {
+	SignalSlots []common.Hash `json:"signalSlots" gencodec:"required"`
 }
 
 //go:generate go run github.com/fjl/gencodec -type BatchInfo -field-override batchInfoMarshaling -out gen_batch_info.go
 
 // BatchInfo is an auto generated low-level Go binding around an user-defined struct.
 type BatchInfo struct {
-	TxsHash            common.Hash
-	Blocks             []*BlockParams
-	BlobHashes         []common.Hash
-	ExtraData          common.Hash
-	Coinbase           common.Address
-	ProposedIn         uint64
-	BlobByteOffset     uint32
-	BlobByteSize       uint32
-	GasLimit           uint32
-	LastBlockId        uint64
-	LastBlockTimestamp uint64
-	AnchorBlockId      uint64
-	AnchorBlockHash    common.Hash
-	BaseFeeConfig      *LibSharedDataBaseFeeConfig
+	TxsHash            common.Hash                 `json:"txsHash"            gencodec:"required"`
+	Blocks             []*BlockParams              `json:"blocks"             gencodec:"required"`
+	BlobHashes         [][32]byte                  `json:"blobHashes"         gencodec:"required"`
+	ExtraData          common.Hash                 `json:"extraData"          gencodec:"required"`
+	Coinbase           common.Address              `json:"coinbase"           gencodec:"required"`
+	ProposedIn         uint64                      `json:"proposedIn"         gencodec:"required"`
+	BlobByteOffset     uint32                      `json:"blobByteOffset"     gencodec:"required"`
+	BlobByteSize       uint32                      `json:"blobByteSize"       gencodec:"required"`
+	BlobCreatedIn      uint64                      `json:"blobCreatedIn"      gencodec:"required"`
+	GasLimit           uint32                      `json:"gasLimit"           gencodec:"required"`
+	LastBlockId        uint64                      `json:"lastBlockId"        gencodec:"required"`
+	LastBlockTimestamp uint64                      `json:"lastBlockTimestamp" gencodec:"required"`
+	AnchorBlockId      uint64                      `json:"anchorBlockId"      gencodec:"required"`
+	AnchorBlockHash    common.Hash                 `json:"anchorBlockHash"    gencodec:"required"`
+	BaseFeeConfig      *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"      gencodec:"required"`
 }
 
 type batchInfoMarshaling struct {
+	BlobHashes         []common.Hash       `json:"blobHashes"         gencodec:"required"`
 	ProposedIn         math.HexOrDecimal64 `json:"proposedIn"         gencodec:"required"`
+	BlobCreatedIn      math.HexOrDecimal64 `json:"blobCreatedIn"      gencodec:"required"`
 	LastBlockId        math.HexOrDecimal64 `json:"lastBlockId"        gencodec:"required"`
 	LastBlockTimestamp math.HexOrDecimal64 `json:"lastBlockTimestamp" gencodec:"required"`
 	AnchorBlockId      math.HexOrDecimal64 `json:"anchorBlockId"      gencodec:"required"`

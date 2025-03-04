@@ -38,7 +38,7 @@ func ExecuteGuestDriver(
 		}
 		statedb, err := apply(
 			vm.Config{},
-			preState.statedb,
+			preState.stateDB,
 			g.Block,
 			txs,
 			preState.getHash,
@@ -54,7 +54,7 @@ func ExecuteGuestDriver(
 			if !ok {
 				// Account is deleted
 				key := keccak.Keccak(addr.Bytes())
-				if _, err := g.ParentStateTrie.Delete(key); err != nil {
+				if _, err := g.ParentStateTrie.Delete(key.Bytes()); err != nil {
 					return err
 				}
 			}
@@ -73,7 +73,7 @@ func ExecuteGuestDriver(
 			for slot, value := range acc.Storage {
 				key := keccak.Keccak(slot.Bytes())
 				if value == (common.Hash{}) {
-					if _, err := storageEntry.Trie.Delete(key); err != nil {
+					if _, err := storageEntry.Trie.Delete(key.Bytes()); err != nil {
 						return err
 					}
 				} else {
@@ -90,7 +90,7 @@ func ExecuteGuestDriver(
 				Nonce:    acc.Nonce,
 				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
 				Root:     root,
-				CodeHash: keccak.Keccak(acc.Code),
+				CodeHash: keccak.Keccak(acc.Code).Bytes(),
 			}
 
 			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
@@ -116,7 +116,7 @@ func ExecuteGuestDriver(
 
 func apply(
 	vmConfig vm.Config,
-	statedb *state.StateDB,
+	stateDB *state.StateDB,
 	block *types.Block,
 	txs types.Transactions,
 	getHash func(uint64) common.Hash,
@@ -128,12 +128,12 @@ func apply(
 			new(big.Int).SetUint64(block.NumberU64()),
 			block.Time(),
 		)
-		gaspool = new(core.GasPool)
+		gasPool = new(core.GasPool)
 		gasUsed = uint64(0)
 		txIndex = 0
 	)
 
-	gaspool.AddGas(block.GasLimit())
+	gasPool.AddGas(block.GasLimit())
 
 	rnd := block.MixDigest()
 	vmContext := vm.BlockContext{
@@ -172,16 +172,15 @@ func apply(
 			log.Warn("rejected tx", "index", txIndex, "hash", tx.Hash(), "error", err)
 			continue
 		}
-		statedb.SetTxContext(tx.Hash(), txIndex)
+		stateDB.SetTxContext(tx.Hash(), txIndex)
 		var (
 			txContext = core.NewEVMTxContext(msg)
-			snapshot  = statedb.Snapshot()
-			prevGas   = gaspool.Gas()
+			snapshot  = stateDB.Snapshot()
+			prevGas   = gasPool.Gas()
 		)
-		evm := vm.NewEVM(vmContext, txContext, statedb, chainConfig, vmConfig)
+		evm := vm.NewEVM(vmContext, txContext, stateDB, chainConfig, vmConfig)
 
-		// (ret []byte, usedGas uint64, failed bool, err error)
-		msgResult, err := core.ApplyMessage(evm, msg, gaspool)
+		msgResult, err := core.ApplyMessage(evm, msg, gasPool)
 		if err != nil {
 			if isAnchor {
 				return nil, err
@@ -193,33 +192,33 @@ func apply(
 				"from", msg.From,
 				"error", err,
 			)
-			statedb.RevertToSnapshot(snapshot)
-			gaspool.SetGas(prevGas)
+			stateDB.RevertToSnapshot(snapshot)
+			gasPool.SetGas(prevGas)
 			continue
 		}
 
 		gasUsed += msgResult.UsedGas
 		if chainConfig.IsByzantium(vmContext.BlockNumber) {
-			statedb.Finalise(true)
+			stateDB.Finalise(true)
 		} else {
-			statedb.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
+			stateDB.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
 		}
 		txIndex++
 	}
-	statedb.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
+	stateDB.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
 
 	// Apply withdrawals
 	for _, w := range block.Withdrawals() {
 		// Amount is in gwei, turn into wei
 		amount := new(big.Int).Mul(new(big.Int).SetUint64(w.Amount), big.NewInt(params.GWei))
-		statedb.AddBalance(
+		stateDB.AddBalance(
 			w.Address,
 			uint256.MustFromBig(amount),
 			tracing.BalanceIncreaseWithdrawal,
 		)
 	}
 	// Commit block
-	root, err := statedb.Commit(
+	root, err := stateDB.Commit(
 		vmContext.BlockNumber.Uint64(),
 		chainConfig.IsEIP158(vmContext.BlockNumber),
 	)
@@ -227,5 +226,5 @@ func apply(
 		return nil, fmt.Errorf("could not commit state: %v", err)
 	}
 
-	return state.New(root, statedb.Database())
+	return state.New(root, stateDB.Database())
 }
