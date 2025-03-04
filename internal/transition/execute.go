@@ -180,7 +180,6 @@ func apply(
 		)
 		evm := vm.NewEVM(vmContext, txContext, stateDB, chainConfig, vmConfig)
 
-		// (ret []byte, usedGas uint64, failed bool, err error)
 		msgResult, err := core.ApplyMessage(evm, msg, gasPool)
 		if err != nil {
 			if isAnchor {
