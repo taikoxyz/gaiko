@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math/big"
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/types"
 	"gitlab.com/c0b/go-ordered-json"
@@ -19,6 +21,41 @@ import (
 var supportedChainSpecsJSON []byte
 
 type SupportedChainSpecs map[string]ChainSpec
+
+var defaultSupportedChainSpecs SupportedChainSpecs
+
+func init() {
+	if err := json.Unmarshal(supportedChainSpecsJSON, &defaultSupportedChainSpecs); err != nil {
+		log.Crit("Unmarshal supported chain specs failed", err)
+	}
+}
+
+func (s SupportedChainSpecs) verifyChainSpec(other *ChainSpec) error {
+	for chainSpec := range maps.Values(s) {
+		if chainSpec.ChainID != other.ChainID {
+			continue
+		}
+		if chainSpec.MaxSpecID != other.MaxSpecID {
+			return errors.New("unexpected max_spec_id")
+		}
+		if !slices.Equal(chainSpec.HardForks, other.HardForks) {
+			return errors.New("unexpected hard_forks")
+		}
+		if chainSpec.Eip1559Constants != other.Eip1559Constants {
+			return errors.New("unexpected eip_1559_constants")
+		}
+		if chainSpec.L1Contract != other.L1Contract {
+			return errors.New("unexpected l1_contract")
+		}
+		if chainSpec.L2Contract != other.L2Contract {
+			return errors.New("unexpected l2_contract")
+		}
+		if chainSpec.IsTaiko != other.IsTaiko {
+			return errors.New("unexpected is_taiko")
+		}
+	}
+	return nil
+}
 
 type SpecID string
 type ProofType string
@@ -117,17 +154,6 @@ type ChainSpec struct {
 }
 
 var _ json.Unmarshaler = (*ChainSpec)(nil)
-
-// DefaultChainSpecs unmarshals the JSON data from supportedChainSpecsJSON
-// into a SupportedChainSpecs struct and returns it. If there is an error
-// during unmarshaling, it returns the error.
-func DefaultChainSpecs() (SupportedChainSpecs, error) {
-	var chainSpecs SupportedChainSpecs
-	if err := json.Unmarshal(supportedChainSpecsJSON, &chainSpecs); err != nil {
-		return nil, err
-	}
-	return chainSpecs, nil
-}
 
 func (c *ChainSpec) getForkVerifierAddress(
 	blockNum uint64,

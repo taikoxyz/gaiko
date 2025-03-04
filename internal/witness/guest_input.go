@@ -127,6 +127,10 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 		txListHash = keccak.Keccak(g.Taiko.TxData)
 	}
 
+	if err := defaultSupportedChainSpecs.verifyChainSpec(g.ChainSpec); err != nil {
+		return nil, err
+	}
+
 	var extraData [32]byte
 	copy(extraData[:], g.Block.Extra())
 	switch g.Taiko.BlockProposed.HardFork() {

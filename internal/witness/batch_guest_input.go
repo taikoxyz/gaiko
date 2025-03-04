@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"iter"
 	"math/big"
+	"slices"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
@@ -109,6 +110,12 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
 	if err := g.verifyBatchModeBlobUsage(proofType); err != nil {
 		return nil, err
+	}
+	for input := range slices.Values(g.Inputs) {
+		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
+			return nil, err
+		}
+
 	}
 	txListHash := keccak.Keccak(g.Taiko.TxDataFromCalldata)
 	txsHash, err := g.calculatePacayaTxsHash(txListHash, g.Taiko.BatchProposed.BlobHashes())
