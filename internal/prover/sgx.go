@@ -17,16 +17,16 @@ import (
 var addr32Padding [32 - common.AddressLength]byte
 
 type SGXProver struct {
-	provider sgx.Provider
-	args     *flags.Arguments
+	sgxProvider sgx.Provider
+	args        *flags.Arguments
 }
 
 var _ Prover = (*SGXProver)(nil)
 
 func NewSGXProver(args *flags.Arguments) *SGXProver {
 	return &SGXProver{
-		args:     args,
-		provider: sgx.NewProvider(args),
+		args:        args,
+		sgxProvider: sgx.NewProvider(args),
 	}
 }
 
@@ -34,20 +34,20 @@ func (p *SGXProver) Oneshot(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	var driver witness.GuestInput
-	return genOneshotProof(ctx, p.args, &driver, p.provider)
+	return genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
 }
 
 func (p *SGXProver) BatchOneshot(
 	ctx context.Context,
 ) (*ProofResponse, error) {
 	var driver witness.BatchGuestInput
-	return genOneshotProof(ctx, p.args, &driver, p.provider)
+	return genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
 }
 
 func (p *SGXProver) Aggregate(
 	ctx context.Context,
 ) (*ProofResponse, error) {
-	prevPrivKey, err := p.provider.LoadPrivateKey()
+	prevPrivKey, err := p.sgxProvider.LoadPrivateKey()
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (p *SGXProver) Aggregate(
 	}
 
 	proof := NewAggregateProof(p.args.SGXInstanceID, oldInstance, newInstance, sign)
-	quote, err := p.provider.LoadQuote(newInstance)
+	quote, err := p.sgxProvider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = p.provider.SavePrivateKey(privKey)
+	err = p.sgxProvider.SavePrivateKey(privKey)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	newInstance := crypto.PubkeyToAddress(privKey.PublicKey)
 	fmt.Printf("Instance address: %x\n", newInstance)
 
-	quote, err := p.provider.LoadQuote(newInstance)
+	quote, err := p.sgxProvider.LoadQuote(newInstance)
 	if err != nil {
 		return err
 	}
@@ -126,10 +126,10 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 		Quote:       quote,
 	}
 
-	return p.provider.SaveBootstrap(b)
+	return p.sgxProvider.SaveBootstrap(b)
 }
 
 func (p *SGXProver) Check(ctx context.Context) error {
-	_, err := p.provider.LoadPrivateKey()
+	_, err := p.sgxProvider.LoadPrivateKey()
 	return err
 }

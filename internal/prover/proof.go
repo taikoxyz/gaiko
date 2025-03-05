@@ -89,7 +89,7 @@ func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
 	driver witness.GuestDriver,
-	provider sgx.Provider,
+	sgxProvider sgx.Provider,
 ) (*ProofResponse, error) {
 	err := json.NewDecoder(os.Stdin).Decode(driver)
 	if err != nil {
@@ -99,7 +99,7 @@ func genOneshotProof(
 	if err != nil {
 		return nil, err
 	}
-	prevPrivKey, err := provider.LoadPrivateKey()
+	prevPrivKey, err := sgxProvider.LoadPrivateKey()
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func genOneshotProof(
 	}
 
 	proof := NewOneshotProof(args.SGXInstanceID, newInstance, sign)
-	quote, err := provider.LoadQuote(newInstance)
+	quote, err := sgxProvider.LoadQuote(newInstance)
 	if err != nil {
 		return nil, err
 	}
