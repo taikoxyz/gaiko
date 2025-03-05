@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"math/big"
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"gitlab.com/c0b/go-ordered-json"
 )
@@ -19,18 +17,18 @@ import (
 //go:embed chain_spec_list_default.json
 var supportedChainSpecsJSON []byte
 
-type SupportedChainSpecs map[string]ChainSpec
+type SupportedChainSpecs []*ChainSpec
 
 var defaultSupportedChainSpecs SupportedChainSpecs
 
 func init() {
 	if err := json.Unmarshal(supportedChainSpecsJSON, &defaultSupportedChainSpecs); err != nil {
-		log.Crit("Unmarshal supported chain specs failed", "err", err)
+		panic(err)
 	}
 }
 
 func (s SupportedChainSpecs) verifyChainSpec(other *ChainSpec) error {
-	for chainSpec := range maps.Values(s) {
+	for chainSpec := range slices.Values(s) {
 		if chainSpec.ChainID != other.ChainID {
 			continue
 		}

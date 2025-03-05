@@ -7,13 +7,21 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/version"
+	"github.com/taikoxyz/taiko-mono/packages/taiko-client/cmd/logger"
 	"github.com/urfave/cli/v2"
 )
+
+func actionWrapper(action func(*cli.Context) error) func(*cli.Context) error {
+	return func(c *cli.Context) error {
+		logger.InitLogger(c)
+		return action(c)
+	}
+}
 
 var oneshotCommand = &cli.Command{
 	Name:   "one-shot",
 	Usage:  "Run state transition once",
-	Action: oneshot,
+	Action: actionWrapper(oneshot),
 	Flags: []cli.Flag{
 		flags.SGXInstanceID,
 	},
@@ -22,7 +30,7 @@ var oneshotCommand = &cli.Command{
 var batchOneshotCommand = &cli.Command{
 	Name:   "one-batch-shot",
 	Usage:  "Run multi states transition once",
-	Action: batchOneshot,
+	Action: actionWrapper(batchOneshot),
 	Flags: []cli.Flag{
 		flags.SGXInstanceID,
 	},
@@ -31,19 +39,22 @@ var batchOneshotCommand = &cli.Command{
 var bootstrapCommand = &cli.Command{
 	Name:   "bootstrap",
 	Usage:  "Run the bootstrap process",
-	Action: bootstrap,
+	Action: actionWrapper(bootstrap),
 }
 
 var aggregateCommand = &cli.Command{
 	Name:   "aggregate",
 	Usage:  "Run the aggregate process",
-	Action: aggregate,
+	Action: actionWrapper(aggregate),
+	Flags: []cli.Flag{
+		flags.SGXInstanceID,
+	},
 }
 
 var checkCommand = &cli.Command{
 	Name:   "check",
 	Usage:  "Run the check process",
-	Action: check,
+	Action: actionWrapper(check),
 }
 
 // newApp creates an app with sane defaults.

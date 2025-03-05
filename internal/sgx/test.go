@@ -8,7 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
@@ -22,15 +21,15 @@ var (
 func init() {
 	privKeyBytes, err := hex.DecodeString(testRawPrivKey)
 	if err != nil {
-		log.Crit("Decode private key failed", "err", err)
+		panic(err)
 	}
 	testPrivKey, err = crypto.ToECDSA(privKeyBytes)
 	if err != nil {
-		log.Crit("Convert private key failed", "err", err)
+		panic(err)
 	}
 	testQuote, err = hex.DecodeString(testRawQuote)
 	if err != nil {
-		log.Crit("Decode mock quote failed", "err", err)
+		panic(err)
 	}
 }
 

@@ -4,27 +4,33 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taikoxyz/taiko-mono/packages/taiko-client/cmd/flags"
 	"github.com/urfave/cli/v2"
 )
 
-const defaultGaikoUserConfigSubDir = ".config/gaiko"
+const (
+	defaultGaikoUserConfigSubDir = ".config/gaiko"
+	globalCategory               = "GLOBAL"
+)
 
 var (
 	GlobalSecretDir = &cli.StringFlag{
-		Name:  "secret-dir",
-		Usage: "Directory for the secret files",
+		Name:     "secret-dir",
+		Usage:    "Directory for the secret files",
+		Category: globalCategory,
 	}
 
 	GlobalConfigDir = &cli.StringFlag{
-		Name:  "config-dir",
-		Usage: "Directory for configuration files",
+		Name:     "config-dir",
+		Usage:    "Directory for configuration files",
+		Category: globalCategory,
 	}
 
 	GlobalSGXType = &cli.StringFlag{
-		Name:    "sgx-type",
-		Usage:   `Which SGX type? "debug", "ego" or "gramine"`,
-		EnvVars: []string{"SGX_TYPE"},
+		Name:     "sgx-type",
+		Usage:    `Which SGX type? "debug", "ego" or "gramine"`,
+		Category: globalCategory,
+		EnvVars:  []string{"SGX_TYPE"},
 	}
 
 	SGXInstanceID = &cli.Uint64Flag{
@@ -36,7 +42,7 @@ var (
 func init() {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Crit("Get home dir failed", "err", err)
+		panic(err)
 	}
 	GlobalSecretDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
 	GlobalConfigDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
@@ -51,6 +57,8 @@ var GlobalFlags = []cli.Flag{
 	GlobalSecretDir,
 	GlobalConfigDir,
 	GlobalSGXType,
+	flags.Verbosity,
+	flags.LogJSON,
 }
 
 type Arguments struct {
