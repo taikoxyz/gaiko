@@ -25,7 +25,7 @@ var defaultSupportedChainSpecs SupportedChainSpecs
 
 func init() {
 	if err := json.Unmarshal(supportedChainSpecsJSON, &defaultSupportedChainSpecs); err != nil {
-		log.Crit("Unmarshal supported chain specs failed", err)
+		log.Crit("Unmarshal supported chain specs failed", "err", err)
 	}
 }
 

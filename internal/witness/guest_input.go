@@ -71,11 +71,11 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 			blob := eth.Blob(txListBytes)
 			var err error
 			if txListBytes, err = blob.ToData(); err != nil {
-				log.Warn("Parse blob data failed", "err", err)
+				log.Error("Parse blob data failed", "err", err)
 				return
 			}
 			if txListBytes, err = sliceTxList(g.Block.Number(), txListBytes, offset, length); err != nil {
-				log.Warn(
+				log.Error(
 					"Invalid txlist offset and size in metadata",
 					"blockID", g.Block.NumberU64(),
 					"err", err,

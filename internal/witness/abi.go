@@ -41,22 +41,22 @@ const signalSlots = "_signalSlots"
 func init() {
 	arg, err := findArgumentInEventInputs(batchProposedEvent.Inputs, "meta")
 	if err != nil {
-		log.Crit("Get BatchProposed failed", err)
+		log.Crit("Get BatchProposed failed", "err", err)
 	}
 	batchMetadataComponentsArgs = abi.Arguments{arg}
 	arg, err = findArgumentInEventInputs(batchProposedEvent.Inputs, "info")
 	if err != nil {
-		log.Crit("Get BatchInfo failed", err)
+		log.Crit("Get BatchInfo failed", "err", err)
 	}
 	batchInfoComponentsArgs = abi.Arguments{arg}
 	arg, err = findArgumentInEventInputs(blockProposedEvent.Inputs, "meta")
 	if err != nil {
-		log.Crit("Get BlockProposed failed", err)
+		log.Crit("Get BlockProposed failed", "err", err)
 	}
 	blockMetadataComponentsArgs = abi.Arguments{arg}
 	arg, err = findArgumentInEventInputs(blockProposedV2Event.Inputs, "meta")
 	if err != nil {
-		log.Crit("Get BlockProposedV2 failed", err)
+		log.Crit("Get BlockProposedV2 failed", "err", err)
 	}
 	blockMetadataV2ComponentsArgs = abi.Arguments{arg}
 }

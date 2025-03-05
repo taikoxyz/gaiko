@@ -36,7 +36,7 @@ var (
 func init() {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Crit("Get home dir failed", err)
+		log.Crit("Get home dir failed", "err", err)
 	}
 	GlobalSecretDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
 	GlobalConfigDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
