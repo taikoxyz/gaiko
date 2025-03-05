@@ -43,7 +43,6 @@ func init() {
 }
 
 const (
-	DebugSGXType   = "debug"
 	EgoSGXType     = "ego"
 	GramineSGXType = "gramine"
 )

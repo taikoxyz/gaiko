@@ -8,7 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
 const (
@@ -23,17 +22,6 @@ type Provider interface {
 	LoadPrivateKey() (*ecdsa.PrivateKey, error)
 	SavePrivateKey(privKey *ecdsa.PrivateKey) error
 	SaveBootstrap(b *BootstrapData) error
-}
-
-func NewProvider(args *flags.Arguments) Provider {
-	switch args.SGXType {
-	case flags.DebugSGXType:
-		return NewDebugProvider(args)
-	case flags.GramineSGXType:
-		return NewGramineProvider(args)
-	default:
-		return NewEgoProvider(args)
-	}
 }
 
 type BootstrapData struct {
