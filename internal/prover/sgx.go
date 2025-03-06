@@ -14,7 +14,7 @@ import (
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
-var addr32Padding [32 - common.AddressLength]byte
+var addr2HashPadding [32 - common.AddressLength]byte
 
 type SGXProver struct {
 	sgxProvider sgx.Provider
@@ -74,9 +74,9 @@ func (p *SGXProver) Aggregate(
 	}
 
 	combinedHashes := make([]byte, 0, (len(input.Proofs)+2)*32)
-	combinedHashes = append(combinedHashes, addr32Padding[:]...)
+	combinedHashes = append(combinedHashes, addr2HashPadding[:]...)
 	combinedHashes = append(combinedHashes, oldInstance.Bytes()...)
-	combinedHashes = append(combinedHashes, addr32Padding[:]...)
+	combinedHashes = append(combinedHashes, addr2HashPadding[:]...)
 	combinedHashes = append(combinedHashes, newInstance.Bytes()...)
 	for _, proof := range input.Proofs {
 		combinedHashes = append(combinedHashes, proof.Input.Bytes()...)
