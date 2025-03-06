@@ -15,4 +15,7 @@ func TestTestProvider(t *testing.T) {
 	q, err := p.LoadQuote(common.Address{})
 	require.NoError(t, err)
 	assert.Equal(t, testQuote, q)
+	privKey, err := p.LoadPrivateKey()
+	require.NoError(t, err)
+	assert.Equal(t, testPrivKey, privKey)
 }
