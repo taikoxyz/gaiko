@@ -375,7 +375,7 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 			if err != nil {
 				return nil, err
 			}
-			if len(encoded) < 32 {
+			if len(encoded) < common.HashLength {
 				m.cachedRef = bytesMptNodeRef(encoded)
 			} else {
 				m.cachedRef = digestMptNodeRef(keccak.Keccak(encoded))
