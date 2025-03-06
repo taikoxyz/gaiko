@@ -1,4 +1,4 @@
-//go:build !test
+//go:build !dev
 
 package sgx
 
