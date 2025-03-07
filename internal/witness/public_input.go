@@ -20,13 +20,9 @@ type PublicInput struct {
 }
 
 func (p *PublicInput) Hash() (common.Hash, error) {
-	var (
-		data []byte
-		err  error
-	)
 	switch trans := p.transition.(type) {
-	case *ontake.TaikoDataTransition:
-		data, err = publicInputsType.Pack(
+	case *ontake.TaikoDataTransition, *pacaya.ITaikoInboxTransition:
+		data, err := publicInputsType.Pack(
 			"VERIFY_PROOF",
 			p.chainID,
 			p.verifier,
@@ -34,21 +30,13 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 			p.sgxInstance,
 			p.block_metadata.Hash(),
 		)
-	case *pacaya.ITaikoInboxTransition:
-		data, err = publicInputsType.Pack(
-			"VERIFY_PROOF",
-			p.chainID,
-			p.verifier,
-			trans,
-			p.sgxInstance,
-			p.block_metadata.Hash(),
-		)
+		if err != nil {
+			return common.Hash{}, err
+		}
+		return keccak.Keccak(data), nil
+	default:
+		panic("unreachable")
 	}
-
-	if err != nil {
-		return common.Hash{}, err
-	}
-	return keccak.Keccak(data), nil
 }
 
 func NewPublicInput(
