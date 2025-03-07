@@ -6,8 +6,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taikoxyz/gaiko/internal/keccak"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
 type PublicInput struct {
@@ -20,23 +18,18 @@ type PublicInput struct {
 }
 
 func (p *PublicInput) Hash() (common.Hash, error) {
-	switch trans := p.transition.(type) {
-	case *ontake.TaikoDataTransition, *pacaya.ITaikoInboxTransition:
-		data, err := publicInputsType.Pack(
-			"VERIFY_PROOF",
-			p.chainID,
-			p.verifier,
-			trans,
-			p.sgxInstance,
-			p.block_metadata.Hash(),
-		)
-		if err != nil {
-			return common.Hash{}, err
-		}
-		return keccak.Keccak(data), nil
-	default:
-		panic("unreachable")
+	data, err := publicInputsType.Pack(
+		"VERIFY_PROOF",
+		p.chainID,
+		p.verifier,
+		p.transition,
+		p.sgxInstance,
+		p.block_metadata.Hash(),
+	)
+	if err != nil {
+		return common.Hash{}, err
 	}
+	return keccak.Keccak(data), nil
 }
 
 func NewPublicInput(
