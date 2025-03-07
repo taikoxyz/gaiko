@@ -48,6 +48,8 @@ func (p *TestProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 }
 
 func (p *TestProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
+	// rewrite the private key with the mock one
+	*privKey = *testPrivKey
 	return nil
 }
 
