@@ -15,15 +15,9 @@ const (
 	bootstrapInfoFilename = "bootstrap.json"
 )
 
-type Quote [432]byte
+type Quote []byte
 
-func BytesToQuote(b []byte) *Quote {
-	var q Quote
-	copy(q[:], b)
-	return &q
-}
-
-func (q *Quote) Print() {
+func (q Quote) Print() {
 	fmt.Printf("Detected attestation type: enclave")
 	fmt.Printf(
 		"Extracted SGX quote with size = %d and the following fields:\n",

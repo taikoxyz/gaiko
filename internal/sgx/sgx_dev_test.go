@@ -23,5 +23,5 @@ func TestDevProvider(t *testing.T) {
 
 	newInstance := crypto.PubkeyToAddress(devPrivKey.PublicKey)
 	fmt.Printf("Instance address: %#x\n", newInstance)
-	BytesToQuote(devQuote).Print()
+	Quote(devQuote).Print()
 }

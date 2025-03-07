@@ -29,7 +29,7 @@ func (p *ProofResponse) Stdout() error {
 	if err != nil {
 		return err
 	}
-	sgx.BytesToQuote(p.Quote).Print()
+	sgx.Quote(p.Quote).Print()
 	return nil
 }
 
