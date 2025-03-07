@@ -41,7 +41,8 @@ type Header struct {
 	BlobGasUsed           *uint64        `json:"blob_gas_used"`
 	ExcessBlobGas         *uint64        `json:"excess_blob_gas"`
 	ParentBeaconBlockRoot *common.Hash   `json:"parent_beacon_block_root"`
-	RequestsRoot          *common.Hash   `json:"requests_root"`
+	// FIXME: requests_root => requests_hash
+	RequestsRoot *common.Hash `json:"requests_root"`
 }
 
 type headerMarshaling struct {
