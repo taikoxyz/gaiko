@@ -62,6 +62,7 @@ const (
 	Sp1ProofType    ProofType = "SP1"
 	SGXProofType    ProofType = "SGX"
 	Risc0ProofType  ProofType = "RISC0"
+	PivotProofType  ProofType = "PIVOT"
 )
 
 type HardFork struct {
