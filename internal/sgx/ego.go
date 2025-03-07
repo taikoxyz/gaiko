@@ -59,12 +59,10 @@ func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
 }
 
 func getReport(userReport []byte) ([]byte, error) {
-	return enclave.GetRemoteReport(userReport)
-	// // get empty local report to use it as target info
-	// report, err := enclave.GetLocalReport(nil, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// // get report for target
-	// return enclave.GetLocalReport(userReport, report)
+	report, err := enclave.GetRemoteReport(userReport)
+	if err != nil {
+		return nil, err
+	}
+	// NB: The first 16 bytes of the report are quote nonce.
+	return report[16:], nil
 }
