@@ -7,13 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/version"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/cmd/logger"
 	"github.com/urfave/cli/v2"
 )
 
 func actionWrapper(action func(*cli.Context) error) func(*cli.Context) error {
 	return func(c *cli.Context) error {
-		logger.InitLogger(c)
+		flags.InitLogger(c)
 		return action(c)
 	}
 }

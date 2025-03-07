@@ -4,13 +4,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/cmd/flags"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/urfave/cli/v2"
 )
 
 const (
 	defaultGaikoUserConfigSubDir = ".config/gaiko"
 	globalCategory               = "GLOBAL"
+	loggingCategory              = "LOGGING"
 )
 
 var (
@@ -37,6 +38,22 @@ var (
 		Name:  "sgx-instance-id",
 		Usage: "SGX Instance ID for one-(batch-)shot operation",
 	}
+
+	// Optional flags used by all client software.
+	// Logging
+	Verbosity = &cli.IntFlag{
+		Name:     "verbosity",
+		Usage:    "Logging verbosity: 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=detail",
+		Value:    3,
+		Category: loggingCategory,
+		EnvVars:  []string{"VERBOSITY"},
+	}
+	LogJSON = &cli.BoolFlag{
+		Name:     "log.json",
+		Usage:    "Format logs with JSON",
+		Category: loggingCategory,
+		EnvVars:  []string{"LOG_JSON"},
+	}
 )
 
 func init() {
@@ -57,8 +74,8 @@ var GlobalFlags = []cli.Flag{
 	GlobalSecretDir,
 	GlobalConfigDir,
 	GlobalSGXType,
-	flags.Verbosity,
-	flags.LogJSON,
+	Verbosity,
+	LogJSON,
 }
 
 type Arguments struct {
@@ -74,5 +91,22 @@ func NewArguments(cli *cli.Context) *Arguments {
 		ConfigDir:     cli.String(GlobalConfigDir.Name),
 		SGXType:       cli.String(GlobalSGXType.Name),
 		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
+	}
+}
+
+// InitLogger initializes the root logger with the command line flags.
+func InitLogger(c *cli.Context) {
+	var (
+		slogVerbosity = log.FromLegacyLevel(c.Int(Verbosity.Name))
+	)
+
+	if c.Bool(LogJSON.Name) {
+		glogger := log.NewGlogHandler(log.NewGlogHandler(log.JSONHandler(os.Stdout)))
+		glogger.Verbosity(slogVerbosity)
+		log.SetDefault(log.NewLogger(glogger))
+	} else {
+		glogger := log.NewGlogHandler(log.NewTerminalHandler(os.Stdout, false))
+		glogger.Verbosity(slogVerbosity)
+		log.SetDefault(log.NewLogger(glogger))
 	}
 }
