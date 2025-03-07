@@ -12,15 +12,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTestProvider(t *testing.T) {
+func TestDevProvider(t *testing.T) {
 	p := NewProvider(nil)
 	q, err := p.LoadQuote(common.Address{})
 	require.NoError(t, err)
-	assert.Equal(t, testQuote, q)
+	assert.Equal(t, devQuote, q)
 	privKey, err := p.LoadPrivateKey()
 	require.NoError(t, err)
-	assert.Equal(t, testPrivKey, privKey)
+	assert.Equal(t, devPrivKey, privKey)
 
-	newInstance := crypto.PubkeyToAddress(testPrivKey.PublicKey)
+	newInstance := crypto.PubkeyToAddress(devPrivKey.PublicKey)
 	fmt.Printf("Instance address: %#x\n", newInstance)
+	BytesToQuote(devQuote).Print()
 }
