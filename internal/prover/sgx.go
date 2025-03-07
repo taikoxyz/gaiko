@@ -70,7 +70,7 @@ func (p *SGXProver) Aggregate(
 		curInstance = common.BytesToAddress(proof.Proof[4:24])
 	}
 	if newInstance != curInstance {
-		return nil, fmt.Errorf("invalid instance: %s", curInstance)
+		return nil, fmt.Errorf("invalid instance: %#x", curInstance)
 	}
 
 	combinedHashes := make([]byte, 0, (len(input.Proofs)+2)*common.HashLength)
@@ -112,9 +112,9 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Public key: %x\n", privKey.PublicKey)
+	fmt.Printf("Public key: %#x\n", privKey.PublicKey)
 	newInstance := crypto.PubkeyToAddress(privKey.PublicKey)
-	fmt.Printf("Instance address: %x\n", newInstance)
+	fmt.Printf("Instance address: %#x\n", newInstance)
 
 	quote, err := p.sgxProvider.LoadQuote(newInstance)
 	if err != nil {

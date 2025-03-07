@@ -75,7 +75,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 			return nil, err
 		}
 		if root != acc.Root {
-			return nil, fmt.Errorf("account root mismatch for address: %s", addr.Hex())
+			return nil, fmt.Errorf("account root mismatch for address: %#x", addr)
 		}
 		var code []byte
 		if common.BytesToHash(acc.CodeHash) != types.EmptyCodeHash {

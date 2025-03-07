@@ -63,7 +63,7 @@ func ExecuteGuestDriver(
 		for addr, acc := range collector {
 			storageEntry, ok := g.ParentStorage[addr]
 			if !ok {
-				return fmt.Errorf("account not found for address: %s", addr.Hex())
+				return fmt.Errorf("account not found for address: %#x", addr)
 			}
 			_, ok = preState.accounts[addr]
 			if !ok {

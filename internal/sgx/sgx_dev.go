@@ -16,6 +16,7 @@ var (
 	testQuote      []byte
 	testRawPrivKey = "fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19"
 	testPrivKey    *ecdsa.PrivateKey
+	testAddress    = "96216849c49358b10257cb55b28ea603c874b05e"
 )
 
 func init() {

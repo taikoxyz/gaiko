@@ -31,7 +31,7 @@ type BootstrapData struct {
 }
 
 func (b *BootstrapData) SaveToFile(filename string) error {
-	fmt.Printf("Bootstrap details saved in: %s \n", filename)
+	fmt.Printf("Bootstrap details saved in: %s\n", filename)
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
