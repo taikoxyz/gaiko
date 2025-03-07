@@ -45,8 +45,8 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 		return nil, err
 	}
 	if g.ParentHeader.Root != parentRoot {
-		return nil, fmt.Errorf("parent state root mismatch: expected %s, got %s",
-			g.ParentHeader.Root.Hex(), parentRoot.Hex())
+		return nil, fmt.Errorf("parent state root mismatch: expected %#x, got %#x",
+			g.ParentHeader.Root, parentRoot)
 	}
 	mdb := rawdb.NewMemoryDatabase()
 	tdb := triedb.NewDatabase(mdb, &triedb.Config{Preimages: true})
@@ -105,9 +105,9 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	for header := range slices.Values(g.AncestorHeaders) {
 		if prev.ParentHash != header.Hash() {
 			return nil, fmt.Errorf(
-				"parent hash mismatch: expected %s, got %s",
-				prev.ParentHash.Hex(),
-				header.Hash().Hex(),
+				"parent hash mismatch: expected %#x, got %#x",
+				prev.ParentHash,
+				header.Hash(),
 			)
 		}
 		historyHashes[header.Number.Uint64()] = header.Hash()

@@ -104,10 +104,10 @@ func ExecuteGuestDriver(
 		}
 		if expected != actual {
 			return fmt.Errorf(
-				"block %d root mismatch: expected %s, got %s",
+				"block %d root mismatch: expected %#x, got %#x",
 				g.Block.NumberU64(),
-				expected.Hex(),
-				actual.Hex(),
+				expected,
+				actual,
 			)
 		}
 	}

@@ -61,7 +61,7 @@ func NewPublicInput(
 		got, _ := pi.block_metadata.ABIEncode()
 		want, _ := driver.BlockProposedFork().ABIEncode()
 		if !slices.Equal(got, want) {
-			return nil, fmt.Errorf("block hash mismatch, expected: %+v, got: %+v", want, got)
+			return nil, fmt.Errorf("block hash mismatch, expected: %#x, got: %#x", want, got)
 		}
 	}
 	return pi, nil

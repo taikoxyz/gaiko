@@ -181,7 +181,7 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 			},
 		}
 	default:
-		return nil, fmt.Errorf("unsupported hardfork: %v", g.Taiko.BlockProposed.HardFork())
+		return nil, fmt.Errorf("unsupported hardfork: %s", g.Taiko.BlockProposed.HardFork())
 	}
 	return metadata, nil
 }

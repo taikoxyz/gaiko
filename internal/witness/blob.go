@@ -39,7 +39,7 @@ func verifyBlob(
 			gotStr, _ := got.MarshalText()
 			wantStr, _ := commitment.MarshalText()
 			return fmt.Errorf(
-				"commitment mismatch: got %v, want %v",
+				"commitment mismatch: got %s, want %s",
 				string(gotStr),
 				string(wantStr),
 			)
