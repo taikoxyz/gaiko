@@ -20,11 +20,8 @@ var (
 )
 
 func init() {
-	privKeyBytes, err := hex.DecodeString(testRawPrivKey)
-	if err != nil {
-		panic(err)
-	}
-	testPrivKey, err = crypto.ToECDSA(privKeyBytes)
+	var err error
+	testPrivKey, err = crypto.HexToECDSA(testRawPrivKey)
 	if err != nil {
 		panic(err)
 	}
