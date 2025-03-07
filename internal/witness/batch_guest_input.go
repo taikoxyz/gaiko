@@ -25,7 +25,7 @@ type BatchGuestInput struct {
 }
 
 type TaikoGuestBatchInput struct {
-	BatchId            uint64
+	BatchID            uint64
 	L1Header           *types.Header
 	BatchProposed      BlockProposedFork
 	ChainSpec          *ChainSpec
@@ -163,7 +163,7 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 	return NewPacayaBlockMetadata(&pacaya.ITaikoInboxBatchMetadata{
 		InfoHash:   infoHash,
 		Proposer:   g.Taiko.BatchProposed.Proposer(),
-		BatchId:    g.Taiko.BatchId,
+		BatchId:    g.Taiko.BatchID,
 		ProposedAt: g.Taiko.BatchProposed.ProposedAt(),
 	}), nil
 

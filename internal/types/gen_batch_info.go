@@ -25,9 +25,9 @@ func (b BatchInfo) MarshalJSON() ([]byte, error) {
 		BlobByteSize       uint32                      `json:"blobByteSize"       gencodec:"required"`
 		BlobCreatedIn      math.HexOrDecimal64         `json:"blobCreatedIn"      gencodec:"required"`
 		GasLimit           uint32                      `json:"gasLimit"           gencodec:"required"`
-		LastBlockId        math.HexOrDecimal64         `json:"lastBlockId"        gencodec:"required"`
+		LastBlockID        math.HexOrDecimal64         `json:"lastBlockId"        gencodec:"required"`
 		LastBlockTimestamp math.HexOrDecimal64         `json:"lastBlockTimestamp" gencodec:"required"`
-		AnchorBlockId      math.HexOrDecimal64         `json:"anchorBlockId"      gencodec:"required"`
+		AnchorBlockID      math.HexOrDecimal64         `json:"anchorBlockId"      gencodec:"required"`
 		AnchorBlockHash    common.Hash                 `json:"anchorBlockHash"    gencodec:"required"`
 		BaseFeeConfig      *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"      gencodec:"required"`
 	}
@@ -47,9 +47,9 @@ func (b BatchInfo) MarshalJSON() ([]byte, error) {
 	enc.BlobByteSize = b.BlobByteSize
 	enc.BlobCreatedIn = math.HexOrDecimal64(b.BlobCreatedIn)
 	enc.GasLimit = b.GasLimit
-	enc.LastBlockId = math.HexOrDecimal64(b.LastBlockId)
+	enc.LastBlockID = math.HexOrDecimal64(b.LastBlockID)
 	enc.LastBlockTimestamp = math.HexOrDecimal64(b.LastBlockTimestamp)
-	enc.AnchorBlockId = math.HexOrDecimal64(b.AnchorBlockId)
+	enc.AnchorBlockID = math.HexOrDecimal64(b.AnchorBlockID)
 	enc.AnchorBlockHash = b.AnchorBlockHash
 	enc.BaseFeeConfig = b.BaseFeeConfig
 	return json.Marshal(&enc)
@@ -68,9 +68,9 @@ func (b *BatchInfo) UnmarshalJSON(input []byte) error {
 		BlobByteSize       *uint32                     `json:"blobByteSize"       gencodec:"required"`
 		BlobCreatedIn      *math.HexOrDecimal64        `json:"blobCreatedIn"      gencodec:"required"`
 		GasLimit           *uint32                     `json:"gasLimit"           gencodec:"required"`
-		LastBlockId        *math.HexOrDecimal64        `json:"lastBlockId"        gencodec:"required"`
+		LastBlockID        *math.HexOrDecimal64        `json:"lastBlockId"        gencodec:"required"`
 		LastBlockTimestamp *math.HexOrDecimal64        `json:"lastBlockTimestamp" gencodec:"required"`
-		AnchorBlockId      *math.HexOrDecimal64        `json:"anchorBlockId"      gencodec:"required"`
+		AnchorBlockID      *math.HexOrDecimal64        `json:"anchorBlockId"      gencodec:"required"`
 		AnchorBlockHash    *common.Hash                `json:"anchorBlockHash"    gencodec:"required"`
 		BaseFeeConfig      *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"      gencodec:"required"`
 	}
@@ -121,18 +121,18 @@ func (b *BatchInfo) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'gasLimit' for BatchInfo")
 	}
 	b.GasLimit = *dec.GasLimit
-	if dec.LastBlockId == nil {
+	if dec.LastBlockID == nil {
 		return errors.New("missing required field 'lastBlockId' for BatchInfo")
 	}
-	b.LastBlockId = uint64(*dec.LastBlockId)
+	b.LastBlockID = uint64(*dec.LastBlockID)
 	if dec.LastBlockTimestamp == nil {
 		return errors.New("missing required field 'lastBlockTimestamp' for BatchInfo")
 	}
 	b.LastBlockTimestamp = uint64(*dec.LastBlockTimestamp)
-	if dec.AnchorBlockId == nil {
+	if dec.AnchorBlockID == nil {
 		return errors.New("missing required field 'anchorBlockId' for BatchInfo")
 	}
-	b.AnchorBlockId = uint64(*dec.AnchorBlockId)
+	b.AnchorBlockID = uint64(*dec.AnchorBlockID)
 	if dec.AnchorBlockHash == nil {
 		return errors.New("missing required field 'anchorBlockHash' for BatchInfo")
 	}

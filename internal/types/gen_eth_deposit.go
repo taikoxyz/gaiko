@@ -18,12 +18,12 @@ func (e EthDeposit) MarshalJSON() ([]byte, error) {
 	type EthDeposit struct {
 		Recipient common.Address        `json:"recipient" gencodec:"required"`
 		Amount    *math.HexOrDecimal256 `json:"amount"    gencodec:"required"`
-		Id        math.HexOrDecimal64   `json:"id"        gencodec:"required"`
+		ID        math.HexOrDecimal64   `json:"id"        gencodec:"required"`
 	}
 	var enc EthDeposit
 	enc.Recipient = e.Recipient
 	enc.Amount = (*math.HexOrDecimal256)(e.Amount)
-	enc.Id = math.HexOrDecimal64(e.Id)
+	enc.ID = math.HexOrDecimal64(e.ID)
 	return json.Marshal(&enc)
 }
 
@@ -32,7 +32,7 @@ func (e *EthDeposit) UnmarshalJSON(input []byte) error {
 	type EthDeposit struct {
 		Recipient *common.Address       `json:"recipient" gencodec:"required"`
 		Amount    *math.HexOrDecimal256 `json:"amount"    gencodec:"required"`
-		Id        *math.HexOrDecimal64  `json:"id"        gencodec:"required"`
+		ID        *math.HexOrDecimal64  `json:"id"        gencodec:"required"`
 	}
 	var dec EthDeposit
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -46,9 +46,9 @@ func (e *EthDeposit) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'amount' for EthDeposit")
 	}
 	e.Amount = (*big.Int)(dec.Amount)
-	if dec.Id == nil {
+	if dec.ID == nil {
 		return errors.New("missing required field 'id' for EthDeposit")
 	}
-	e.Id = uint64(*dec.Id)
+	e.ID = uint64(*dec.ID)
 	return nil
 }

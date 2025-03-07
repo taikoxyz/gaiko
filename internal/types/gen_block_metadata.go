@@ -21,7 +21,7 @@ func (b BlockMetadata) MarshalJSON() ([]byte, error) {
 		ExtraData      common.Hash         `json:"extraData"      gencodec:"required"`
 		DepositsHash   common.Hash         `json:"depositsHash"   gencodec:"required"`
 		Coinbase       common.Address      `json:"coinbase"       gencodec:"required"`
-		Id             math.HexOrDecimal64 `json:"id"             gencodec:"required"`
+		ID             math.HexOrDecimal64 `json:"id"             gencodec:"required"`
 		GasLimit       uint32              `json:"gasLimit"       gencodec:"required"`
 		Timestamp      math.HexOrDecimal64 `json:"timestamp"      gencodec:"required"`
 		L1Height       math.HexOrDecimal64 `json:"l1Height"       gencodec:"required"`
@@ -37,7 +37,7 @@ func (b BlockMetadata) MarshalJSON() ([]byte, error) {
 	enc.ExtraData = b.ExtraData
 	enc.DepositsHash = b.DepositsHash
 	enc.Coinbase = b.Coinbase
-	enc.Id = math.HexOrDecimal64(b.Id)
+	enc.ID = math.HexOrDecimal64(b.ID)
 	enc.GasLimit = b.GasLimit
 	enc.Timestamp = math.HexOrDecimal64(b.Timestamp)
 	enc.L1Height = math.HexOrDecimal64(b.L1Height)
@@ -57,7 +57,7 @@ func (b *BlockMetadata) UnmarshalJSON(input []byte) error {
 		ExtraData      *common.Hash         `json:"extraData"      gencodec:"required"`
 		DepositsHash   *common.Hash         `json:"depositsHash"   gencodec:"required"`
 		Coinbase       *common.Address      `json:"coinbase"       gencodec:"required"`
-		Id             *math.HexOrDecimal64 `json:"id"             gencodec:"required"`
+		ID             *math.HexOrDecimal64 `json:"id"             gencodec:"required"`
 		GasLimit       *uint32              `json:"gasLimit"       gencodec:"required"`
 		Timestamp      *math.HexOrDecimal64 `json:"timestamp"      gencodec:"required"`
 		L1Height       *math.HexOrDecimal64 `json:"l1Height"       gencodec:"required"`
@@ -94,10 +94,10 @@ func (b *BlockMetadata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'coinbase' for BlockMetadata")
 	}
 	b.Coinbase = *dec.Coinbase
-	if dec.Id == nil {
+	if dec.ID == nil {
 		return errors.New("missing required field 'id' for BlockMetadata")
 	}
-	b.Id = uint64(*dec.Id)
+	b.ID = uint64(*dec.ID)
 	if dec.GasLimit == nil {
 		return errors.New("missing required field 'gasLimit' for BlockMetadata")
 	}

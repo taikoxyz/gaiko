@@ -33,14 +33,19 @@ func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 			BlobByteOffset:     b.Info.BlobByteOffset,
 			BlobByteSize:       b.Info.BlobByteSize,
 			GasLimit:           b.Info.GasLimit,
-			LastBlockId:        b.Info.LastBlockId,
+			LastBlockId:        b.Info.LastBlockID,
 			LastBlockTimestamp: b.Info.LastBlockTimestamp,
-			AnchorBlockId:      b.Info.AnchorBlockId,
+			AnchorBlockId:      b.Info.AnchorBlockID,
 			AnchorBlockHash:    b.Info.AnchorBlockHash,
 			BaseFeeConfig:      pacaya.LibSharedDataBaseFeeConfig(*b.Info.BaseFeeConfig),
 			BlobCreatedIn:      b.Info.BlobCreatedIn,
 		},
-		Meta:   pacaya.ITaikoInboxBatchMetadata(*b.Meta),
+		Meta: pacaya.ITaikoInboxBatchMetadata{
+			InfoHash:   b.Meta.InfoHash,
+			Proposer:   b.Meta.Proposer,
+			BatchId:    b.Meta.BatchID,
+			ProposedAt: b.Info.ProposedIn,
+		},
 		TxList: b.TxList,
 	}
 }
@@ -55,13 +60,13 @@ type batchProposedMarshaling struct {
 type BatchMetadata struct {
 	InfoHash   [32]byte       `json:"infoHash"   gencodec:"required"`
 	Proposer   common.Address `json:"proposer"   gencodec:"required"`
-	BatchId    uint64         `json:"batchId"    gencodec:"required"`
+	BatchID    uint64         `json:"batchId"    gencodec:"required"`
 	ProposedAt uint64         `json:"proposedAt" gencodec:"required"`
 }
 
 type batchMetadataMarshaling struct {
 	InfoHash   common.Hash         `json:"infoHash"   gencodec:"required"`
-	BatchId    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
+	BatchID    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 	ProposedAt math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 }
 
@@ -107,9 +112,9 @@ type BatchInfo struct {
 	BlobByteSize       uint32                      `json:"blobByteSize"       gencodec:"required"`
 	BlobCreatedIn      uint64                      `json:"blobCreatedIn"      gencodec:"required"`
 	GasLimit           uint32                      `json:"gasLimit"           gencodec:"required"`
-	LastBlockId        uint64                      `json:"lastBlockId"        gencodec:"required"`
+	LastBlockID        uint64                      `json:"lastBlockId"        gencodec:"required"`
 	LastBlockTimestamp uint64                      `json:"lastBlockTimestamp" gencodec:"required"`
-	AnchorBlockId      uint64                      `json:"anchorBlockId"      gencodec:"required"`
+	AnchorBlockID      uint64                      `json:"anchorBlockId"      gencodec:"required"`
 	AnchorBlockHash    common.Hash                 `json:"anchorBlockHash"    gencodec:"required"`
 	BaseFeeConfig      *LibSharedDataBaseFeeConfig `json:"baseFeeConfig"      gencodec:"required"`
 }
@@ -118,7 +123,7 @@ type batchInfoMarshaling struct {
 	BlobHashes         []common.Hash       `json:"blobHashes"         gencodec:"required"`
 	ProposedIn         math.HexOrDecimal64 `json:"proposedIn"         gencodec:"required"`
 	BlobCreatedIn      math.HexOrDecimal64 `json:"blobCreatedIn"      gencodec:"required"`
-	LastBlockId        math.HexOrDecimal64 `json:"lastBlockId"        gencodec:"required"`
+	LastBlockID        math.HexOrDecimal64 `json:"lastBlockId"        gencodec:"required"`
 	LastBlockTimestamp math.HexOrDecimal64 `json:"lastBlockTimestamp" gencodec:"required"`
-	AnchorBlockId      math.HexOrDecimal64 `json:"anchorBlockId"      gencodec:"required"`
+	AnchorBlockID      math.HexOrDecimal64 `json:"anchorBlockId"      gencodec:"required"`
 }

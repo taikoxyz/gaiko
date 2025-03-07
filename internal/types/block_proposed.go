@@ -12,7 +12,7 @@ import (
 
 // BlockProposed represents a BlockProposed event raised by the TaikoL1Client contract.
 type BlockProposed struct {
-	BlockId           *big.Int       `json:"blockId"           gencodec:"required"`
+	BlockID           *big.Int       `json:"blockId"           gencodec:"required"`
 	AssignedProver    common.Address `json:"assignedProver"    gencodec:"required"`
 	LivenessBond      *big.Int       `json:"livenessBond"      gencodec:"required"`
 	Meta              *BlockMetadata `json:"meta"              gencodec:"required"`
@@ -25,11 +25,11 @@ func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
 		deposits[i] = ontake.TaikoDataEthDeposit{
 			Recipient: deposit.Recipient,
 			Amount:    deposit.Amount,
-			Id:        deposit.Id,
+			Id:        deposit.ID,
 		}
 	}
 	return &ontake.TaikoL1ClientBlockProposed{
-		BlockId:        b.BlockId,
+		BlockId:        b.BlockID,
 		AssignedProver: b.AssignedProver,
 		LivenessBond:   b.LivenessBond,
 		Meta: ontake.TaikoDataBlockMetadata{
@@ -39,7 +39,7 @@ func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
 			ExtraData:      b.Meta.ExtraData,
 			DepositsHash:   b.Meta.DepositsHash,
 			Coinbase:       b.Meta.Coinbase,
-			Id:             b.Meta.Id,
+			Id:             b.Meta.ID,
 			GasLimit:       b.Meta.GasLimit,
 			Timestamp:      b.Meta.Timestamp,
 			L1Height:       b.Meta.L1Height,
@@ -53,7 +53,7 @@ func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
 }
 
 type blockProposedMarshaling struct {
-	BlockId      *math.HexOrDecimal256 `json:"blockId"      gencodec:"required"`
+	BlockID      *math.HexOrDecimal256 `json:"blockId"      gencodec:"required"`
 	LivenessBond *math.HexOrDecimal256 `json:"livenessBond" gencodec:"required"`
 }
 
@@ -67,7 +67,7 @@ type BlockMetadata struct {
 	ExtraData      common.Hash    `json:"extraData"      gencodec:"required"`
 	DepositsHash   common.Hash    `json:"depositsHash"   gencodec:"required"`
 	Coinbase       common.Address `json:"coinbase"       gencodec:"required"`
-	Id             uint64         `json:"id"             gencodec:"required"`
+	ID             uint64         `json:"id"             gencodec:"required"`
 	GasLimit       uint32         `json:"gasLimit"       gencodec:"required"`
 	Timestamp      uint64         `json:"timestamp"      gencodec:"required"`
 	L1Height       uint64         `json:"l1Height"       gencodec:"required"`
@@ -78,7 +78,7 @@ type BlockMetadata struct {
 }
 
 type blockMetadataMarshaling struct {
-	Id        math.HexOrDecimal64 `json:"id"        gencodec:"required"`
+	ID        math.HexOrDecimal64 `json:"id"        gencodec:"required"`
 	Timestamp math.HexOrDecimal64 `json:"timestamp" gencodec:"required"`
 	L1Height  math.HexOrDecimal64 `json:"l1Height"  gencodec:"required"`
 }
@@ -89,10 +89,10 @@ type blockMetadataMarshaling struct {
 type EthDeposit struct {
 	Recipient common.Address `json:"recipient" gencodec:"required"`
 	Amount    *big.Int       `json:"amount"    gencodec:"required"`
-	Id        uint64         `json:"id"        gencodec:"required"`
+	ID        uint64         `json:"id"        gencodec:"required"`
 }
 
 type ethDepositMarshaling struct {
 	Amount *math.HexOrDecimal256 `json:"amount" gencodec:"required"`
-	Id     math.HexOrDecimal64   `json:"id"     gencodec:"required"`
+	ID     math.HexOrDecimal64   `json:"id"     gencodec:"required"`
 }

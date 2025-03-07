@@ -25,10 +25,10 @@ func (b *BlockProposedV2) GethType() *ontake.TaikoL1ClientBlockProposedV2 {
 			BlobHash:         b.Meta.BlobHash,
 			ExtraData:        b.Meta.ExtraData,
 			Coinbase:         b.Meta.Coinbase,
-			Id:               b.Meta.Id,
+			Id:               b.Meta.ID,
 			GasLimit:         b.Meta.GasLimit,
 			Timestamp:        b.Meta.Timestamp,
-			AnchorBlockId:    b.Meta.AnchorBlockId,
+			AnchorBlockId:    b.Meta.AnchorBlockID,
 			MinTier:          b.Meta.MinTier,
 			BlobUsed:         b.Meta.BlobUsed,
 			ParentMetaHash:   b.Meta.ParentMetaHash,
@@ -63,10 +63,10 @@ type BlockMetadataV2 struct {
 	BlobHash         common.Hash                 `json:"blobHash"         gencodec:"required"`
 	ExtraData        common.Hash                 `json:"extraData"        gencodec:"required"`
 	Coinbase         common.Address              `json:"coinbase"         gencodec:"required"`
-	Id               uint64                      `json:"id"               gencodec:"required"`
+	ID               uint64                      `json:"id"               gencodec:"required"`
 	GasLimit         uint32                      `json:"gasLimit"         gencodec:"required"`
 	Timestamp        uint64                      `json:"timestamp"        gencodec:"required"`
-	AnchorBlockId    uint64                      `json:"anchorBlockId"    gencodec:"required"`
+	AnchorBlockID    uint64                      `json:"anchorBlockId"    gencodec:"required"`
 	MinTier          uint16                      `json:"minTier"          gencodec:"required"`
 	BlobUsed         bool                        `json:"blobUsed"         gencodec:"required"`
 	ParentMetaHash   common.Hash                 `json:"parentMetaHash"   gencodec:"required"`
@@ -81,9 +81,9 @@ type BlockMetadataV2 struct {
 }
 
 type blockMetadataV2Marshaling struct {
-	Id            math.HexOrDecimal64   `json:"id"            gencodec:"required"`
+	ID            math.HexOrDecimal64   `json:"id"            gencodec:"required"`
 	Timestamp     math.HexOrDecimal64   `json:"timestamp"     gencodec:"required"`
-	AnchorBlockId math.HexOrDecimal64   `json:"anchorBlockId" gencodec:"required"`
+	AnchorBlockID math.HexOrDecimal64   `json:"anchorBlockId" gencodec:"required"`
 	LivenessBond  *math.HexOrDecimal256 `json:"livenessBond"  gencodec:"required"`
 	ProposedAt    math.HexOrDecimal64   `json:"proposedAt"    gencodec:"required"`
 	ProposedIn    math.HexOrDecimal64   `json:"proposedIn"    gencodec:"required"`

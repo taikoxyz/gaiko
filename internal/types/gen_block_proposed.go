@@ -16,14 +16,14 @@ var _ = (*blockProposedMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BlockProposed) MarshalJSON() ([]byte, error) {
 	type BlockProposed struct {
-		BlockId           *math.HexOrDecimal256 `json:"blockId"           gencodec:"required"`
+		BlockID           *math.HexOrDecimal256 `json:"blockId"           gencodec:"required"`
 		AssignedProver    common.Address        `json:"assignedProver"    gencodec:"required"`
 		LivenessBond      *math.HexOrDecimal256 `json:"livenessBond"      gencodec:"required"`
 		Meta              *BlockMetadata        `json:"meta"              gencodec:"required"`
 		DepositsProcessed []*EthDeposit         `json:"depositsProcessed" gencodec:"required"`
 	}
 	var enc BlockProposed
-	enc.BlockId = (*math.HexOrDecimal256)(b.BlockId)
+	enc.BlockID = (*math.HexOrDecimal256)(b.BlockID)
 	enc.AssignedProver = b.AssignedProver
 	enc.LivenessBond = (*math.HexOrDecimal256)(b.LivenessBond)
 	enc.Meta = b.Meta
@@ -34,7 +34,7 @@ func (b BlockProposed) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BlockProposed) UnmarshalJSON(input []byte) error {
 	type BlockProposed struct {
-		BlockId           *math.HexOrDecimal256 `json:"blockId"           gencodec:"required"`
+		BlockID           *math.HexOrDecimal256 `json:"blockId"           gencodec:"required"`
 		AssignedProver    *common.Address       `json:"assignedProver"    gencodec:"required"`
 		LivenessBond      *math.HexOrDecimal256 `json:"livenessBond"      gencodec:"required"`
 		Meta              *BlockMetadata        `json:"meta"              gencodec:"required"`
@@ -44,10 +44,10 @@ func (b *BlockProposed) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.BlockId == nil {
+	if dec.BlockID == nil {
 		return errors.New("missing required field 'blockId' for BlockProposed")
 	}
-	b.BlockId = (*big.Int)(dec.BlockId)
+	b.BlockID = (*big.Int)(dec.BlockID)
 	if dec.AssignedProver == nil {
 		return errors.New("missing required field 'assignedProver' for BlockProposed")
 	}

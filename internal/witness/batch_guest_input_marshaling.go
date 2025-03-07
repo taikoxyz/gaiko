@@ -24,7 +24,7 @@ func (g *batchGuestInputJSON) GethType() *BatchGuestInput {
 }
 
 type taikoGuestBatchInputJSON struct {
-	BatchId            uint64                  `json:"batch_id"`
+	BatchID            uint64                  `json:"batch_id"`
 	L1Header           *gaikoTypes.Header      `json:"l1_header"`
 	BatchProposed      *blockProposedForkJSON  `json:"batch_proposed"`
 	ChainSpec          *ChainSpec              `json:"chain_spec"`
@@ -38,7 +38,7 @@ type taikoGuestBatchInputJSON struct {
 
 func (t *taikoGuestBatchInputJSON) GethType() *TaikoGuestBatchInput {
 	return &TaikoGuestBatchInput{
-		BatchId:            t.BatchId,
+		BatchID:            t.BatchID,
 		L1Header:           t.L1Header.GethType(),
 		BatchProposed:      t.BatchProposed.GethType(),
 		ChainSpec:          t.ChainSpec,

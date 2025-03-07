@@ -17,13 +17,13 @@ func (b BatchMetadata) MarshalJSON() ([]byte, error) {
 	type BatchMetadata struct {
 		InfoHash   common.Hash         `json:"infoHash"   gencodec:"required"`
 		Proposer   common.Address      `json:"proposer"   gencodec:"required"`
-		BatchId    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
+		BatchID    math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 		ProposedAt math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 	}
 	var enc BatchMetadata
 	enc.InfoHash = b.InfoHash
 	enc.Proposer = b.Proposer
-	enc.BatchId = math.HexOrDecimal64(b.BatchId)
+	enc.BatchID = math.HexOrDecimal64(b.BatchID)
 	enc.ProposedAt = math.HexOrDecimal64(b.ProposedAt)
 	return json.Marshal(&enc)
 }
@@ -33,7 +33,7 @@ func (b *BatchMetadata) UnmarshalJSON(input []byte) error {
 	type BatchMetadata struct {
 		InfoHash   *common.Hash         `json:"infoHash"   gencodec:"required"`
 		Proposer   *common.Address      `json:"proposer"   gencodec:"required"`
-		BatchId    *math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
+		BatchID    *math.HexOrDecimal64 `json:"batchId"    gencodec:"required"`
 		ProposedAt *math.HexOrDecimal64 `json:"proposedAt" gencodec:"required"`
 	}
 	var dec BatchMetadata
@@ -48,10 +48,10 @@ func (b *BatchMetadata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'proposer' for BatchMetadata")
 	}
 	b.Proposer = *dec.Proposer
-	if dec.BatchId == nil {
+	if dec.BatchID == nil {
 		return errors.New("missing required field 'batchId' for BatchMetadata")
 	}
-	b.BatchId = uint64(*dec.BatchId)
+	b.BatchID = uint64(*dec.BatchID)
 	if dec.ProposedAt == nil {
 		return errors.New("missing required field 'proposedAt' for BatchMetadata")
 	}
