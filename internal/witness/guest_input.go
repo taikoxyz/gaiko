@@ -186,7 +186,7 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 	return metadata, nil
 }
 
-func (g *GuestInput) Transition() *ontake.TaikoDataTransition {
+func (g *GuestInput) Transition() any {
 	return &ontake.TaikoDataTransition{
 		ParentHash: g.ParentHeader.Hash(),
 		BlockHash:  g.Block.Hash(),

@@ -7,10 +7,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
+	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
 type PublicInput struct {
-	transition     *ontake.TaikoDataTransition
+	transition     any
 	block_metadata BlockMetadataFork
 	verifier       common.Address
 	prover         common.Address
@@ -19,18 +20,35 @@ type PublicInput struct {
 }
 
 func (p *PublicInput) Hash() (common.Hash, error) {
-	b, err := publicInputsType.Pack(
-		"VERIFY_PROOF",
-		p.chainID,
-		p.verifier,
-		p.transition,
-		p.sgxInstance,
-		p.block_metadata.Hash(),
+	var (
+		data []byte
+		err  error
 	)
+	switch trans := p.transition.(type) {
+	case *ontake.TaikoDataTransition:
+		data, err = publicInputsType.Pack(
+			"VERIFY_PROOF",
+			p.chainID,
+			p.verifier,
+			trans,
+			p.sgxInstance,
+			p.block_metadata.Hash(),
+		)
+	case *pacaya.ITaikoInboxTransition:
+		data, err = publicInputsType.Pack(
+			"VERIFY_PROOF",
+			p.chainID,
+			p.verifier,
+			trans,
+			p.sgxInstance,
+			p.block_metadata.Hash(),
+		)
+	}
+
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return keccak.Keccak(b), nil
+	return keccak.Keccak(data), nil
 }
 
 func NewPublicInput(

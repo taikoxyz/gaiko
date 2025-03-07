@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/keccak"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
@@ -170,12 +169,11 @@ func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataF
 
 }
 
-func (g *BatchGuestInput) Transition() *ontake.TaikoDataTransition {
-	return &ontake.TaikoDataTransition{
+func (g *BatchGuestInput) Transition() any {
+	return &pacaya.ITaikoInboxTransition{
 		ParentHash: g.Inputs[0].ParentHeader.Hash(),
 		BlockHash:  g.Inputs[len(g.Inputs)-1].Block.Hash(),
 		StateRoot:  g.Inputs[len(g.Inputs)-1].ParentHeader.Root,
-		Graffiti:   g.Taiko.ProverData.Graffiti,
 	}
 }
 

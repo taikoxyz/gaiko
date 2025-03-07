@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
 type Pair struct {
@@ -23,7 +22,7 @@ type GuestDriver interface {
 	// BlockMetadataFork returns the block metadata.
 	BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error)
 	// Transition returns the transition data.
-	Transition() *ontake.TaikoDataTransition
+	Transition() any
 	// ForkVerifierAddress returns the verifier address.
 	ForkVerifierAddress(proofType ProofType) (common.Address, error)
 	// Prover returns the prover address.
