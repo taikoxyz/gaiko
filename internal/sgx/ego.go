@@ -61,11 +61,12 @@ func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
 }
 
 func getReport(userReport []byte) ([]byte, error) {
-	// get empty local report to use it as target info
-	report, err := enclave.GetLocalReport(nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	// get report for target
-	return enclave.GetLocalReport(userReport, report)
+	return enclave.GetRemoteReport(userReport)
+	// // get empty local report to use it as target info
+	// report, err := enclave.GetLocalReport(nil, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// // get report for target
+	// return enclave.GetLocalReport(userReport, report)
 }
