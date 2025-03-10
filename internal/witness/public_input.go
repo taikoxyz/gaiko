@@ -38,11 +38,11 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 	case *pacaya.ITaikoInboxTransition:
 		data, err = publicInputsV2Type.Pack(
 			"VERIFY_PROOF",
-			transition,
+			p.chainID,
 			p.verifier,
+			transition,
 			p.sgxInstance,
 			p.block_metadata.Hash(),
-			p.chainID,
 		)
 	default:
 		return common.Hash{}, fmt.Errorf("unsupported transition type: %T", transition)
