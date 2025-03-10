@@ -30,7 +30,7 @@ type taikoGuestBatchInputJSON struct {
 	ChainSpec          *ChainSpec              `json:"chain_spec"`
 	ProverData         *TaikoProverData        `json:"prover_data"`
 	TxDataFromCalldata []byte                  `json:"tx_data_from_calldata"`
-	TxDataFromBlob     []*[eth.BlobSize]byte   `json:"tx_data_from_blob"`
+	TxDataFromBlob     [][eth.BlobSize]byte    `json:"tx_data_from_blob"`
 	BlobCommitments    *[][commitmentSize]byte `json:"blob_commitments"`
 	BlobProofs         *[][proofSize]byte      `json:"blob_proofs"`
 	BlobProofType      BlobProofType           `json:"blob_proof_type"`
