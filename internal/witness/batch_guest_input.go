@@ -108,7 +108,17 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 
 func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	for input := range slices.Values(g.Inputs) {
-		if err := input.Verify(proofType); err != nil {
+		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
+			return err
+		}
+	}
+
+	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
+	for i := range len(g.Taiko.TxDataFromBlob) {
+		blob := g.Taiko.TxDataFromBlob[i]
+		commitment := (*g.Taiko.BlobCommitments)[i]
+		proof := (*g.Taiko.BlobProofs)[i]
+		if err := verifyBlob(blobProofType, (*eth.Blob)(blob), commitment, (*kzg4844.Proof)(&proof)); err != nil {
 			return err
 		}
 	}
