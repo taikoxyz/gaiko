@@ -17,10 +17,15 @@ type QuoteV3 []byte
 
 func (q QuoteV3) Print() {
 	fmt.Printf("Detected attestation type: enclave")
-	fmt.Printf(
-		"Extracted SGX quote with size = %d and the following fields:\n",
-		len(q),
-	)
+	if len(q) < 432 {
+		fmt.Printf("Unexpected quote length: %d\n", len(q))
+		return
+	} else {
+		fmt.Printf(
+			"Extracted SGX quote with size = %d and the following fields:\n",
+			len(q),
+		)
+	}
 	fmt.Printf(
 		"  ATTRIBUTES.FLAGS: %x  [ Debug bit: %t ]\n",
 		q[96:104],
