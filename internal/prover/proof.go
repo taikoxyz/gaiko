@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/keccak"
-	"github.com/taikoxyz/gaiko/internal/sgx"
+	"github.com/taikoxyz/gaiko/internal/tee"
 	"github.com/taikoxyz/gaiko/internal/transition"
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
@@ -31,7 +31,7 @@ func (p *ProofResponse) Output(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	sgx.Quote(p.Quote).Print()
+	tee.QuoteV3(p.Quote).Print()
 	return nil
 }
 
@@ -71,7 +71,7 @@ func NewAggregateProof(
 func genAggregateProof(
 	_ context.Context,
 	args *flags.Arguments,
-	sgxProvider sgx.Provider,
+	sgxProvider tee.Provider,
 ) (*ProofResponse, error) {
 	prevPrivKey, err := sgxProvider.LoadPrivateKey()
 	if err != nil {
@@ -133,7 +133,7 @@ func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
 	wit witness.Witness,
-	sgxProvider sgx.Provider,
+	sgxProvider tee.Provider,
 ) (*ProofResponse, error) {
 	err := json.NewDecoder(args.WitnessReader).Decode(wit)
 	if err != nil {

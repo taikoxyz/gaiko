@@ -1,10 +1,10 @@
 //go:build !dev
 
-package sgx
+package tee
 
 import "github.com/taikoxyz/gaiko/internal/flags"
 
-func NewProvider(args *flags.Arguments) Provider {
+func NewSGXProvider(args *flags.Arguments) Provider {
 	switch args.SGXType {
 	case flags.GramineSGXType:
 		return NewGramineProvider(args)

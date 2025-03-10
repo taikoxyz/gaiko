@@ -1,6 +1,6 @@
 //go:build dev
 
-package sgx
+package tee
 
 import (
 	"crypto/ecdsa"
@@ -75,7 +75,7 @@ func init() {
 
 type DevProvider struct{}
 
-func NewProvider(_ *flags.Arguments) Provider {
+func NewSGXProvider(_ *flags.Arguments) Provider {
 	return &DevProvider{}
 }
 

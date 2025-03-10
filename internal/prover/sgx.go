@@ -7,14 +7,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/taikoxyz/gaiko/internal/flags"
-	"github.com/taikoxyz/gaiko/internal/sgx"
+	"github.com/taikoxyz/gaiko/internal/tee"
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
 var addr2HashPadding [common.HashLength - common.AddressLength]byte
 
 type SGXProver struct {
-	sgxProvider sgx.Provider
+	sgxProvider tee.Provider
 	args        *flags.Arguments
 }
 
@@ -23,7 +23,7 @@ var _ Prover = (*SGXProver)(nil)
 func NewSGXProver(args *flags.Arguments) *SGXProver {
 	return &SGXProver{
 		args:        args,
-		sgxProvider: sgx.NewProvider(args),
+		sgxProvider: tee.NewSGXProvider(args),
 	}
 }
 
@@ -76,7 +76,7 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	b := &sgx.BootstrapData{
+	b := &tee.BootstrapData{
 		PublicKey:   crypto.FromECDSAPub(&privKey.PublicKey),
 		NewInstance: newInstance,
 		Quote:       quote,

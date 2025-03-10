@@ -1,4 +1,4 @@
-package sgx
+package tee
 
 import (
 	"crypto/ecdsa"
