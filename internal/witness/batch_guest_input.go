@@ -2,6 +2,8 @@ package witness
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"iter"
 	"math/big"
 	"slices"
@@ -40,16 +42,19 @@ type TaikoGuestBatchInput struct {
 func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 	return func(yield func(*Pair) bool) {
 		batchProposed := g.Taiko.BatchProposed
-		blobDataBufs := g.Taiko.TxDataFromBlob
 		var compressedTxListBuf []byte
-		for _, blobDataBuf := range blobDataBufs {
-			blob := (*eth.Blob)(blobDataBuf)
-			data, err := blob.ToData()
-			if err != nil {
-				log.Warn("Parse blob data failed", "err", err)
-				return
+		if batchProposed.BlobUsed() {
+			for _, blobDataBuf := range g.Taiko.TxDataFromBlob {
+				blob := (*eth.Blob)(blobDataBuf)
+				data, err := blob.ToData()
+				if err != nil {
+					log.Warn("Parse blob data failed", "err", err)
+					return
+				}
+				compressedTxListBuf = append(compressedTxListBuf, data...)
 			}
-			compressedTxListBuf = append(compressedTxListBuf, data...)
+		} else {
+			compressedTxListBuf = g.Taiko.TxDataFromCalldata
 		}
 		offset, length := batchProposed.BlobTxSliceParam()
 		chainID := big.NewInt(int64(g.ChainID()))
@@ -101,6 +106,35 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	}
 
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
+	// check blob commitments or proofs
+	switch blobProofType {
+	case KzgVersionedHash:
+		if len(g.Taiko.TxDataFromBlob) != 0 &&
+			(g.Taiko.BlobCommitments == nil ||
+				len(g.Taiko.TxDataFromBlob) != len(*g.Taiko.BlobCommitments)) {
+			return fmt.Errorf(
+				"invalid blob commitments length, expected: %d, got: %d",
+				len(g.Taiko.TxDataFromBlob), len(*g.Taiko.BlobCommitments),
+			)
+		}
+	case ProofOfEquivalence:
+		if len(g.Taiko.TxDataFromBlob) != 0 &&
+			(g.Taiko.BlobProofs == nil || len(g.Taiko.TxDataFromBlob) != len(*g.Taiko.BlobProofs)) {
+			return fmt.Errorf(
+				"invalid blob proofs length, expected: %d, got: %d",
+				len(g.Taiko.TxDataFromBlob), len(*g.Taiko.BlobCommitments),
+			)
+		}
+	}
+
+	// check txlist comes from either calldata or blob, but not both
+	calldataIsEmpty := len(g.Taiko.TxDataFromCalldata) == 0
+	blobIsEmpty := len(g.Taiko.TxDataFromBlob) == 0
+
+	if calldataIsEmpty == blobIsEmpty {
+		return errors.New("txlist comes from either calldata or blob, but not both")
+	}
+
 	for i := range len(g.Taiko.TxDataFromBlob) {
 		blob := g.Taiko.TxDataFromBlob[i]
 		commitment := (*g.Taiko.BlobCommitments)[i]
