@@ -82,19 +82,6 @@ func (g *BatchGuestInput) BlockProposedFork() BlockProposedFork {
 	return g.Taiko.BatchProposed
 }
 
-func (g *BatchGuestInput) verifyBatchModeBlobUsage(proofType ProofType) error {
-	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
-	for i := range len(g.Taiko.TxDataFromBlob) {
-		blob := g.Taiko.TxDataFromBlob[i]
-		commitment := (*g.Taiko.BlobCommitments)[i]
-		proof := (*g.Taiko.BlobProofs)[i]
-		if err := verifyBlob(blobProofType, (*eth.Blob)(blob), commitment, (*kzg4844.Proof)(&proof)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (g *BatchGuestInput) calculatePacayaTxsHash(
 	txListHash common.Hash,
 	blobHashes [][32]byte,
