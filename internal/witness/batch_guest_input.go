@@ -110,8 +110,7 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	switch blobProofType {
 	case KzgVersionedHash:
 		if len(g.Taiko.TxDataFromBlob) != 0 &&
-			(g.Taiko.BlobCommitments == nil ||
-				len(g.Taiko.TxDataFromBlob) != len(*g.Taiko.BlobCommitments)) {
+			(g.Taiko.BlobCommitments == nil || len(g.Taiko.TxDataFromBlob) != len(*g.Taiko.BlobCommitments)) {
 			return fmt.Errorf(
 				"invalid blob commitments length, expected: %d, got: %d",
 				len(g.Taiko.TxDataFromBlob), len(*g.Taiko.BlobCommitments),
@@ -128,10 +127,10 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	}
 
 	// check txlist comes from either calldata or blob, but not both
-	calldataIsEmpty := len(g.Taiko.TxDataFromCalldata) == 0
-	blobIsEmpty := len(g.Taiko.TxDataFromBlob) == 0
+	calldataNotEmpty := len(g.Taiko.TxDataFromCalldata) != 0
+	blobNotEmpty := len(g.Taiko.TxDataFromBlob) != 0
 
-	if calldataIsEmpty == blobIsEmpty {
+	if calldataNotEmpty && blobNotEmpty {
 		return errors.New("txlist comes from either calldata or blob, but not both")
 	}
 
