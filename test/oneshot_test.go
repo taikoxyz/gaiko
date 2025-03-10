@@ -1,8 +1,10 @@
 package test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,18 +17,19 @@ func TestOneshot(t *testing.T) {
 	inputs, err := fixtures.GetSingleInputs()
 	require.NoError(t, err)
 
-	for _, input := range inputs {
-		t.Run(fmt.Sprintf("block: %d", input.Block.NumberU64()), func(t *testing.T) {
+	for idx, input := range inputs {
+		t.Run(fmt.Sprintf("task: %d", idx), func(t *testing.T) {
 			args := &flags.Arguments{
 				SecretDir:     "",
 				ConfigDir:     "",
 				SGXType:       "debug",
 				SGXInstanceID: 0,
+				WitnessReader: bytes.NewBuffer(input),
+				ProofWriter:   os.Stdout,
 			}
 			sgxProver := prover.NewSGXProver(args)
-			proof, err := sgxProver.Oneshot(context.Background())
+			err := sgxProver.Oneshot(context.Background())
 			require.NoError(t, err)
-			t.Logf("proof: %s", proof)
 		})
 	}
 }
