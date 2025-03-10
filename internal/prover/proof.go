@@ -69,7 +69,7 @@ func NewAggregateProof(
 }
 
 func genAggregateProof(
-	ctx context.Context,
+	_ context.Context,
 	args *flags.Arguments,
 	sgxProvider sgx.Provider,
 ) (*ProofResponse, error) {
