@@ -31,7 +31,7 @@
 - `internal/sgx` sgx provider, `gramine` or `ego`
 - `internal/transition` state transition of blocks
 - `internal/types` type bridge between `raiko` and `gaiko`
-- `witness` proof witness, aka: `Batch/GuestInput` in `raiko`
+- `internal/witness` proof witness, aka: `Batch/GuestInput` in `raiko`
 
 ## Command Help
 
