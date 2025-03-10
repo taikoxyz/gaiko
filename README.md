@@ -36,9 +36,9 @@ $ tree -d
 - `pkg/keccak` keccak hasher
 - `pkg/mpt` the golang porting of merkle trie from `raiko`
 
-## Work Flow
+## Data Flow(Oneshot)
 
-![alt text](assets/workflow.png)
+![alt text](assets/dataflow.png)
 
 ## Command Help
 
