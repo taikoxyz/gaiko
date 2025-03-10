@@ -12,8 +12,22 @@ type BlockMetadataFork interface {
 	Hash() common.Hash
 }
 
+type NothingBlockMetadata struct{}
+
+func (m *NothingBlockMetadata) ABIEncode() ([]byte, error) {
+	return nil, nil
+}
+
+func (m *NothingBlockMetadata) Hash() common.Hash {
+	return keccak.Keccak(nil)
+}
+
 type HeklaBlockMetadata struct {
 	*ontake.TaikoDataBlockMetadata
+}
+
+func NewHeklaBlockMetadata(meta *ontake.TaikoDataBlockMetadata) *HeklaBlockMetadata {
+	return &HeklaBlockMetadata{meta}
 }
 
 func (m *HeklaBlockMetadata) ABIEncode() ([]byte, error) {
@@ -27,6 +41,10 @@ func (m *HeklaBlockMetadata) Hash() common.Hash {
 
 type OntakeBlockMetadata struct {
 	*ontake.TaikoDataBlockMetadataV2
+}
+
+func NewOntakeBlockMetadata(meta *ontake.TaikoDataBlockMetadataV2) *OntakeBlockMetadata {
+	return &OntakeBlockMetadata{meta}
 }
 
 func (m *OntakeBlockMetadata) ABIEncode() ([]byte, error) {

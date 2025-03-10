@@ -60,9 +60,9 @@ func NewPublicInput(
 		chainID:        wit.ChainID(),
 	}
 
-	if wit.IsTaiko() {
+	if wit.IsTaiko() && wit.BlockProposedFork().BlockMetadataFork() != nil {
 		got, _ := pi.block_metadata.ABIEncode()
-		want, _ := wit.BlockProposedFork().ABIEncode()
+		want, _ := wit.BlockProposedFork().BlockMetadataFork().ABIEncode()
 		if !slices.Equal(got, want) {
 			return nil, fmt.Errorf("block hash mismatch, expected: %#x, got: %#x", want, got)
 		}

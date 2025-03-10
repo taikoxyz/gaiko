@@ -139,52 +139,50 @@ func (g *GuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 	var extraData [32]byte
 	copy(extraData[:], g.Block.Extra())
 	switch g.Taiko.BlockProposed.HardFork() {
+	case NothingHardFork:
+		metadata = &NothingBlockMetadata{}
 	case HeklaHardFork:
-		metadata = &HeklaBlockMetadata{
-			TaikoDataBlockMetadata: &ontake.TaikoDataBlockMetadata{
-				L1Hash:         g.Taiko.L1Header.Hash(),
-				Difficulty:     g.Taiko.BlockProposed.Difficulty(),
-				BlobHash:       txListHash,
-				ExtraData:      extraData,
-				DepositsHash:   emptyHash,
-				Coinbase:       g.Block.Coinbase(),
-				Id:             g.Block.NumberU64(),
-				GasLimit:       uint32(g.Block.GasLimit()) - reducedGasLimit,
-				Timestamp:      g.Block.Time(),
-				L1Height:       g.Taiko.L1Header.Number.Uint64(),
-				MinTier:        g.Taiko.BlockProposed.MinTier(),
-				BlobUsed:       g.Taiko.BlockProposed.BlobUsed(),
-				ParentMetaHash: g.Taiko.BlockProposed.ParentMetaHash(),
-				Sender:         g.Taiko.BlockProposed.Sender(),
-			},
-		}
+		metadata = NewHeklaBlockMetadata(&ontake.TaikoDataBlockMetadata{
+			L1Hash:         g.Taiko.L1Header.Hash(),
+			Difficulty:     g.Taiko.BlockProposed.Difficulty(),
+			BlobHash:       txListHash,
+			ExtraData:      extraData,
+			DepositsHash:   emptyHash,
+			Coinbase:       g.Block.Coinbase(),
+			Id:             g.Block.NumberU64(),
+			GasLimit:       uint32(g.Block.GasLimit()) - reducedGasLimit,
+			Timestamp:      g.Block.Time(),
+			L1Height:       g.Taiko.L1Header.Number.Uint64(),
+			MinTier:        g.Taiko.BlockProposed.MinTier(),
+			BlobUsed:       g.Taiko.BlockProposed.BlobUsed(),
+			ParentMetaHash: g.Taiko.BlockProposed.ParentMetaHash(),
+			Sender:         g.Taiko.BlockProposed.Sender(),
+		})
 	case OntakeHardFork:
-		metadata = &OntakeBlockMetadata{
-			TaikoDataBlockMetadataV2: &ontake.TaikoDataBlockMetadataV2{
-				AnchorBlockHash:  g.Taiko.L1Header.Hash(),
-				Difficulty:       g.Taiko.BlockProposed.Difficulty(),
-				BlobHash:         txListHash,
-				ExtraData:        extraData,
-				Coinbase:         g.Block.Coinbase(),
-				Id:               g.Block.NumberU64(),
-				GasLimit:         uint32(g.Block.GasLimit()) - reducedGasLimit,
-				Timestamp:        g.Block.Time(),
-				AnchorBlockId:    g.Taiko.L1Header.Number.Uint64(),
-				MinTier:          g.Taiko.BlockProposed.MinTier(),
-				BlobUsed:         g.Taiko.BlockProposed.BlobUsed(),
-				ParentMetaHash:   g.Taiko.BlockProposed.ParentMetaHash(),
-				Proposer:         g.Taiko.BlockProposed.Proposer(),
-				LivenessBond:     g.Taiko.BlockProposed.LivenessBond(),
-				ProposedAt:       g.Taiko.BlockProposed.ProposedAt(),
-				ProposedIn:       g.Taiko.BlockProposed.ProposedIn(),
-				BlobTxListOffset: g.Taiko.BlockProposed.BlobTxListOffset(),
-				BlobTxListLength: g.Taiko.BlockProposed.BlobTxListLength(),
-				BlobIndex:        g.Taiko.BlockProposed.BlobIndex(),
-				BaseFeeConfig: ontake.LibSharedDataBaseFeeConfig(
-					*g.Taiko.BlockProposed.BaseFeeConfig(),
-				),
-			},
-		}
+		metadata = NewOntakeBlockMetadata(&ontake.TaikoDataBlockMetadataV2{
+			AnchorBlockHash:  g.Taiko.L1Header.Hash(),
+			Difficulty:       g.Taiko.BlockProposed.Difficulty(),
+			BlobHash:         txListHash,
+			ExtraData:        extraData,
+			Coinbase:         g.Block.Coinbase(),
+			Id:               g.Block.NumberU64(),
+			GasLimit:         uint32(g.Block.GasLimit()) - reducedGasLimit,
+			Timestamp:        g.Block.Time(),
+			AnchorBlockId:    g.Taiko.L1Header.Number.Uint64(),
+			MinTier:          g.Taiko.BlockProposed.MinTier(),
+			BlobUsed:         g.Taiko.BlockProposed.BlobUsed(),
+			ParentMetaHash:   g.Taiko.BlockProposed.ParentMetaHash(),
+			Proposer:         g.Taiko.BlockProposed.Proposer(),
+			LivenessBond:     g.Taiko.BlockProposed.LivenessBond(),
+			ProposedAt:       g.Taiko.BlockProposed.ProposedAt(),
+			ProposedIn:       g.Taiko.BlockProposed.ProposedIn(),
+			BlobTxListOffset: g.Taiko.BlockProposed.BlobTxListOffset(),
+			BlobTxListLength: g.Taiko.BlockProposed.BlobTxListLength(),
+			BlobIndex:        g.Taiko.BlockProposed.BlobIndex(),
+			BaseFeeConfig: ontake.LibSharedDataBaseFeeConfig(
+				*g.Taiko.BlockProposed.BaseFeeConfig(),
+			),
+		})
 	default:
 		return nil, fmt.Errorf("unsupported hardfork: %s", g.Taiko.BlockProposed.HardFork())
 	}

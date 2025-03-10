@@ -41,6 +41,7 @@ type BlockProposedFork interface {
 	ExtraData() [32]byte
 	BlockParams() []*pacaya.ITaikoInboxBlockParams
 	BlobCreatedIn() uint64
+	BlockMetadataFork() BlockMetadataFork
 }
 
 var _ BlockProposedFork = (*PacayaBlockProposed)(nil)
@@ -157,6 +158,10 @@ func (b *PacayaBlockProposed) BlobCreatedIn() uint64 {
 	return b.Info.BlobCreatedIn
 }
 
+func (b *PacayaBlockProposed) BlockMetadataFork() BlockMetadataFork {
+	return NewPacayaBlockMetadata(&b.Meta)
+}
+
 type HeklaBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposed
 }
@@ -269,6 +274,10 @@ func (b *HeklaBlockProposed) BlobCreatedIn() uint64 {
 	return 0
 }
 
+func (b *HeklaBlockProposed) BlockMetadataFork() BlockMetadataFork {
+	return NewHeklaBlockMetadata(&b.Meta)
+}
+
 type OntakeBlockProposed struct {
 	*ontake.TaikoL1ClientBlockProposedV2
 }
@@ -375,6 +384,10 @@ func (b *OntakeBlockProposed) BlobCreatedIn() uint64 {
 	return 0
 }
 
+func (b *OntakeBlockProposed) BlockMetadataFork() BlockMetadataFork {
+	return NewOntakeBlockMetadata(&b.Meta)
+}
+
 type NotingBlockProposed struct{}
 
 var _ BlockProposedFork = (*NotingBlockProposed)(nil)
@@ -473,4 +486,8 @@ func (b *NotingBlockProposed) BlockParams() []*pacaya.ITaikoInboxBlockParams {
 
 func (b *NotingBlockProposed) BlobCreatedIn() uint64 {
 	return 0
+}
+
+func (b *NotingBlockProposed) BlockMetadataFork() BlockMetadataFork {
+	return nil
 }
