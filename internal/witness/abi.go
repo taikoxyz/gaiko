@@ -8,11 +8,16 @@ import (
 )
 
 var (
-	stringTy, _        = abi.NewType("string", "", nil)
-	uint64Ty, _        = abi.NewType("uint64", "", nil)
-	addressTy, _       = abi.NewType("address", "", nil)
-	byte32Ty, _        = abi.NewType("bytes32", "", nil)
-	byte32sTy, _       = abi.NewType("bytes32[]", "", nil)
+	stringTy, _                       = abi.NewType("string", "", nil)
+	uint64Ty, _                       = abi.NewType("uint64", "", nil)
+	addressTy, _                      = abi.NewType("address", "", nil)
+	byte32Ty, _                       = abi.NewType("bytes32", "", nil)
+	byte32sTy, _                      = abi.NewType("bytes32[]", "", nil)
+	pacayaTransitionComponentsType, _ = abi.NewType(
+		"tuple",
+		"ITaikoInbox.Transition",
+		encoding.BatchTransitionComponents,
+	)
 	publicInputsV1Type = abi.Arguments{
 		{Name: "VERIFY_PROOF", Type: stringTy},
 		{Name: "_chainId", Type: uint64Ty},
@@ -24,11 +29,11 @@ var (
 	}
 	publicInputsV2Type = abi.Arguments{
 		{Name: "VERIFY_PROOF", Type: stringTy},
-		{Name: "_chainId", Type: uint64Ty},
+		{Name: "_transition", Type: pacayaTransitionComponentsType},
 		{Name: "_verifierContract", Type: addressTy},
-		{Name: "_transition", Type: encoding.TransitionComponentsType},
 		{Name: "_newInstance", Type: addressTy},
 		{Name: "_metaHash", Type: byte32Ty},
+		{Name: "_chainId", Type: uint64Ty},
 	}
 	batchTxHashArgs = abi.Arguments{
 		{Name: "_txListHash", Type: byte32Ty},

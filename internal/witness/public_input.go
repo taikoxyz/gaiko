@@ -24,13 +24,13 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 		data []byte
 		err  error
 	)
-	switch trans := p.transition.(type) {
+	switch transition := p.transition.(type) {
 	case *ontake.TaikoDataTransition:
 		data, err = publicInputsV1Type.Pack(
 			"VERIFY_PROOF",
 			p.chainID,
 			p.verifier,
-			p.transition,
+			transition,
 			p.sgxInstance,
 			p.prover,
 			p.block_metadata.Hash(),
@@ -38,14 +38,14 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 	case *pacaya.ITaikoInboxTransition:
 		data, err = publicInputsV2Type.Pack(
 			"VERIFY_PROOF",
-			p.chainID,
+			transition,
 			p.verifier,
-			p.transition,
 			p.sgxInstance,
 			p.block_metadata.Hash(),
+			p.chainID,
 		)
 	default:
-		return common.Hash{}, fmt.Errorf("unsupported transition type: %T", trans)
+		return common.Hash{}, fmt.Errorf("unsupported transition type: %T", transition)
 	}
 
 	if err != nil {
