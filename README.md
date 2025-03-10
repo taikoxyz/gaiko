@@ -33,6 +33,10 @@
 - `internal/types` type bridge between `raiko` and `gaiko`
 - `internal/witness` proof witness, aka: `Batch/GuestInput` in `raiko`
 
+## Work Flow
+
+![alt text](assets/workflow.png)
+
 ## Command Help
 
 ```
