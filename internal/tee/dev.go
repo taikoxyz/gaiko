@@ -84,13 +84,13 @@ type DevProvider struct {
 	quoteVersion quoteVersion
 }
 
-func NewSGXProvider() Provider {
+func NewSGXProvider(_ *flags.Arguments) Provider {
 	return &DevProvider{
 		quoteVersion: quoteV3Version,
 	}
 }
 
-func NewTDXProvider() Provider {
+func NewTDXProvider(_ *flags.Arguments) Provider {
 	return &DevProvider{
 		quoteVersion: quoteV4Version,
 	}

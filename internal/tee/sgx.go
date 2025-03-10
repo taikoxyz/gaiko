@@ -7,8 +7,8 @@ import "github.com/taikoxyz/gaiko/internal/flags"
 func NewSGXProvider(args *flags.Arguments) Provider {
 	switch args.SGXType {
 	case flags.GramineSGXType:
-		return NewGramineProvider(args)
+		return NewGramineProvider()
 	default:
-		return NewEgoProvider(args)
+		return NewEgoProvider()
 	}
 }

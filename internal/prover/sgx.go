@@ -19,9 +19,9 @@ type SGXProver struct {
 
 var _ Prover = (*SGXProver)(nil)
 
-func NewSGXProver() *SGXProver {
+func NewSGXProver(args *flags.Arguments) *SGXProver {
 	return &SGXProver{
-		sgxProvider: tee.NewSGXProvider(),
+		sgxProvider: tee.NewSGXProvider(args),
 	}
 }
 

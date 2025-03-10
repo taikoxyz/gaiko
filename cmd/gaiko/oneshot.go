@@ -7,13 +7,13 @@ import (
 )
 
 func oneshot(cli *cli.Context) error {
-	sgxProver := prover.NewSGXProver()
 	args := flags.NewArguments(cli)
+	sgxProver := prover.NewSGXProver(args)
 	return sgxProver.Oneshot(cli.Context, args)
 }
 
 func batchOneshot(cli *cli.Context) error {
-	sgxProver := prover.NewSGXProver()
 	args := flags.NewArguments(cli)
+	sgxProver := prover.NewSGXProver(args)
 	return sgxProver.BatchOneshot(cli.Context, args)
 }

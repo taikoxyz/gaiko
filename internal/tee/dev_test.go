@@ -13,7 +13,7 @@ import (
 )
 
 func TestDevProvider(t *testing.T) {
-	p := NewSGXProvider()
+	p := NewSGXProvider(nil)
 	q, err := p.LoadQuote(nil, common.Address{})
 	require.NoError(t, err)
 	assert.Equal(t, devQuoteV3, q.Bytes())
