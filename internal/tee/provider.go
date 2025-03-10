@@ -10,10 +10,15 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+const (
+	privKeyFilename       = "priv.key"
+	bootstrapInfoFilename = "bootstrap.json"
+)
+
 // Provider is the interface that wraps the basic methods to interact with the TEE.
 type Provider interface {
 	// LoadQuote loads the quote from the TEE.
-	LoadQuote(key common.Address) ([]byte, error)
+	LoadQuote(key common.Address) (Quote, error)
 	// LoadPrivateKey loads the encrypted(mrenclave related) private key from the TEE.
 	// The encrypted data only can be decrypted by the same instance(image).
 	LoadPrivateKey() (*ecdsa.PrivateKey, error)
@@ -21,8 +26,6 @@ type Provider interface {
 	SavePrivateKey(privKey *ecdsa.PrivateKey) error
 	// SaveBootstrap saves the bootstrap data to the FS under the TEE(VM/Attach).
 	SaveBootstrap(b *BootstrapData) error
-	// Quote returns the different quote version based the TEE technology.
-	Quote(q []byte) Quote
 }
 
 // BootstrapData is the data structure representing the booting information.

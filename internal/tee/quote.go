@@ -4,12 +4,8 @@ import (
 	"fmt"
 )
 
-const (
-	privKeyFilename       = "priv.key"
-	bootstrapInfoFilename = "bootstrap.json"
-)
-
 type Quote interface {
+	Bytes() []byte
 	Print()
 }
 
@@ -40,8 +36,16 @@ func (q QuoteV3) Print() {
 	fmt.Printf("                    %x\n", q[400:432])
 }
 
+func (q QuoteV3) Bytes() []byte {
+	return q
+}
+
 type QuoteV4 []byte
 
 func (q QuoteV4) Print() {
 	// TODO: parse and print quote v4
+}
+
+func (q QuoteV4) Bytes() []byte {
+	return q
 }

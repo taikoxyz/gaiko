@@ -96,8 +96,8 @@ func NewTDXProvider(_ *flags.Arguments) Provider {
 	}
 }
 
-func (p *DevProvider) LoadQuote(key common.Address) ([]byte, error) {
-	return devQuoteV3, nil
+func (p *DevProvider) LoadQuote(key common.Address) (Quote, error) {
+	return QuoteV3(devQuoteV3), nil
 }
 
 func (p *DevProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -111,16 +111,5 @@ func (p *DevProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 }
 
 func (p *DevProvider) SaveBootstrap(b *BootstrapData) error {
-	return nil
-}
-
-func (p *DevProvider) Quote(q []byte) Quote {
-	switch p.quoteVersion {
-	case quoteV3Version:
-		return QuoteV3(devQuoteV3)
-	case quoteV4Version:
-		// FIXME: add mocked v4 quote
-		panic("not implemented")
-	}
 	return nil
 }

@@ -114,10 +114,10 @@ func genAggregateProof(
 	if err != nil {
 		return nil, err
 	}
-
+	quote.Print()
 	return &ProofResponse{
 		Proof:           proof[:],
-		Quote:           quote,
+		Quote:           quote.Bytes(),
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
 		Input:           aggHash,
@@ -163,10 +163,10 @@ func genOneshotProof(
 	if err != nil {
 		return nil, err
 	}
-
+	quote.Print()
 	return &ProofResponse{
 		Proof:           proof[:],
-		Quote:           quote,
+		Quote:           quote.Bytes(),
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
 		Input:           piHash,

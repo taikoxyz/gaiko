@@ -25,8 +25,12 @@ func NewEgoProvider(args *flags.Arguments) *EgoProvider {
 	}
 }
 
-func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
-	return getRemoteReport(key.Bytes())
+func (p *EgoProvider) LoadQuote(key common.Address) (Quote, error) {
+	q, err := getRemoteReport(key.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return QuoteV3(q), nil
 }
 
 func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -57,10 +61,6 @@ func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
 	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
-}
-
-func (p *EgoProvider) Quote(q []byte) Quote {
-	return QuoteV4(q)
 }
 
 func getRemoteReport(userReport []byte) ([]byte, error) {

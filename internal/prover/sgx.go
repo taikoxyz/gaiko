@@ -35,7 +35,6 @@ func (p *SGXProver) Oneshot(
 	if err != nil {
 		return err
 	}
-	p.sgxProvider.Quote(proof.Quote).Print()
 	return proof.Output(p.args.ProofWriter)
 }
 
@@ -47,7 +46,6 @@ func (p *SGXProver) BatchOneshot(
 	if err != nil {
 		return err
 	}
-	p.sgxProvider.Quote(proof.Quote).Print()
 	return proof.Output(p.args.ProofWriter)
 }
 
@@ -58,7 +56,6 @@ func (p *SGXProver) Aggregate(
 	if err != nil {
 		return err
 	}
-	p.sgxProvider.Quote(proof.Quote).Print()
 	return proof.Output(p.args.ProofWriter)
 }
 
@@ -82,7 +79,7 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	b := &tee.BootstrapData{
 		PublicKey:   crypto.FromECDSAPub(&privKey.PublicKey),
 		NewInstance: newInstance,
-		Quote:       quote,
+		Quote:       quote.Bytes(),
 	}
 
 	return p.sgxProvider.SaveBootstrap(b)

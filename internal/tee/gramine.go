@@ -30,8 +30,12 @@ func NewGramineProvider(args *flags.Arguments) *GramineProvider {
 	}
 }
 
-func (p *GramineProvider) LoadQuote(key common.Address) ([]byte, error) {
-	return getQuote(key)
+func (p *GramineProvider) LoadQuote(key common.Address) (Quote, error) {
+	q, err := getQuote(key)
+	if err != nil {
+		return nil, err
+	}
+	return QuoteV3(q), nil
 }
 
 func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -45,10 +49,6 @@ func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
 func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
 	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
-}
-
-func (p *GramineProvider) Quote(q []byte) Quote {
-	return QuoteV3(q)
 }
 
 func saveAttestationUserReportData(pubKey common.Address) error {
