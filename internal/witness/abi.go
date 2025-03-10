@@ -29,11 +29,11 @@ var (
 	}
 	publicInputsV2Type = abi.Arguments{
 		{Name: "VERIFY_PROOF", Type: stringTy},
-		{Name: "_transition", Type: pacayaTransitionComponentsType},
+		{Name: "_chainId", Type: uint64Ty},
 		{Name: "_verifierContract", Type: addressTy},
+		{Name: "_transition", Type: pacayaTransitionComponentsType},
 		{Name: "_newInstance", Type: addressTy},
 		{Name: "_metaHash", Type: byte32Ty},
-		{Name: "_chainId", Type: uint64Ty},
 	}
 	batchTxHashArgs = abi.Arguments{
 		{Name: "_txListHash", Type: byte32Ty},
