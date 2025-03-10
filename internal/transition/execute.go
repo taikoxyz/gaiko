@@ -18,9 +18,10 @@ import (
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/witness"
 	"github.com/taikoxyz/gaiko/pkg/keccak"
+	"golang.org/x/sync/errgroup"
 )
 
-func Execute(
+func ExecuteAndVerify(
 	ctx context.Context,
 	args *flags.Arguments,
 	wit witness.Witness,
@@ -29,87 +30,100 @@ func Execute(
 	if err != nil {
 		return err
 	}
+	eg, ctx := errgroup.WithContext(ctx)
 	for pair := range wit.GuestInputs() {
-		g := pair.Input
-		txs := pair.Txs
-		preState, err := newPreState(g)
-		if err != nil {
-			return err
+		pair := pair // https://go.dev/doc/faq#closures_and_goroutines
+		eg.Go(func() error {
+			return executeAndVerify(ctx, pair, chainConfig)
+		})
+	}
+	return eg.Wait()
+}
+
+func executeAndVerify(
+	_ context.Context,
+	pair *witness.Pair,
+	chainConfig *params.ChainConfig,
+) error {
+	g := pair.Input
+	txs := pair.Txs
+	preState, err := newPreState(g)
+	if err != nil {
+		return err
+	}
+	stateDB, err := apply(
+		vm.Config{},
+		preState.stateDB,
+		g.Block,
+		txs,
+		preState.getHash,
+		chainConfig,
+	)
+	if err != nil {
+		return err
+	}
+	collector := make(Dumper)
+	stateDB.DumpToCollector(collector, nil)
+	for addr := range preState.accounts {
+		_, ok := collector[addr]
+		if !ok {
+			// Account is deleted
+			key := keccak.Keccak(addr.Bytes())
+			if _, err := g.ParentStateTrie.Delete(key.Bytes()); err != nil {
+				return err
+			}
 		}
-		stateDB, err := apply(
-			vm.Config{},
-			preState.stateDB,
-			g.Block,
-			txs,
-			preState.getHash,
-			chainConfig,
-		)
-		if err != nil {
-			return err
+	}
+
+	for addr, acc := range collector {
+		entry, ok := g.ParentStorage[addr]
+		if !ok {
+			return fmt.Errorf("account not found for address: %#x", addr)
 		}
-		collector := make(Dumper)
-		stateDB.DumpToCollector(collector, nil)
-		for addr := range preState.accounts {
-			_, ok := collector[addr]
-			if !ok {
-				// Account is deleted
-				key := keccak.Keccak(addr.Bytes())
-				if _, err := g.ParentStateTrie.Delete(key.Bytes()); err != nil {
+		_, ok = preState.accounts[addr]
+		if !ok {
+			// New Account
+			entry.Trie.Clear()
+		}
+		for slot, value := range acc.Storage {
+			key := keccak.Keccak(slot.Bytes())
+			if value == (common.Hash{}) {
+				if _, err := entry.Trie.Delete(key.Bytes()); err != nil {
+					return err
+				}
+			} else {
+				if err := updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
 					return err
 				}
 			}
 		}
-
-		for addr, acc := range collector {
-			entry, ok := g.ParentStorage[addr]
-			if !ok {
-				return fmt.Errorf("account not found for address: %#x", addr)
-			}
-			_, ok = preState.accounts[addr]
-			if !ok {
-				// New Account
-				entry.Trie.Clear()
-			}
-			for slot, value := range acc.Storage {
-				key := keccak.Keccak(slot.Bytes())
-				if value == (common.Hash{}) {
-					if _, err := entry.Trie.Delete(key.Bytes()); err != nil {
-						return err
-					}
-				} else {
-					if err := updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
-						return err
-					}
-				}
-			}
-			root, err := entry.Trie.Hash()
-			if err != nil {
-				return err
-			}
-			stateAcc := &types.StateAccount{
-				Nonce:    acc.Nonce,
-				Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
-				Root:     root,
-				CodeHash: keccak.Keccak(acc.Code).Bytes(),
-			}
-
-			if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
-				return err
-			}
-		}
-		expected := g.Block.Root()
-		actual, err := g.ParentStateTrie.Hash()
+		root, err := entry.Trie.Hash()
 		if err != nil {
 			return err
 		}
-		if expected != actual {
-			return fmt.Errorf(
-				"block %d root mismatch: expected %#x, got %#x",
-				g.Block.NumberU64(),
-				expected,
-				actual,
-			)
+		stateAcc := &types.StateAccount{
+			Nonce:    acc.Nonce,
+			Balance:  new(uint256.Int).SetBytes(acc.Balance.Bytes()),
+			Root:     root,
+			CodeHash: keccak.Keccak(acc.Code).Bytes(),
 		}
+
+		if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
+			return err
+		}
+	}
+	expected := g.Block.Root()
+	actual, err := g.ParentStateTrie.Hash()
+	if err != nil {
+		return err
+	}
+	if expected != actual {
+		return fmt.Errorf(
+			"block %d root mismatch: expected %#x, got %#x",
+			g.Block.NumberU64(),
+			expected,
+			actual,
+		)
 	}
 	return nil
 }

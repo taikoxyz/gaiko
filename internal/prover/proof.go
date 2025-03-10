@@ -134,7 +134,7 @@ func genOneshotProof(
 	if err != nil {
 		return nil, err
 	}
-	err = transition.Execute(ctx, args, wit)
+	err = transition.ExecuteAndVerify(ctx, args, wit)
 	if err != nil {
 		return nil, err
 	}
