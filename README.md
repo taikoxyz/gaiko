@@ -37,7 +37,6 @@
 
 ```
 $ ./gaiko
-Found existing alias for "go run". You should use: "gor"
 NAME:
    gaiko - The Gaiko command line interface
 
