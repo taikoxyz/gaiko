@@ -5,7 +5,9 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
-var emptyHash = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
+var emptyEthDepositHash = common.HexToHash(
+	"569e75fc77c1a856f6daaf9e69d8a9566ca34aa47f9133711ce065a571af0cfd",
+)
 
 const (
 	anchorGasLimit      uint32 = 250_000

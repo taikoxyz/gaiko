@@ -147,7 +147,7 @@ func (g *GuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 			Difficulty:     g.Taiko.BlockProposed.Difficulty(),
 			BlobHash:       txListHash,
 			ExtraData:      extraData,
-			DepositsHash:   emptyHash,
+			DepositsHash:   emptyEthDepositHash,
 			Coinbase:       g.Block.Coinbase(),
 			Id:             g.Block.NumberU64(),
 			GasLimit:       uint32(g.Block.GasLimit()) - reducedGasLimit,

@@ -8,12 +8,21 @@ import (
 )
 
 var (
-	stringTy, _      = abi.NewType("string", "", nil)
-	uint64Ty, _      = abi.NewType("uint64", "", nil)
-	addressTy, _     = abi.NewType("address", "", nil)
-	byte32Ty, _      = abi.NewType("bytes32", "", nil)
-	byte32sTy, _     = abi.NewType("bytes32[]", "", nil)
-	publicInputsType = abi.Arguments{
+	stringTy, _        = abi.NewType("string", "", nil)
+	uint64Ty, _        = abi.NewType("uint64", "", nil)
+	addressTy, _       = abi.NewType("address", "", nil)
+	byte32Ty, _        = abi.NewType("bytes32", "", nil)
+	byte32sTy, _       = abi.NewType("bytes32[]", "", nil)
+	publicInputsV1Type = abi.Arguments{
+		{Name: "VERIFY_PROOF", Type: stringTy},
+		{Name: "_chainId", Type: uint64Ty},
+		{Name: "_verifierContract", Type: addressTy},
+		{Name: "_transition", Type: encoding.TransitionComponentsType},
+		{Name: "_newInstance", Type: addressTy},
+		{Name: "_prover", Type: addressTy},
+		{Name: "_metaHash", Type: byte32Ty},
+	}
+	publicInputsV2Type = abi.Arguments{
 		{Name: "VERIFY_PROOF", Type: stringTy},
 		{Name: "_chainId", Type: uint64Ty},
 		{Name: "_verifierContract", Type: addressTy},
