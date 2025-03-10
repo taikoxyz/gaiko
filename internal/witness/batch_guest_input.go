@@ -16,7 +16,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
-var _ GuestDriver = (*BatchGuestInput)(nil)
+var _ Witness = (*BatchGuestInput)(nil)
 var _ json.Unmarshaler = (*BatchGuestInput)(nil)
 
 type BatchGuestInput struct {
@@ -106,16 +106,16 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 	return keccak.Keccak(data), nil
 }
 
-func (g *BatchGuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
-	if err := g.verifyBatchModeBlobUsage(proofType); err != nil {
-		return nil, err
-	}
+func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	for input := range slices.Values(g.Inputs) {
-		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
-			return nil, err
+		if err := input.Verify(proofType); err != nil {
+			return err
 		}
-
 	}
+	return nil
+}
+
+func (g *BatchGuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 	txListHash := keccak.Keccak(g.Taiko.TxDataFromCalldata)
 	txsHash, err := g.calculatePacayaTxsHash(txListHash, g.Taiko.BatchProposed.BlobHashes())
 	if err != nil {

@@ -20,23 +20,23 @@ import (
 	"github.com/taikoxyz/gaiko/internal/witness"
 )
 
-func ExecuteGuestDriver(
+func Execute(
 	ctx context.Context,
 	args *flags.Arguments,
-	driver witness.GuestDriver,
+	wit witness.Witness,
 ) error {
-	chainConfig, err := driver.ChainConfig()
+	chainConfig, err := wit.ChainConfig()
 	if err != nil {
 		return err
 	}
-	for pair := range driver.GuestInputs() {
+	for pair := range wit.GuestInputs() {
 		g := pair.Input
 		txs := pair.Txs
 		preState, err := newPreState(g)
 		if err != nil {
 			return err
 		}
-		statedb, err := apply(
+		stateDB, err := apply(
 			vm.Config{},
 			preState.stateDB,
 			g.Block,
@@ -48,7 +48,7 @@ func ExecuteGuestDriver(
 			return err
 		}
 		collector := make(Dumper)
-		statedb.DumpToCollector(collector, nil)
+		stateDB.DumpToCollector(collector, nil)
 		for addr := range preState.accounts {
 			_, ok := collector[addr]
 			if !ok {
@@ -61,28 +61,28 @@ func ExecuteGuestDriver(
 		}
 
 		for addr, acc := range collector {
-			storageEntry, ok := g.ParentStorage[addr]
+			entry, ok := g.ParentStorage[addr]
 			if !ok {
 				return fmt.Errorf("account not found for address: %#x", addr)
 			}
 			_, ok = preState.accounts[addr]
 			if !ok {
 				// New Account
-				storageEntry.Trie.Clear()
+				entry.Trie.Clear()
 			}
 			for slot, value := range acc.Storage {
 				key := keccak.Keccak(slot.Bytes())
 				if value == (common.Hash{}) {
-					if _, err := storageEntry.Trie.Delete(key.Bytes()); err != nil {
+					if _, err := entry.Trie.Delete(key.Bytes()); err != nil {
 						return err
 					}
 				} else {
-					if err := updateStorage(storageEntry.Trie, slot.Bytes(), value.Bytes()); err != nil {
+					if err := updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
 						return err
 					}
 				}
 			}
-			root, err := storageEntry.Trie.Hash()
+			root, err := entry.Trie.Hash()
 			if err != nil {
 				return err
 			}

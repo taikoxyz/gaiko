@@ -33,32 +33,36 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 }
 
 func NewPublicInput(
-	driver GuestDriver,
+	wit Witness,
 	proofType ProofType,
 	sgxInstance common.Address,
 ) (*PublicInput, error) {
-	verifierAddress, err := driver.ForkVerifierAddress(proofType)
+	verifierAddress, err := wit.ForkVerifierAddress(proofType)
 	if err != nil {
 		return nil, err
 	}
 
-	meta, err := driver.BlockMetadataFork(proofType)
+	if err := wit.Verify(proofType); err != nil {
+		return nil, err
+	}
+
+	meta, err := wit.BlockMetadataFork()
 	if err != nil {
 		return nil, err
 	}
 
 	pi := &PublicInput{
-		transition:     driver.Transition(),
+		transition:     wit.Transition(),
 		block_metadata: meta,
 		verifier:       verifierAddress,
-		prover:         driver.Prover(),
+		prover:         wit.Prover(),
 		sgxInstance:    common.Address{},
-		chainID:        driver.ChainID(),
+		chainID:        wit.ChainID(),
 	}
 
-	if driver.IsTaiko() {
+	if wit.IsTaiko() {
 		got, _ := pi.block_metadata.ABIEncode()
-		want, _ := driver.BlockProposedFork().ABIEncode()
+		want, _ := wit.BlockProposedFork().ABIEncode()
 		if !slices.Equal(got, want) {
 			return nil, fmt.Errorf("block hash mismatch, expected: %#x, got: %#x", want, got)
 		}

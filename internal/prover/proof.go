@@ -69,14 +69,14 @@ func NewAggregateProof(
 func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
-	driver witness.GuestDriver,
+	wit witness.Witness,
 	sgxProvider sgx.Provider,
 ) (*ProofResponse, error) {
-	err := json.NewDecoder(os.Stdin).Decode(driver)
+	err := json.NewDecoder(os.Stdin).Decode(wit)
 	if err != nil {
 		return nil, err
 	}
-	err = transition.ExecuteGuestDriver(ctx, args, driver)
+	err = transition.Execute(ctx, args, wit)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func genOneshotProof(
 	}
 
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
-	pi, err := witness.NewPublicInput(driver, witness.SGXProofType, newInstance)
+	pi, err := witness.NewPublicInput(wit, witness.PivotProofType, newInstance)
 	if err != nil {
 		return nil, err
 	}

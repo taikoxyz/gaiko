@@ -18,7 +18,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
-var _ GuestDriver = (*GuestInput)(nil)
+var _ Witness = (*GuestInput)(nil)
 var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {
@@ -95,12 +95,32 @@ func (g *GuestInput) BlockProposedFork() BlockProposedFork {
 	return g.Taiko.BlockProposed
 }
 
-func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error) {
+func (g *GuestInput) Verify(proofType ProofType) error {
+	if err := defaultSupportedChainSpecs.verifyChainSpec(g.ChainSpec); err != nil {
+		return err
+	}
+	if g.Taiko.BlockProposed.BlobUsed() {
+		if len(g.Taiko.TxData) != eth.BlobSize {
+			return fmt.Errorf(
+				"invalid TxData length, expected: %d, got: %d",
+				eth.BlobSize, len(g.Taiko.TxData),
+			)
+		}
+		blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
+		var blob eth.Blob
+		copy(blob[:], g.Taiko.TxData)
+		if err := verifyBlob(blobProofType, &blob, *g.Taiko.BlobCommitment, (*kzg4844.Proof)(g.Taiko.BlobProof)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (g *GuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 	var (
 		reducedGasLimit uint32
 		txListHash      common.Hash
 		metadata        BlockMetadataFork
-		blobProofType   = getBlobProofType(proofType, g.Taiko.BlobProofType)
 	)
 	if g.ChainSpec.IsTaiko {
 		reducedGasLimit = anchorGasLimit
@@ -112,23 +132,8 @@ func (g *GuestInput) BlockMetadataFork(proofType ProofType) (BlockMetadataFork, 
 		}
 		commitment := kzg4844.Commitment(*g.Taiko.BlobCommitment)
 		txListHash = eth.KZGToVersionedHash(commitment)
-		if len(g.Taiko.TxData) != eth.BlobSize {
-			return nil, fmt.Errorf(
-				"invalid TxData length, expected: %d, got: %d",
-				eth.BlobSize, len(g.Taiko.TxData),
-			)
-		}
-		var blob eth.Blob
-		copy(blob[:], g.Taiko.TxData)
-		if err := verifyBlob(blobProofType, &blob, *g.Taiko.BlobCommitment, (*kzg4844.Proof)(g.Taiko.BlobProof)); err != nil {
-			return nil, err
-		}
 	} else {
 		txListHash = keccak.Keccak(g.Taiko.TxData)
-	}
-
-	if err := defaultSupportedChainSpecs.verifyChainSpec(g.ChainSpec); err != nil {
-		return nil, err
 	}
 
 	var extraData [32]byte

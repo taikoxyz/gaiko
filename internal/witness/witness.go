@@ -13,14 +13,16 @@ type Pair struct {
 	Txs   types.Transactions
 }
 
-// GuestDriver is an interface for guest inputs.
-type GuestDriver interface {
+// Witness is an interface for witnesses.
+type Witness interface {
 	// GuestInputs returns a sequence of pairs of GuestInput and Transactions.
 	GuestInputs() iter.Seq[*Pair]
 	// BlockProposedFork returns the block proposed data.
 	BlockProposedFork() BlockProposedFork
 	// BlockMetadataFork returns the block metadata.
-	BlockMetadataFork(proofType ProofType) (BlockMetadataFork, error)
+	BlockMetadataFork() (BlockMetadataFork, error)
+	// Verify verifies the witness.
+	Verify(proofType ProofType) error
 	// Transition returns the transition data.
 	Transition() any
 	// ForkVerifierAddress returns the verifier address.
