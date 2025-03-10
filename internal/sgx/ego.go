@@ -2,6 +2,7 @@ package sgx
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -25,7 +26,7 @@ func NewEgoProvider(args *flags.Arguments) *EgoProvider {
 }
 
 func (p *EgoProvider) LoadQuote(key common.Address) ([]byte, error) {
-	return getReport(key.Bytes())
+	return getRemoteReport(key.Bytes())
 }
 
 func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
@@ -58,11 +59,14 @@ func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
 	return b.SaveToFile(filename)
 }
 
-func getReport(userReport []byte) ([]byte, error) {
+func getRemoteReport(userReport []byte) ([]byte, error) {
 	report, err := enclave.GetRemoteReport(userReport)
 	if err != nil {
 		return nil, err
 	}
 	// NB: The first 16 bytes of the report are quote nonce.
+	if len(report) < 16 {
+		return nil, fmt.Errorf("unexpected report length: %d", len(report))
+	}
 	return report[16:], nil
 }
