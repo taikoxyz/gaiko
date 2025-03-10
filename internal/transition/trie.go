@@ -6,8 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taikoxyz/gaiko/internal/keccak"
-	"github.com/taikoxyz/gaiko/internal/mpt"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
+	"github.com/taikoxyz/gaiko/pkg/mpt"
 )
 
 var ErrNotFound = errors.New("not found")

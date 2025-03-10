@@ -5,7 +5,7 @@ import (
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taikoxyz/gaiko/internal/keccak"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
 type PublicInput struct {

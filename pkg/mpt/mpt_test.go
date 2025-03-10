@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/taikoxyz/gaiko/internal/keccak"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
 const intSize = 32 << (^uint(0) >> 63)

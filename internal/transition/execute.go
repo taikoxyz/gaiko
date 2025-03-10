@@ -16,8 +16,8 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 	"github.com/taikoxyz/gaiko/internal/flags"
-	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/witness"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
 func Execute(

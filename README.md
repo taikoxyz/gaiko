@@ -2,36 +2,39 @@
 
 ## Architecture
 
-```
+```text
+$ tree -d
 .
 ├── cmd
 │   └── gaiko
 ├── ego
 ├── internal
 │   ├── flags
-│   ├── keccak
-│   ├── mpt
 │   ├── prover
 │   ├── tee
 │   ├── transition
 │   ├── types
 │   ├── version
 │   └── witness
+├── pkg
+│   ├── keccak
+│   └── mpt
 └── test
     └── fixtures
         ├── batch
         └── single
 ```
 
+- `cmd/gaiko` `gaiko` cli entry
 - `ego` artifacts, e.g. config
 - `internal/flags` cli arguments
-- `internal/keccak` keccak hasher
-- `internal/mpt` the golang porting of merkle trie from `raiko`
-- `internal/prover` prover abstracts, the main entry of `gaiko`
+- `internal/prover` prover abstracts, the core logic of `gaiko`
 - `internal/tee` TEE provider, `tdx`, `gramine` or `ego`, compile with `-tags dev` to use `dev` mode
 - `internal/transition` state transition of blocks
 - `internal/types` type bridge between `raiko` and `gaiko`
 - `internal/witness` proof witness, aka: `Batch/GuestInput` in `raiko`
+- `pkg/keccak` keccak hasher
+- `pkg/mpt` the golang porting of merkle trie from `raiko`
 
 ## Work Flow
 
@@ -39,7 +42,7 @@
 
 ## Command Help
 
-```
+```text
 $ ./gaiko
 NAME:
    gaiko - The Gaiko command line interface

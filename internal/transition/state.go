@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/triedb"
-	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/witness"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
 type preState struct {

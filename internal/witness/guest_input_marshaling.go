@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/taikoxyz/gaiko/internal/mpt"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
+	"github.com/taikoxyz/gaiko/pkg/mpt"
 )
 
 type guestInputJSON struct {

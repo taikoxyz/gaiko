@@ -2,7 +2,7 @@ package witness
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taikoxyz/gaiko/internal/keccak"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )

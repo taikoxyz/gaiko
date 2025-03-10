@@ -12,10 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/taikoxyz/gaiko/internal/flags"
-	"github.com/taikoxyz/gaiko/internal/keccak"
 	"github.com/taikoxyz/gaiko/internal/tee"
 	"github.com/taikoxyz/gaiko/internal/transition"
 	"github.com/taikoxyz/gaiko/internal/witness"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
 type ProofResponse struct {
