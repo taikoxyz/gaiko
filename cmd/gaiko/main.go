@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func wrap(
+func withSGX(
 	action func(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error,
 ) func(*cli.Context) error {
 	return func(cli *cli.Context) error {
@@ -25,7 +25,7 @@ func wrap(
 var oneshotCommand = &cli.Command{
 	Name:   "one-shot",
 	Usage:  "Run state transition once",
-	Action: wrap(oneshot),
+	Action: withSGX(oneshot),
 	Flags: []cli.Flag{
 		flags.SGXInstanceID,
 	},
@@ -34,7 +34,7 @@ var oneshotCommand = &cli.Command{
 var batchOneshotCommand = &cli.Command{
 	Name:   "one-batch-shot",
 	Usage:  "Run multi states transition once",
-	Action: wrap(batchOneshot),
+	Action: withSGX(batchOneshot),
 	Flags: []cli.Flag{
 		flags.SGXInstanceID,
 	},
@@ -43,13 +43,13 @@ var batchOneshotCommand = &cli.Command{
 var bootstrapCommand = &cli.Command{
 	Name:   "bootstrap",
 	Usage:  "Run the bootstrap process",
-	Action: wrap(bootstrap),
+	Action: withSGX(bootstrap),
 }
 
 var aggregateCommand = &cli.Command{
 	Name:   "aggregate",
 	Usage:  "Run the aggregate process",
-	Action: wrap(aggregate),
+	Action: withSGX(aggregate),
 	Flags: []cli.Flag{
 		flags.SGXInstanceID,
 	},
@@ -58,7 +58,7 @@ var aggregateCommand = &cli.Command{
 var checkCommand = &cli.Command{
 	Name:   "check",
 	Usage:  "Run the check process",
-	Action: wrap(check),
+	Action: withSGX(check),
 }
 
 // newApp creates an app with sane defaults.
