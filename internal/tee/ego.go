@@ -14,18 +14,15 @@ import (
 )
 
 type EgoProvider struct {
-	args *flags.Arguments
 }
 
 var _ Provider = (*EgoProvider)(nil)
 
-func NewEgoProvider(args *flags.Arguments) *EgoProvider {
-	return &EgoProvider{
-		args: args,
-	}
+func NewEgoProvider() *EgoProvider {
+	return &EgoProvider{}
 }
 
-func (p *EgoProvider) LoadQuote(key common.Address) (Quote, error) {
+func (p *EgoProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
 	q, err := getRemoteReport(key.Bytes())
 	if err != nil {
 		return nil, err
@@ -33,8 +30,8 @@ func (p *EgoProvider) LoadQuote(key common.Address) (Quote, error) {
 	return QuoteV3(q), nil
 }
 
-func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
-	filename := filepath.Join(p.args.SecretDir, privKeyFilename)
+func (p *EgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
+	filename := filepath.Join(args.SecretDir, privKeyFilename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -47,19 +44,19 @@ func (p *EgoProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
 	return crypto.ToECDSA(plainText)
 }
 
-func (p *EgoProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
+func (p *EgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
 	plainText := crypto.FromECDSA(privKey)
 	// encrypt private key with a key derived from a measurement of the enclave.
 	sealedText, err := ecrypto.SealWithUniqueKey(plainText, nil)
 	if err != nil {
 		return err
 	}
-	filename := filepath.Join(p.args.SecretDir, privKeyFilename)
+	filename := filepath.Join(args.SecretDir, privKeyFilename)
 	return os.WriteFile(filename, sealedText, 0600)
 }
 
-func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
+func (p *EgoProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
+	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 

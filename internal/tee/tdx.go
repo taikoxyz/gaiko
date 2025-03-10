@@ -13,18 +13,15 @@ import (
 )
 
 type TDXProvider struct {
-	args *flags.Arguments
 }
 
 var _ Provider = (*TDXProvider)(nil)
 
-func NewTDXProvider(args *flags.Arguments) Provider {
-	return &TDXProvider{
-		args: args,
-	}
+func NewTDXProvider() Provider {
+	return &TDXProvider{}
 }
 
-func (p *TDXProvider) LoadQuote(key common.Address) ([]byte, error) {
+func (p *TDXProvider) LoadQuote(args *flags.Arguments, key common.Address) ([]byte, error) {
 	tdxQuoteProvider, err := client.GetQuoteProvider()
 	if err != nil {
 		return nil, err
@@ -36,18 +33,18 @@ func (p *TDXProvider) LoadQuote(key common.Address) ([]byte, error) {
 	return client.GetRawQuote(tdxQuoteProvider, reportData64)
 }
 
-func (p *TDXProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
+func (p *TDXProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
 	// TODO: encrypt private key with a key derived from a measurement of the enclave.
 	panic("not implemented") // TODO: Implement
 }
 
-func (p *TDXProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
+func (p *TDXProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
 	// TODO: decrypt private key with a key derived from a measurement of the enclave.
 	panic("not implemented") // TODO: Implement
 }
 
-func (p *TDXProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
+func (p *TDXProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
+	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 

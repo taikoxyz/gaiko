@@ -7,7 +7,7 @@ import (
 )
 
 func aggregate(cli *cli.Context) error {
+	sgxProver := prover.NewSGXProver()
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSGXProver(args)
-	return sgxProver.Aggregate(cli.Context)
+	return sgxProver.Aggregate(cli.Context, args)
 }

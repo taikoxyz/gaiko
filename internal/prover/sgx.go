@@ -15,56 +15,48 @@ var addr2HashPadding [common.HashLength - common.AddressLength]byte
 
 type SGXProver struct {
 	sgxProvider tee.Provider
-	args        *flags.Arguments
 }
 
 var _ Prover = (*SGXProver)(nil)
 
-func NewSGXProver(args *flags.Arguments) *SGXProver {
+func NewSGXProver() *SGXProver {
 	return &SGXProver{
-		args:        args,
-		sgxProvider: tee.NewSGXProvider(args),
+		sgxProvider: tee.NewSGXProvider(),
 	}
 }
 
-func (p *SGXProver) Oneshot(
-	ctx context.Context,
-) error {
+func (p *SGXProver) Oneshot(ctx context.Context, args *flags.Arguments) error {
 	var driver witness.GuestInput
-	proof, err := genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
+	proof, err := genOneshotProof(ctx, args, &driver, p.sgxProvider)
 	if err != nil {
 		return err
 	}
-	return proof.Output(p.args.ProofWriter)
+	return proof.Output(args.ProofWriter)
 }
 
-func (p *SGXProver) BatchOneshot(
-	ctx context.Context,
-) error {
+func (p *SGXProver) BatchOneshot(ctx context.Context, args *flags.Arguments) error {
 	var driver witness.BatchGuestInput
-	proof, err := genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
+	proof, err := genOneshotProof(ctx, args, &driver, p.sgxProvider)
 	if err != nil {
 		return err
 	}
-	return proof.Output(p.args.ProofWriter)
+	return proof.Output(args.ProofWriter)
 }
 
-func (p *SGXProver) Aggregate(
-	ctx context.Context,
-) error {
-	proof, err := genAggregateProof(ctx, p.args, p.sgxProvider)
+func (p *SGXProver) Aggregate(ctx context.Context, args *flags.Arguments) error {
+	proof, err := genAggregateProof(ctx, args, p.sgxProvider)
 	if err != nil {
 		return err
 	}
-	return proof.Output(p.args.ProofWriter)
+	return proof.Output(args.ProofWriter)
 }
 
-func (p *SGXProver) Bootstrap(ctx context.Context) error {
+func (p *SGXProver) Bootstrap(ctx context.Context, args *flags.Arguments) error {
 	privKey, err := crypto.GenerateKey()
 	if err != nil {
 		return err
 	}
-	err = p.sgxProvider.SavePrivateKey(privKey)
+	err = p.sgxProvider.SavePrivateKey(args, privKey)
 	if err != nil {
 		return err
 	}
@@ -72,7 +64,7 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 	newInstance := crypto.PubkeyToAddress(privKey.PublicKey)
 	fmt.Printf("Instance address: %#x\n", newInstance)
 
-	quote, err := p.sgxProvider.LoadQuote(newInstance)
+	quote, err := p.sgxProvider.LoadQuote(args, newInstance)
 	if err != nil {
 		return err
 	}
@@ -82,10 +74,10 @@ func (p *SGXProver) Bootstrap(ctx context.Context) error {
 		Quote:       quote.Bytes(),
 	}
 
-	return p.sgxProvider.SaveBootstrap(b)
+	return p.sgxProvider.SaveBootstrap(args, b)
 }
 
-func (p *SGXProver) Check(ctx context.Context) error {
-	_, err := p.sgxProvider.LoadPrivateKey()
+func (p *SGXProver) Check(ctx context.Context, args *flags.Arguments) error {
+	_, err := p.sgxProvider.LoadPrivateKey(args)
 	return err
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
 const (
@@ -18,14 +19,14 @@ const (
 // Provider is the interface that wraps the basic methods to interact with the TEE.
 type Provider interface {
 	// LoadQuote loads the quote from the TEE.
-	LoadQuote(key common.Address) (Quote, error)
+	LoadQuote(args *flags.Arguments, key common.Address) (Quote, error)
 	// LoadPrivateKey loads the encrypted(mrenclave related) private key from the TEE.
 	// The encrypted data only can be decrypted by the same instance(image).
-	LoadPrivateKey() (*ecdsa.PrivateKey, error)
+	LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error)
 	// SavePrivateKey saves the encrypted(mrenclave related) private key to the TEE.
-	SavePrivateKey(privKey *ecdsa.PrivateKey) error
+	SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error
 	// SaveBootstrap saves the bootstrap data to the FS under the TEE(VM/Attach).
-	SaveBootstrap(b *BootstrapData) error
+	SaveBootstrap(args *flags.Arguments, b *BootstrapData) error
 }
 
 // BootstrapData is the data structure representing the booting information.

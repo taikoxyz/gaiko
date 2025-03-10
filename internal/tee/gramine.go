@@ -19,18 +19,15 @@ const (
 )
 
 type GramineProvider struct {
-	args *flags.Arguments
 }
 
 var _ Provider = (*GramineProvider)(nil)
 
-func NewGramineProvider(args *flags.Arguments) *GramineProvider {
-	return &GramineProvider{
-		args: args,
-	}
+func NewGramineProvider() *GramineProvider {
+	return &GramineProvider{}
 }
 
-func (p *GramineProvider) LoadQuote(key common.Address) (Quote, error) {
+func (p *GramineProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
 	q, err := getQuote(key)
 	if err != nil {
 		return nil, err
@@ -38,16 +35,16 @@ func (p *GramineProvider) LoadQuote(key common.Address) (Quote, error) {
 	return QuoteV3(q), nil
 }
 
-func (p *GramineProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
-	return loadPrivKey(p.args.SecretDir)
+func (p *GramineProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
+	return loadPrivKey(args.SecretDir)
 }
 
-func (p *GramineProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
-	return savePrivKey(p.args.SecretDir, privKey)
+func (p *GramineProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
+	return savePrivKey(args.SecretDir, privKey)
 }
 
-func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
-	filename := filepath.Join(p.args.ConfigDir, bootstrapInfoFilename)
+func (p *GramineProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
+	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
 

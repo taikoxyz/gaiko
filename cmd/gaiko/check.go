@@ -7,7 +7,7 @@ import (
 )
 
 func check(cli *cli.Context) error {
+	sgxProver := prover.NewSGXProver()
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSGXProver(args)
-	return sgxProver.Check(cli.Context)
+	return sgxProver.Check(cli.Context, args)
 }

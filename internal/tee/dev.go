@@ -84,32 +84,32 @@ type DevProvider struct {
 	quoteVersion quoteVersion
 }
 
-func NewSGXProvider(_ *flags.Arguments) Provider {
+func NewSGXProvider() Provider {
 	return &DevProvider{
 		quoteVersion: quoteV3Version,
 	}
 }
 
-func NewTDXProvider(_ *flags.Arguments) Provider {
+func NewTDXProvider() Provider {
 	return &DevProvider{
 		quoteVersion: quoteV4Version,
 	}
 }
 
-func (p *DevProvider) LoadQuote(key common.Address) (Quote, error) {
+func (p *DevProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
 	return QuoteV3(devQuoteV3), nil
 }
 
-func (p *DevProvider) LoadPrivateKey() (*ecdsa.PrivateKey, error) {
+func (p *DevProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
 	return devPrivKey, nil
 }
 
-func (p *DevProvider) SavePrivateKey(privKey *ecdsa.PrivateKey) error {
+func (p *DevProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
 	// rewrite the private key with the mock one
 	*privKey = *devPrivKey
 	return nil
 }
 
-func (p *DevProvider) SaveBootstrap(b *BootstrapData) error {
+func (p *DevProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
 	return nil
 }

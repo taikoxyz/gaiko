@@ -27,8 +27,8 @@ func TestOneshot(t *testing.T) {
 				WitnessReader: bytes.NewBuffer(input),
 				ProofWriter:   os.Stdout,
 			}
-			sgxProver := prover.NewSGXProver(args)
-			err := sgxProver.Oneshot(context.Background())
+			sgxProver := prover.NewSGXProver()
+			err := sgxProver.Oneshot(context.Background(), args)
 			require.NoError(t, err)
 		})
 	}

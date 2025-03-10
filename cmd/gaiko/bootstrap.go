@@ -7,7 +7,7 @@ import (
 )
 
 func bootstrap(cli *cli.Context) error {
+	sgxProver := prover.NewSGXProver()
 	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSGXProver(args)
-	return sgxProver.Bootstrap(cli.Context)
+	return sgxProver.Bootstrap(cli.Context, args)
 }

@@ -68,7 +68,7 @@ func genAggregateProof(
 	args *flags.Arguments,
 	sgxProvider tee.Provider,
 ) (*ProofResponse, error) {
-	prevPrivKey, err := sgxProvider.LoadPrivateKey()
+	prevPrivKey, err := sgxProvider.LoadPrivateKey(args)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func genAggregateProof(
 	}
 
 	proof := NewAggregateProof(args.SGXInstanceID, oldInstance, newInstance, sign)
-	quote, err := sgxProvider.LoadQuote(newInstance)
+	quote, err := sgxProvider.LoadQuote(args, newInstance)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func genOneshotProof(
 	if err != nil {
 		return nil, err
 	}
-	prevPrivKey, err := sgxProvider.LoadPrivateKey()
+	prevPrivKey, err := sgxProvider.LoadPrivateKey(args)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func genOneshotProof(
 	}
 
 	proof := NewOneshotProof(args.SGXInstanceID, newInstance, sign)
-	quote, err := sgxProvider.LoadQuote(newInstance)
+	quote, err := sgxProvider.LoadQuote(args, newInstance)
 	if err != nil {
 		return nil, err
 	}
