@@ -1,19 +1,25 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/flags"
+	"github.com/taikoxyz/gaiko/internal/prover"
 	"github.com/taikoxyz/gaiko/internal/version"
 	"github.com/urfave/cli/v2"
 )
 
-func actionWrapper(action func(*cli.Context) error) func(*cli.Context) error {
-	return func(c *cli.Context) error {
-		flags.InitLogger(c)
-		return action(c)
+func actionWrapper(
+	action func(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error,
+) func(*cli.Context) error {
+	return func(cli *cli.Context) error {
+		flags.InitLogger(cli)
+		args := flags.NewArguments(cli)
+		sgxProver := prover.NewSGXProver(args)
+		return action(cli.Context, sgxProver, args)
 	}
 }
 

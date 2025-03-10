@@ -1,19 +1,16 @@
 package main
 
 import (
+	"context"
+
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
-	"github.com/urfave/cli/v2"
 )
 
-func oneshot(cli *cli.Context) error {
-	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSGXProver(args)
-	return sgxProver.Oneshot(cli.Context, args)
+func oneshot(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error {
+	return sgxProver.Oneshot(ctx, args)
 }
 
-func batchOneshot(cli *cli.Context) error {
-	args := flags.NewArguments(cli)
-	sgxProver := prover.NewSGXProver(args)
-	return sgxProver.BatchOneshot(cli.Context, args)
+func batchOneshot(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error {
+	return sgxProver.BatchOneshot(ctx, args)
 }

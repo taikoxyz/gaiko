@@ -27,28 +27,16 @@ func NewSGXProver(args *flags.Arguments) *SGXProver {
 
 func (p *SGXProver) Oneshot(ctx context.Context, args *flags.Arguments) error {
 	var driver witness.GuestInput
-	proof, err := genOneshotProof(ctx, args, &driver, p.sgxProvider)
-	if err != nil {
-		return err
-	}
-	return proof.Output(args.ProofWriter)
+	return genOneshotProof(ctx, args, &driver, p.sgxProvider)
 }
 
 func (p *SGXProver) BatchOneshot(ctx context.Context, args *flags.Arguments) error {
 	var driver witness.BatchGuestInput
-	proof, err := genOneshotProof(ctx, args, &driver, p.sgxProvider)
-	if err != nil {
-		return err
-	}
-	return proof.Output(args.ProofWriter)
+	return genOneshotProof(ctx, args, &driver, p.sgxProvider)
 }
 
 func (p *SGXProver) Aggregate(ctx context.Context, args *flags.Arguments) error {
-	proof, err := genAggregateProof(ctx, args, p.sgxProvider)
-	if err != nil {
-		return err
-	}
-	return proof.Output(args.ProofWriter)
+	return genAggregateProof(ctx, args, p.sgxProvider)
 }
 
 func (p *SGXProver) Bootstrap(ctx context.Context, args *flags.Arguments) error {
