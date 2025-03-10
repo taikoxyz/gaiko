@@ -1,3 +1,5 @@
+//go:build !dev
+
 package tee
 
 import (
@@ -15,6 +17,12 @@ type TDXProvider struct {
 }
 
 var _ Provider = (*TDXProvider)(nil)
+
+func NewTDXProvider(args *flags.Arguments) Provider {
+	return &TDXProvider{
+		args: args,
+	}
+}
 
 func (p *TDXProvider) LoadQuote(key common.Address) ([]byte, error) {
 	tdxQuoteProvider, err := client.GetQuoteProvider()
