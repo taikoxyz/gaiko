@@ -16,7 +16,7 @@ func TestDevProvider(t *testing.T) {
 	p := NewSGXProvider(nil)
 	q, err := p.LoadQuote(common.Address{})
 	require.NoError(t, err)
-	assert.Equal(t, devQuoteV3, q)
+	assert.Equal(t, devQuoteV3, q.Bytes())
 	privKey, err := p.LoadPrivateKey()
 	require.NoError(t, err)
 	assert.Equal(t, devPrivKey, privKey)
