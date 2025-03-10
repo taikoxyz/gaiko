@@ -13,16 +13,16 @@ import (
 	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
-type EgoProvider struct {
+type SGXEgoProvider struct {
 }
 
-var _ Provider = (*EgoProvider)(nil)
+var _ Provider = (*SGXEgoProvider)(nil)
 
-func NewEgoProvider() *EgoProvider {
-	return &EgoProvider{}
+func NewEgoProvider() *SGXEgoProvider {
+	return &SGXEgoProvider{}
 }
 
-func (p *EgoProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
+func (p *SGXEgoProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
 	q, err := getRemoteReport(key.Bytes())
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (p *EgoProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quot
 	return QuoteV3(q), nil
 }
 
-func (p *EgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
+func (p *SGXEgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
 	filename := filepath.Join(args.SecretDir, privKeyFilename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
@@ -44,7 +44,7 @@ func (p *EgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, 
 	return crypto.ToECDSA(plainText)
 }
 
-func (p *EgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
+func (p *SGXEgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
 	plainText := crypto.FromECDSA(privKey)
 	// encrypt private key with a key derived from a measurement of the enclave.
 	sealedText, err := ecrypto.SealWithUniqueKey(plainText, nil)
@@ -55,7 +55,7 @@ func (p *EgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.Priva
 	return os.WriteFile(filename, sealedText, 0600)
 }
 
-func (p *EgoProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
+func (p *SGXEgoProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
 	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }

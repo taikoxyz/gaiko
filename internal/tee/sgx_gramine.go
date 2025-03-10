@@ -18,16 +18,16 @@ const (
 	attestationUserReportDataDeviceFile = "/dev/attestation/user_report_data"
 )
 
-type GramineProvider struct {
+type SGXGramineProvider struct {
 }
 
-var _ Provider = (*GramineProvider)(nil)
+var _ Provider = (*SGXGramineProvider)(nil)
 
-func NewGramineProvider() *GramineProvider {
-	return &GramineProvider{}
+func NewGramineProvider() *SGXGramineProvider {
+	return &SGXGramineProvider{}
 }
 
-func (p *GramineProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
+func (p *SGXGramineProvider) LoadQuote(args *flags.Arguments, key common.Address) (Quote, error) {
 	q, err := getQuote(key)
 	if err != nil {
 		return nil, err
@@ -35,15 +35,18 @@ func (p *GramineProvider) LoadQuote(args *flags.Arguments, key common.Address) (
 	return QuoteV3(q), nil
 }
 
-func (p *GramineProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
+func (p *SGXGramineProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
 	return loadPrivKey(args.SecretDir)
 }
 
-func (p *GramineProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.PrivateKey) error {
+func (p *SGXGramineProvider) SavePrivateKey(
+	args *flags.Arguments,
+	privKey *ecdsa.PrivateKey,
+) error {
 	return savePrivKey(args.SecretDir, privKey)
 }
 
-func (p *GramineProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
+func (p *SGXGramineProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
 	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
 	return b.SaveToFile(filename)
 }
