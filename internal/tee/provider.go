@@ -15,6 +15,7 @@ type Provider interface {
 	LoadPrivateKey() (*ecdsa.PrivateKey, error)
 	SavePrivateKey(privKey *ecdsa.PrivateKey) error
 	SaveBootstrap(b *BootstrapData) error
+	Quote(q []byte) Quote
 }
 
 type BootstrapData struct {

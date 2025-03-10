@@ -47,6 +47,10 @@ func (p *GramineProvider) SaveBootstrap(b *BootstrapData) error {
 	return b.SaveToFile(filename)
 }
 
+func (p *GramineProvider) Quote(q []byte) Quote {
+	return QuoteV3(q)
+}
+
 func saveAttestationUserReportData(pubKey common.Address) error {
 	extendedPubkey := make([]byte, 64)
 	copy(extendedPubkey, pubKey.Bytes())

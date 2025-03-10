@@ -59,6 +59,10 @@ func (p *EgoProvider) SaveBootstrap(b *BootstrapData) error {
 	return b.SaveToFile(filename)
 }
 
+func (p *EgoProvider) Quote(q []byte) Quote {
+	return QuoteV4(q)
+}
+
 func getRemoteReport(userReport []byte) ([]byte, error) {
 	report, err := enclave.GetRemoteReport(userReport)
 	if err != nil {

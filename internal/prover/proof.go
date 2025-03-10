@@ -27,12 +27,7 @@ type ProofResponse struct {
 }
 
 func (p *ProofResponse) Output(w io.Writer) error {
-	err := json.NewEncoder(w).Encode(p)
-	if err != nil {
-		return err
-	}
-	tee.QuoteV3(p.Quote).Print()
-	return nil
+	return json.NewEncoder(w).Encode(p)
 }
 
 type OneshotProof [89]byte

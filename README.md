@@ -12,7 +12,7 @@
 │   ├── keccak
 │   ├── mpt
 │   ├── prover
-│   ├── sgx
+│   ├── tee
 │   ├── transition
 │   ├── types
 │   ├── version
@@ -28,7 +28,7 @@
 - `internal/keccak` keccak hasher
 - `internal/mpt` the golang porting of merkle trie from `raiko`
 - `internal/prover` prover abstracts, the main entry of `gaiko`
-- `internal/sgx` sgx provider, `gramine` or `ego`
+- `internal/tee` TEE provider, `tdx`, `gramine` or `ego`, compile with `-tags dev` to use `dev` mode
 - `internal/transition` state transition of blocks
 - `internal/types` type bridge between `raiko` and `gaiko`
 - `internal/witness` proof witness, aka: `Batch/GuestInput` in `raiko`

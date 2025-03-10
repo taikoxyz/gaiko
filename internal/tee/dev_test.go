@@ -16,12 +16,12 @@ func TestDevProvider(t *testing.T) {
 	p := NewSGXProvider(nil)
 	q, err := p.LoadQuote(common.Address{})
 	require.NoError(t, err)
-	assert.Equal(t, devQuote, q)
+	assert.Equal(t, devQuoteV3, q)
 	privKey, err := p.LoadPrivateKey()
 	require.NoError(t, err)
 	assert.Equal(t, devPrivKey, privKey)
 
 	newInstance := crypto.PubkeyToAddress(devPrivKey.PublicKey)
 	fmt.Printf("Instance address: %#x\n", newInstance)
-	QuoteV3(devQuote).Print()
+	p.Quote(q).Print()
 }

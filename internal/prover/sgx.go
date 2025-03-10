@@ -35,6 +35,7 @@ func (p *SGXProver) Oneshot(
 	if err != nil {
 		return err
 	}
+	p.sgxProvider.Quote(proof.Quote).Print()
 	return proof.Output(p.args.ProofWriter)
 }
 
@@ -46,6 +47,7 @@ func (p *SGXProver) BatchOneshot(
 	if err != nil {
 		return err
 	}
+	p.sgxProvider.Quote(proof.Quote).Print()
 	return proof.Output(p.args.ProofWriter)
 }
 
@@ -56,6 +58,7 @@ func (p *SGXProver) Aggregate(
 	if err != nil {
 		return err
 	}
+	p.sgxProvider.Quote(proof.Quote).Print()
 	return proof.Output(p.args.ProofWriter)
 }
 
