@@ -100,11 +100,10 @@ func NewArguments(cli *cli.Context) *Arguments {
 }
 
 // InitLogger initializes the root logger with the command line flags.
-func InitLogger(c *cli.Context) {
+func InitLogger(c *cli.Context) error {
 	var (
 		slogVerbosity = log.FromLegacyLevel(c.Int(Verbosity.Name))
 	)
-
 	if c.Bool(LogJSON.Name) {
 		glogger := log.NewGlogHandler(log.NewGlogHandler(log.JSONHandler(os.Stdout)))
 		glogger.Verbosity(slogVerbosity)
@@ -114,4 +113,5 @@ func InitLogger(c *cli.Context) {
 		glogger.Verbosity(slogVerbosity)
 		log.SetDefault(log.NewLogger(glogger))
 	}
+	return nil
 }
