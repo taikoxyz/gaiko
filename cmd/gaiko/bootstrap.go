@@ -7,6 +7,6 @@ import (
 	"github.com/taikoxyz/gaiko/internal/prover"
 )
 
-func bootstrap(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error {
-	return sgxProver.Bootstrap(ctx, args)
+func bootstrap(ctx context.Context, p prover.Prover, args *flags.Arguments) error {
+	return p.Bootstrap(ctx, args)
 }
