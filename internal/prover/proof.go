@@ -3,7 +3,6 @@ package prover
 import (
 	"context"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,37 +29,25 @@ func (p *ProofResponse) Output(w io.Writer) error {
 	return json.NewEncoder(w).Encode(p)
 }
 
-type OneshotProof [89]byte
-
-func (p *OneshotProof) Hex() string {
-	return hex.EncodeToString(p[:])
-}
-
-func NewOneshotProof(instanceID uint32, newInstance common.Address, sign []byte) *OneshotProof {
-	var proof OneshotProof
+func NewOneshotProof(instanceID uint32, newInstance common.Address, sign []byte) []byte {
+	var proof [89]byte
 	binary.BigEndian.PutUint32(proof[:4], instanceID)
 	copy(proof[4:24], newInstance.Bytes())
 	copy(proof[24:], sign)
-	return &proof
-}
-
-type AggregateProof [109]byte
-
-func (p *AggregateProof) Hex() string {
-	return hex.EncodeToString(p[:])
+	return proof[:]
 }
 
 func NewAggregateProof(
 	instanceID uint32,
 	oldInstance, newInstance common.Address,
 	sign []byte,
-) *AggregateProof {
-	var proof AggregateProof
+) []byte {
+	var proof [109]byte
 	binary.BigEndian.PutUint32(proof[:4], instanceID)
 	copy(proof[4:24], oldInstance.Bytes())
 	copy(proof[24:44], newInstance.Bytes())
 	copy(proof[44:], sign)
-	return &proof
+	return proof[:]
 }
 
 func genAggregateProof(
@@ -116,7 +103,7 @@ func genAggregateProof(
 	}
 	quote.Print()
 	return (&ProofResponse{
-		Proof:           proof[:],
+		Proof:           proof,
 		Quote:           quote.Bytes(),
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
@@ -165,7 +152,7 @@ func genOneshotProof(
 	}
 	quote.Print()
 	return (&ProofResponse{
-		Proof:           proof[:],
+		Proof:           proof,
 		Quote:           quote.Bytes(),
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
