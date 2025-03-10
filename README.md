@@ -32,8 +32,9 @@ $ tree -d
 - `internal/tee` TEE provider, `tdx`, `gramine` or `ego`, compile with `-tags dev` to use `dev` mode
 - `internal/transition` state transition of blocks
 - `internal/types` type bridge between `raiko` and `gaiko`
+- `internal/version` cli version helper
 - `internal/witness` proof witness, aka: `Batch/GuestInput` in `raiko`
-- `pkg/keccak` keccak hasher
+- `pkg/keccak` pooled keccak hasher
 - `pkg/mpt` the golang porting of merkle trie from `raiko`
 
 ## Data Flow(Oneshot)
