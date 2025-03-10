@@ -5,9 +5,9 @@ import (
 )
 
 type Prover interface {
-	Oneshot(ctx context.Context) (*ProofResponse, error)
-	BatchOneshot(ctx context.Context) (*ProofResponse, error)
-	Aggregate(ctx context.Context) (*ProofResponse, error)
+	Oneshot(ctx context.Context) error
+	BatchOneshot(ctx context.Context) error
+	Aggregate(ctx context.Context) error
 	Bootstrap(ctx context.Context) error
 	Check(ctx context.Context) error
 }

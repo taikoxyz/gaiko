@@ -32,45 +32,53 @@ func NewSGXProver(args *flags.Arguments) *SGXProver {
 
 func (p *SGXProver) Oneshot(
 	ctx context.Context,
-) (*ProofResponse, error) {
+) error {
 	var driver witness.GuestInput
-	return genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
+	proof, err := genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
+	if err != nil {
+		return err
+	}
+	return proof.Output(p.args.ProofWriter)
 }
 
 func (p *SGXProver) BatchOneshot(
 	ctx context.Context,
-) (*ProofResponse, error) {
+) error {
 	var driver witness.BatchGuestInput
-	return genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
+	proof, err := genOneshotProof(ctx, p.args, &driver, p.sgxProvider)
+	if err != nil {
+		return err
+	}
+	return proof.Output(p.args.ProofWriter)
 }
 
 func (p *SGXProver) Aggregate(
 	ctx context.Context,
-) (*ProofResponse, error) {
+) error {
 	prevPrivKey, err := p.sgxProvider.LoadPrivateKey()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
 	var input witness.RawAggregationGuestInput
 	err = json.NewDecoder(os.Stdin).Decode(&input)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {
 		pubKey, err := crypto.SigToPub(proof.Input.Bytes(), proof.Proof[24:])
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if crypto.PubkeyToAddress(*pubKey) != curInstance {
-			return nil, fmt.Errorf("invalid proof[%d]", i)
+			return fmt.Errorf("invalid proof[%d]", i)
 		}
 		curInstance = common.BytesToAddress(proof.Proof[4:24])
 	}
 	if newInstance != curInstance {
-		return nil, fmt.Errorf("invalid instance: %#x", curInstance)
+		return fmt.Errorf("invalid instance: %#x", curInstance)
 	}
 
 	combinedHashes := make([]byte, 0, (len(input.Proofs)+2)*common.HashLength)
@@ -85,22 +93,22 @@ func (p *SGXProver) Aggregate(
 	aggHash := keccak.Keccak(combinedHashes)
 	sign, err := crypto.Sign(aggHash.Bytes(), prevPrivKey)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	proof := NewAggregateProof(p.args.SGXInstanceID, oldInstance, newInstance, sign)
 	quote, err := p.sgxProvider.LoadQuote(newInstance)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &ProofResponse{
+	return (&ProofResponse{
 		Proof:           proof[:],
 		Quote:           quote,
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
 		Input:           aggHash,
-	}, nil
+	}).Output(p.args.ProofWriter)
 }
 
 func (p *SGXProver) Bootstrap(ctx context.Context) error {

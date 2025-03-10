@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 
@@ -83,6 +84,8 @@ type Arguments struct {
 	ConfigDir     string
 	SGXType       string
 	SGXInstanceID uint32
+	WitnessReader io.Reader
+	ProofWriter   io.Writer
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
@@ -91,6 +94,8 @@ func NewArguments(cli *cli.Context) *Arguments {
 		ConfigDir:     cli.String(GlobalConfigDir.Name),
 		SGXType:       cli.String(GlobalSGXType.Name),
 		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
+		WitnessReader: os.Stdin,
+		ProofWriter:   os.Stdout,
 	}
 }
 

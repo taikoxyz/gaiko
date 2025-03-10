@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"os"
+	"io"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -24,8 +24,8 @@ type ProofResponse struct {
 	Input           common.Hash    `json:"input"`
 }
 
-func (p *ProofResponse) Stdout() error {
-	err := json.NewEncoder(os.Stdout).Encode(p)
+func (p *ProofResponse) Output(w io.Writer) error {
+	err := json.NewEncoder(w).Encode(p)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func genOneshotProof(
 	wit witness.Witness,
 	sgxProvider sgx.Provider,
 ) (*ProofResponse, error) {
-	err := json.NewDecoder(os.Stdin).Decode(wit)
+	err := json.NewDecoder(args.WitnessReader).Decode(wit)
 	if err != nil {
 		return nil, err
 	}

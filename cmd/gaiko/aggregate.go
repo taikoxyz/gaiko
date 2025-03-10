@@ -9,9 +9,5 @@ import (
 func aggregate(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
 	sgxProver := prover.NewSGXProver(args)
-	proof, err := sgxProver.Aggregate(cli.Context)
-	if err != nil {
-		return err
-	}
-	return proof.Stdout()
+	return sgxProver.Aggregate(cli.Context)
 }

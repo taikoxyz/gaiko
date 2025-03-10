@@ -9,19 +9,11 @@ import (
 func oneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
 	sgxProver := prover.NewSGXProver(args)
-	proof, err := sgxProver.Oneshot(cli.Context)
-	if err != nil {
-		return err
-	}
-	return proof.Stdout()
+	return sgxProver.Oneshot(cli.Context)
 }
 
 func batchOneshot(cli *cli.Context) error {
 	args := flags.NewArguments(cli)
 	sgxProver := prover.NewSGXProver(args)
-	proof, err := sgxProver.BatchOneshot(cli.Context)
-	if err != nil {
-		return err
-	}
-	return proof.Stdout()
+	return sgxProver.BatchOneshot(cli.Context)
 }
