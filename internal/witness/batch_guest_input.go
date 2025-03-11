@@ -54,14 +54,12 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 					compressedTxListBuf = append(compressedTxListBuf, data...)
 				}
 			}
-			offset, length := batchProposed.BlobTxSliceParam()
 			batchID := new(big.Int).SetUint64(g.Taiko.BatchID)
 			var err error
 			compressedTxListBuf, err = sliceTxList(
 				batchID,
 				compressedTxListBuf,
-				offset,
-				length,
+				batchProposed.BlobTxSliceParam(),
 			)
 			if err != nil {
 				log.Error(

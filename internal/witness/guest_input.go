@@ -72,12 +72,11 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 		if g.IsTaiko() {
 			if blobUsed {
 				blob := eth.Blob(compressedTxListBuf)
-				offset, length := blockProposed.BlobTxSliceParam()
 				if blobDataBuf, err := blob.ToData(); err != nil {
 					log.Error("Parse blob data failed", "err", err)
 				} else if len(blobDataBuf) > maxBlobDataSize {
 					panic(fmt.Sprintf("Blob data size exceeds the limit: %d", len(blobDataBuf)))
-				} else if compressedTxListBuf, err = sliceTxList(g.Block.Number(), blobDataBuf, offset, length); err != nil {
+				} else if compressedTxListBuf, err = sliceTxList(g.Block.Number(), blobDataBuf, blockProposed.BlobTxSliceParam()); err != nil {
 					log.Error(
 						"Invalid txlist offset and size in metadata",
 						"blockID", g.Block.NumberU64(),

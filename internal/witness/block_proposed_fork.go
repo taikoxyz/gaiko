@@ -15,13 +15,19 @@ const (
 	PacayaHardFork  string = "Pacaya"
 )
 
+// Slice represents the offset and length of a slice.
+type Slice struct {
+	Offset uint32
+	Length uint32
+}
+
 // BlockProposedFork represents the interface for handling taiko proposed blocks in different hard forks.
 type BlockProposedFork interface {
 	ABIEncoder
 	BlockNumber() uint64
 	BlockTimestamp() uint64
 	BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig
-	BlobTxSliceParam() (offset uint32, length uint32)
+	BlobTxSliceParam() *Slice
 	BlobUsed() bool
 	HardFork() string
 	MinTier() uint16
@@ -79,8 +85,8 @@ func (b *PacayaBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig
 	return &b.Info.BaseFeeConfig
 }
 
-func (b *PacayaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	return b.Info.BlobByteOffset, b.Info.BlobByteSize
+func (b *PacayaBlockProposed) BlobTxSliceParam() *Slice {
+	return &Slice{b.Info.BlobByteOffset, b.Info.BlobByteSize}
 }
 
 func (b *PacayaBlockProposed) BlobUsed() bool {
@@ -194,8 +200,8 @@ func (b *HeklaBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig 
 	return nil
 }
 
-func (b *HeklaBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	return 0, 0
+func (b *HeklaBlockProposed) BlobTxSliceParam() *Slice {
+	return nil
 }
 
 func (b *HeklaBlockProposed) BlobUsed() bool {
@@ -304,8 +310,8 @@ func (b *OntakeBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig
 	return (*pacaya.LibSharedDataBaseFeeConfig)(&b.Meta.BaseFeeConfig)
 }
 
-func (b *OntakeBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	return b.Meta.BlobTxListOffset, b.Meta.BlobTxListLength
+func (b *OntakeBlockProposed) BlobTxSliceParam() *Slice {
+	return &Slice{b.Meta.BlobTxListOffset, b.Meta.BlobTxListLength}
 }
 
 func (b *OntakeBlockProposed) BlobUsed() bool {
@@ -408,8 +414,8 @@ func (b *NotingBlockProposed) BaseFeeConfig() *pacaya.LibSharedDataBaseFeeConfig
 	return nil
 }
 
-func (b *NotingBlockProposed) BlobTxSliceParam() (offset uint32, length uint32) {
-	return 0, 0
+func (b *NotingBlockProposed) BlobTxSliceParam() *Slice {
+	return nil
 }
 
 func (b *NotingBlockProposed) BlobUsed() bool {
