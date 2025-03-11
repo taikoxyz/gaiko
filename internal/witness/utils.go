@@ -10,7 +10,8 @@ var emptyEthDepositHash = common.HexToHash(
 )
 
 const (
-	anchorGasLimit      uint32 = 250_000
-	blockMaxTxListBytes uint64 = (params.BlobTxBytesPerFieldElement - 1) * params.BlobTxFieldElementsPerBlob
-	blockMaxGasLimit           = 240_000_000
+	anchorGasLimit         = 250_000
+	blockMaxTxListBytes    = params.BlobTxBytesPerFieldElement * params.BlobTxFieldElementsPerBlob
+	calldataMaxTxListBytes = (params.BlobTxBytesPerFieldElement - 1) * params.BlobTxFieldElementsPerBlob
+	blockMaxGasLimit       = 240_000_000
 )
