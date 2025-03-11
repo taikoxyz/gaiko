@@ -147,7 +147,7 @@ func (g *GuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 		txListHash      common.Hash
 		metadata        BlockMetadataFork
 	)
-	if g.ChainSpec.IsTaiko {
+	if g.IsTaiko() {
 		reducedGasLimit = anchorGasLimit
 	}
 
