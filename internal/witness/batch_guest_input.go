@@ -46,39 +46,44 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 		if batchProposed.BlobUsed() {
 			for _, blobDataBuf := range g.Taiko.TxDataFromBlob {
 				blob := eth.Blob(blobDataBuf)
-				data, err := blob.ToData()
-				if err != nil {
-					log.Warn("Parse blob data failed", "err", err)
-					return
+				if data, err := blob.ToData(); err != nil {
+					log.Error("Parse blob data failed", "err", err)
+				} else {
+					compressedTxListBuf = append(compressedTxListBuf, data...)
 				}
-				compressedTxListBuf = append(compressedTxListBuf, data...)
+			}
+			offset, length := batchProposed.BlobTxSliceParam()
+			batchID := new(big.Int).SetUint64(g.Taiko.BatchID)
+			var err error
+			compressedTxListBuf, err = sliceTxList(
+				batchID,
+				compressedTxListBuf,
+				offset,
+				length,
+			)
+			if err != nil {
+				log.Error(
+					"Invalid txlist offset and size in metadata",
+					"batchId", batchID,
+					"err", err,
+				)
 			}
 		} else {
 			compressedTxListBuf = g.Taiko.TxDataFromCalldata
 		}
-		offset, length := batchProposed.BlobTxSliceParam()
+
 		chainID := big.NewInt(int64(g.ChainID()))
-		firstBlock := g.Inputs[0].Block.Number()
-		txListBytes, err := sliceTxList(firstBlock, compressedTxListBuf, offset, length)
-		if err != nil {
-			log.Warn(
-				"Invalid txlist offset and size in metadata",
-				"blockID", firstBlock.Uint64(),
-				"err", err,
-			)
-			return
-		}
-		txs := decompressTxList(txListBytes, true, true, chainID)
+		txs := decompressTxList(compressedTxListBuf, batchProposed.BlobUsed(), true, chainID)
 		blockParams := batchProposed.BlockParams()
 		next := 0
 		for i, blockParam := range blockParams {
-			numTransactions := int(blockParam.NumTransactions)
+			numTxs := int(blockParam.NumTransactions)
 			_txs := []*types.Transaction{g.Inputs[i].Taiko.AnchorTx}
-			_txs = append(_txs, txs[next:next+numTransactions]...)
+			_txs = append(_txs, txs[next:next+numTxs]...)
 			if !yield(&Pair{g.Inputs[i], _txs}) {
 				return
 			}
-			next += numTransactions
+			next += numTxs
 		}
 	}
 }

@@ -62,28 +62,25 @@ type TaikoProverData struct {
 
 func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 	return func(yield func(*Pair) bool) {
-		chainID := big.NewInt(int64(g.ChainSpec.ChainID))
-		txListBytes := g.Taiko.TxData
-		blobUsed := g.Taiko.BlockProposed.BlobUsed()
-		isPacaya := g.Taiko.BlockProposed.HardFork() == PacayaHardFork
-		offset, length := g.Taiko.BlockProposed.BlobTxSliceParam()
+		blockProposed := g.Taiko.BlockProposed
+		chainID := new(big.Int).SetUint64(g.ChainID())
+		blobUsed := blockProposed.BlobUsed()
+		isPacaya := blockProposed.HardFork() == PacayaHardFork
+		compressedTxListBuf := g.Taiko.TxData
 		if blobUsed {
-			blob := eth.Blob(txListBytes)
-			var err error
-			if txListBytes, err = blob.ToData(); err != nil {
+			blob := eth.Blob(compressedTxListBuf)
+			offset, length := blockProposed.BlobTxSliceParam()
+			if blobDataBuf, err := blob.ToData(); err != nil {
 				log.Error("Parse blob data failed", "err", err)
-				return
-			}
-			if txListBytes, err = sliceTxList(g.Block.Number(), txListBytes, offset, length); err != nil {
+			} else if compressedTxListBuf, err = sliceTxList(g.Block.Number(), blobDataBuf, offset, length); err != nil {
 				log.Error(
 					"Invalid txlist offset and size in metadata",
 					"blockID", g.Block.NumberU64(),
 					"err", err,
 				)
-				return
 			}
 		}
-		txs := decompressTxList(txListBytes, blobUsed, isPacaya, chainID)
+		txs := decompressTxList(compressedTxListBuf, blobUsed, isPacaya, chainID)
 		txs = slices.Insert(txs, 0, g.Taiko.AnchorTx)
 		if !yield(&Pair{g, txs}) {
 			return
