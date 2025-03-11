@@ -116,10 +116,6 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 	}
 }
 
-func validateCalldataTxList(txList []byte) bool {
-	return len(txList) <= calldataMaxTxListBytes
-}
-
 func (g *GuestInput) BlockProposedFork() BlockProposedFork {
 	return g.Taiko.BlockProposed
 }
