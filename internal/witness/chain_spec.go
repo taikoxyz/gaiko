@@ -134,9 +134,19 @@ func (h *HardForks) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type Network string
+
+const (
+	TaikoA7Network      Network = "taiko_a7"
+	TaikoMainnetNetwork Network = "taiko_mainnet"
+	EthereumNetwork     Network = "ethereum"
+	HoleskyNetwork      Network = "holesky"
+	TaikoDevNetwork     Network = "taiko_dev"
+)
+
 //go:generate go run github.com/fjl/gencodec -type ChainSpec -out gen_chain_spec.go
 type ChainSpec struct {
-	Name                 string                                   `json:"name"                   gencodec:"required"`
+	Name                 Network                                  `json:"name"                   gencodec:"required"`
 	ChainID              uint64                                   `json:"chain_id"               gencodec:"required"`
 	MaxSpecID            SpecID                                   `json:"max_spec_id"            gencodec:"required"`
 	HardForks            HardForks                                `json:"hard_forks"             gencodec:"required"`
@@ -176,15 +186,15 @@ func (c *ChainSpec) getForkVerifierAddress(
 
 func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
 	switch c.Name {
-	case "taiko_a7":
+	case TaikoA7Network:
 		return params.NetworkIDToChainConfigOrDefault(params.HeklaNetworkID), nil
-	case "taiko_mainnet":
+	case TaikoMainnetNetwork:
 		return params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID), nil
-	case "ethereum":
+	case EthereumNetwork:
 		return params.MainnetChainConfig, nil
-	case "holesky":
+	case HoleskyNetwork:
 		return params.HoleskyChainConfig, nil
-	case "taiko_dev":
+	case TaikoDevNetwork:
 		return params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID), nil
 	default:
 		return nil, errors.New("unsupported chain spec")

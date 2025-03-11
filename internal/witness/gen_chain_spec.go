@@ -12,7 +12,7 @@ import (
 // MarshalJSON marshals as JSON.
 func (c ChainSpec) MarshalJSON() ([]byte, error) {
 	type ChainSpec struct {
-		Name                 string                                   `json:"name"                   gencodec:"required"`
+		Name                 Network                                  `json:"name"                   gencodec:"required"`
 		ChainID              uint64                                   `json:"chain_id"               gencodec:"required"`
 		MaxSpecID            SpecID                                   `json:"max_spec_id"            gencodec:"required"`
 		HardForks            HardForks                                `json:"hard_forks"             gencodec:"required"`
@@ -46,7 +46,7 @@ func (c ChainSpec) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (c *ChainSpec) UnmarshalJSON(input []byte) error {
 	type ChainSpec struct {
-		Name                 *string                                  `json:"name"                   gencodec:"required"`
+		Name                 *Network                                 `json:"name"                   gencodec:"required"`
 		ChainID              *uint64                                  `json:"chain_id"               gencodec:"required"`
 		MaxSpecID            *SpecID                                  `json:"max_spec_id"            gencodec:"required"`
 		HardForks            *HardForks                               `json:"hard_forks"             gencodec:"required"`

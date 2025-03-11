@@ -10,12 +10,13 @@ import (
 
 func decompressTxList(
 	txListBytes []byte,
+	maxBytesPerTxList uint64,
 	blobUsed, isPacaya bool,
 	chainID *big.Int,
 ) types.Transactions {
 	return txListDecompressor.NewTxListDecompressor(
 		blockMaxGasLimit,
-		blockMaxTxListBytes,
+		maxBytesPerTxList,
 		chainID,
 	).TryDecompress(
 		chainID,

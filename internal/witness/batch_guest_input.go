@@ -42,8 +42,10 @@ type TaikoGuestBatchInput struct {
 func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 	return func(yield func(*Pair) bool) {
 		batchProposed := g.Taiko.BatchProposed
-		var compressedTxListBuf []byte
+		chainID := big.NewInt(int64(g.ChainID()))
+		var txs types.Transactions
 		if batchProposed.BlobUsed() {
+			var compressedTxListBuf []byte
 			for _, blobDataBuf := range g.Taiko.TxDataFromBlob {
 				blob := eth.Blob(blobDataBuf)
 				if data, err := blob.ToData(); err != nil {
@@ -68,12 +70,23 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 					"err", err,
 				)
 			}
+			txs = decompressTxList(
+				compressedTxListBuf,
+				blobMaxTxListBytes,
+				batchProposed.BlobUsed(),
+				true,
+				chainID,
+			)
 		} else {
-			compressedTxListBuf = g.Taiko.TxDataFromCalldata
+			txs = decompressTxList(
+				g.Taiko.TxDataFromCalldata,
+				calldataMaxTxListBytes,
+				batchProposed.BlobUsed(),
+				true,
+				chainID,
+			)
 		}
 
-		chainID := big.NewInt(int64(g.ChainID()))
-		txs := decompressTxList(compressedTxListBuf, batchProposed.BlobUsed(), true, chainID)
 		blockParams := batchProposed.BlockParams()
 		next := 0
 		for i, blockParam := range blockParams {
