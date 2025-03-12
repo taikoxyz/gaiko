@@ -115,6 +115,7 @@ func (g *BatchGuestInput) calculatePacayaTxsHash(
 }
 
 func (g *BatchGuestInput) Verify(proofType ProofType) error {
+	// 1. verify chain spec
 	for input := range slices.Values(g.Inputs) {
 		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
 			return err
@@ -122,7 +123,7 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	}
 
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
-	// check blob commitments or proofs
+	// 2. check blob commitments or proofs
 	switch blobProofType {
 	case KzgVersionedHash:
 		if len(g.Taiko.TxDataFromBlob) != 0 &&
@@ -142,14 +143,7 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 		}
 	}
 
-	// check txlist comes from either calldata or blob, but not both
-	calldataNotEmpty := len(g.Taiko.TxDataFromCalldata) != 0
-	blobNotEmpty := len(g.Taiko.TxDataFromBlob) != 0
-
-	if calldataNotEmpty && blobNotEmpty {
-		return errors.New("txlist comes from either calldata or blob, but not both")
-	}
-
+	// 2.1 verify blob proof
 	for i := range len(g.Taiko.TxDataFromBlob) {
 		blob := g.Taiko.TxDataFromBlob[i]
 		commitment := (*g.Taiko.BlobCommitments)[i]
@@ -158,6 +152,15 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 			return err
 		}
 	}
+
+	// 3. check txlist comes from either calldata or blob, but not both
+	calldataNotEmpty := len(g.Taiko.TxDataFromCalldata) != 0
+	blobNotEmpty := len(g.Taiko.TxDataFromBlob) != 0
+	if calldataNotEmpty && blobNotEmpty {
+		return errors.New("txlist comes from either calldata or blob, but not both")
+	}
+
+	// TODO: 4. verify the continuity of the blocks
 	return nil
 }
 
