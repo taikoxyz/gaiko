@@ -123,7 +123,7 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	}
 
 	blobProofType := getBlobProofType(proofType, g.Taiko.BlobProofType)
-	// 2. check blob commitments or proofs
+	// 2.1 check the same length of blob's commitments or proofs
 	switch blobProofType {
 	case KzgVersionedHash:
 		if len(g.Taiko.TxDataFromBlob) != 0 &&
@@ -143,7 +143,7 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 		}
 	}
 
-	// 2.1 verify blob proof
+	// 2.2 verify the correctness of blob's proofs
 	for i := range len(g.Taiko.TxDataFromBlob) {
 		blob := g.Taiko.TxDataFromBlob[i]
 		commitment := (*g.Taiko.BlobCommitments)[i]
@@ -153,7 +153,7 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 		}
 	}
 
-	// 3. check txlist comes from either calldata or blob, but not both
+	// 3. check txlist comes from either calldata or blob, but not both exist
 	calldataNotEmpty := len(g.Taiko.TxDataFromCalldata) != 0
 	blobNotEmpty := len(g.Taiko.TxDataFromBlob) != 0
 	if calldataNotEmpty && blobNotEmpty {
