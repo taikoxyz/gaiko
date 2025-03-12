@@ -163,32 +163,32 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	// 4. verify the continuity of the blocks
 	if len(g.Inputs) != 0 {
 		cur := g.Inputs[0].ParentHeader
-		for g := range slices.Values(g.Inputs) {
+		for input := range slices.Values(g.Inputs) {
 			// check hash
-			if cur.Hash() != g.Block.ParentHash() {
+			if cur.Hash() != input.Block.ParentHash() {
 				return fmt.Errorf(
 					"hash mismatch: expected %#x, got %#x",
 					cur.Hash(),
-					g.Block.ParentHash(),
+					input.Block.ParentHash(),
 				)
 			}
 			// check number
-			if cur.Number.Uint64()+1 != g.Block.NumberU64() {
+			if cur.Number.Uint64()+1 != input.Block.NumberU64() {
 				return fmt.Errorf(
 					"number mismatch: expected %d, got %d",
 					cur.Number.Uint64()+1,
-					g.Block.NumberU64(),
+					input.Block.NumberU64(),
 				)
 			}
 			// check state root
-			if cur.Root != g.ParentHeader.Root {
+			if cur.Root != input.ParentHeader.Root {
 				return fmt.Errorf(
 					"state root mismatch: expected %#x, got %#x",
 					cur.Root,
-					g.ParentHeader.Root,
+					input.ParentHeader.Root,
 				)
 			}
-			cur = g.Block.Header()
+			cur = input.Block.Header()
 		}
 	}
 	return nil
