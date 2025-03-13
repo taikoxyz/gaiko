@@ -4,8 +4,11 @@ import (
 	"fmt"
 )
 
+// Quote is the interface that wraps the basic methods to interact with the quote.
 type Quote interface {
+	// Bytes returns the origin data of the quote.
 	Bytes() []byte
+	// Print prints the quote in a human-readable format.
 	Print()
 }
 
