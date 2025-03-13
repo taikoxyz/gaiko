@@ -12,7 +12,7 @@ type Quote interface {
 type QuoteV3 []byte
 
 func (q QuoteV3) Print() {
-	fmt.Printf("Detected attestation type: enclave")
+	fmt.Printf("Detected attestation type: enclave\n")
 	if len(q) < 432 {
 		fmt.Printf("Unexpected quote length: %d\n", len(q))
 		return
