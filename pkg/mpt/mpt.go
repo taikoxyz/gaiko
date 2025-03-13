@@ -12,6 +12,7 @@ import (
 	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
+// MptNode porting from taikoxzy/raiko
 type MptNode struct {
 	data      mptNodeData
 	cachedRef mptNodeRef
