@@ -1,6 +1,8 @@
 package version
 
-import "runtime/debug"
+import (
+	"runtime/debug"
+)
 
 const ourPath = "github.com/taikoxyz/gaiko" // Path to our module
 
