@@ -16,4 +16,5 @@ const (
 	calldataMaxTxListBytes = (params.BlobTxBytesPerFieldElement - 1) * params.BlobTxFieldElementsPerBlob
 	blockMaxGasLimit       = 240_000_000
 	maxBlobDataSize        = (4*31+3)*1024 - 4
+	maxBlocksPerBatch      = 768
 )

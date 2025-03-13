@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"math"
 	"math/big"
 	"slices"
 
@@ -160,36 +161,46 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 		return errors.New("txlist comes from either calldata or blob, but not both")
 	}
 
-	// 4. verify the continuity of the blocks
-	if len(g.Inputs) != 0 {
-		cur := g.Inputs[0].ParentHeader
-		for input := range slices.Values(g.Inputs) {
-			// check hash
-			if cur.Hash() != input.Block.ParentHash() {
-				return fmt.Errorf(
-					"hash mismatch: expected %#x, got %#x",
-					cur.Hash(),
-					input.Block.ParentHash(),
-				)
-			}
-			// check number
-			if cur.Number.Uint64()+1 != input.Block.NumberU64() {
-				return fmt.Errorf(
-					"number mismatch: expected %d, got %d",
-					cur.Number.Uint64()+1,
-					input.Block.NumberU64(),
-				)
-			}
-			// check state root
-			if cur.Root != input.ParentHeader.Root {
-				return fmt.Errorf(
-					"state root mismatch: expected %#x, got %#x",
-					cur.Root,
-					input.ParentHeader.Root,
-				)
-			}
-			cur = input.Block.Header()
+	// 4. verify inputs length
+	if len(g.Inputs) == 0 {
+		return errors.New("no inputs")
+	}
+	if len(g.Inputs) > maxBlocksPerBatch {
+		return fmt.Errorf(
+			"too many inputs, expected at most %d, got %d",
+			maxBlocksPerBatch,
+			len(g.Inputs),
+		)
+	}
+
+	// 5. verify the continuity of the blocks
+	cur := g.Inputs[0].ParentHeader
+	for input := range slices.Values(g.Inputs) {
+		// check hash
+		if cur.Hash() != input.Block.ParentHash() {
+			return fmt.Errorf(
+				"hash mismatch: expected %#x, got %#x",
+				cur.Hash(),
+				input.Block.ParentHash(),
+			)
 		}
+		// check number
+		if cur.Number.Uint64()+1 != input.Block.NumberU64() {
+			return fmt.Errorf(
+				"number mismatch: expected %d, got %d",
+				cur.Number.Uint64()+1,
+				input.Block.NumberU64(),
+			)
+		}
+		// check state root
+		if cur.Root != input.ParentHeader.Root {
+			return fmt.Errorf(
+				"state root mismatch: expected %#x, got %#x",
+				cur.Root,
+				input.ParentHeader.Root,
+			)
+		}
+		cur = input.Block.Header()
 	}
 	return nil
 }
@@ -201,18 +212,27 @@ func (g *BatchGuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 		return nil, err
 	}
 
-	blocks := make([]pacaya.ITaikoInboxBlockParams, len(g.Inputs))
-	for i, input := range g.Inputs {
+	blocks := make([]pacaya.ITaikoInboxBlockParams, 0, len(g.Inputs))
+	parentTs := g.Inputs[0].Block.Time()
+	for input := range slices.Values(g.Inputs) {
 		signalSlots, err := decodeAnchorV3Args_signalSlots(input.Taiko.AnchorTx.Data()[4:])
 		if err != nil {
 			return nil, err
 		}
+		if input.Block.Time() < parentTs || (input.Block.Time()-parentTs) > math.MaxUint8 {
+			return nil, fmt.Errorf(
+				"invalid delta block time, parent: %d, current: %d",
+				parentTs,
+				input.Block.Time(),
+			)
+		}
 		blockParams := pacaya.ITaikoInboxBlockParams{
 			NumTransactions: uint16(input.Block.Transactions().Len()) - 1,
-			TimeShift:       uint8(input.Block.Time() - g.Taiko.BatchProposed.ProposedAt()),
+			TimeShift:       uint8(input.Block.Time() - parentTs),
 			SignalSlots:     signalSlots,
 		}
-		blocks[i] = blockParams
+		parentTs = input.Block.Time()
+		blocks = append(blocks, blockParams)
 	}
 
 	batchInfo := &pacaya.ITaikoInboxBatchInfo{
