@@ -49,8 +49,6 @@ var (
 	anchorV3Method                = encoding.TaikoAnchorABI.Methods["anchorV3"]
 )
 
-const signalSlots = "_signalSlots"
-
 func init() {
 	arg, err := findArgumentInEventInputs(batchProposedEvent.Inputs, "meta")
 	if err != nil {
@@ -90,6 +88,18 @@ func findArgumentInEventInputs(inputs abi.Arguments, name string) (abi.Argument,
 	return abi.Argument{}, errors.New("input not found")
 }
 
+const signalSlots = "_signalSlots"
+
+// decode `_signalSlots` from `anchorV3` transaction
+/*
+function anchorV3(
+	uint64 _anchorBlockId,
+	bytes32 _anchorStateRoot,
+	uint32 _parentGasUsed,
+	LibSharedData.BaseFeeConfig calldata _baseFeeConfig,
+	bytes32[] calldata _signalSlots
+)
+*/
 func decodeAnchorV3Args_signalSlots(input []byte) ([][32]byte, error) {
 	args := map[string]any{}
 	err := anchorV3Method.Inputs.UnpackIntoMap(args, input)
