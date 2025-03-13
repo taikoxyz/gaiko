@@ -21,17 +21,20 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// ExecuteAndVerify executes and verifies the given arguments using the provided witness.
+// It retrieves the chain configuration from the witness and processes each guest input
+// concurrently using an error group.
 func ExecuteAndVerify(
 	ctx context.Context,
 	args *flags.Arguments,
-	wit witness.Witness,
+	input witness.WitnessInput,
 ) error {
-	chainConfig, err := wit.ChainConfig()
+	chainConfig, err := input.ChainConfig()
 	if err != nil {
 		return err
 	}
 	eg, ctx := errgroup.WithContext(ctx)
-	for pair := range wit.GuestInputs() {
+	for pair := range input.GuestInputs() {
 		pair := pair // https://go.dev/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
 			return executeAndVerify(ctx, pair, chainConfig)

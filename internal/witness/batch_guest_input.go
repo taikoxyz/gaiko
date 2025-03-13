@@ -18,7 +18,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
-var _ Witness = (*BatchGuestInput)(nil)
+var _ WitnessInput = (*BatchGuestInput)(nil)
 var _ json.Unmarshaler = (*BatchGuestInput)(nil)
 
 type BatchGuestInput struct {

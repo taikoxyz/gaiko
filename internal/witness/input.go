@@ -13,8 +13,8 @@ type Pair struct {
 	Txs   types.Transactions
 }
 
-// Witness is an interface for witnesses.
-type Witness interface {
+// WitnessInput is an interface for witnesses.
+type WitnessInput interface {
 	// GuestInputs returns a sequence of pairs of GuestInput and Transactions.
 	GuestInputs() iter.Seq[*Pair]
 	// BlockProposedFork returns the block proposed data.

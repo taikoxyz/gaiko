@@ -114,14 +114,14 @@ func genAggregateProof(
 func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
-	wit witness.Witness,
+	input witness.WitnessInput,
 	provider tee.Provider,
 ) error {
-	err := json.NewDecoder(args.WitnessReader).Decode(wit)
+	err := json.NewDecoder(args.WitnessReader).Decode(input)
 	if err != nil {
 		return err
 	}
-	err = transition.ExecuteAndVerify(ctx, args, wit)
+	err = transition.ExecuteAndVerify(ctx, args, input)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func genOneshotProof(
 	}
 
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
-	pi, err := witness.NewPublicInput(wit, witness.PivotProofType, newInstance)
+	pi, err := witness.NewPublicInput(input, witness.PivotProofType, newInstance)
 	if err != nil {
 		return err
 	}

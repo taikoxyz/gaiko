@@ -19,7 +19,7 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
-var _ Witness = (*GuestInput)(nil)
+var _ WitnessInput = (*GuestInput)(nil)
 var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {

@@ -55,36 +55,36 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 }
 
 func NewPublicInput(
-	wit Witness,
+	input WitnessInput,
 	proofType ProofType,
 	sgxInstance common.Address,
 ) (*PublicInput, error) {
-	verifierAddress, err := wit.ForkVerifierAddress(proofType)
+	verifierAddress, err := input.ForkVerifierAddress(proofType)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := wit.Verify(proofType); err != nil {
+	if err := input.Verify(proofType); err != nil {
 		return nil, err
 	}
 
-	meta, err := wit.BlockMetadataFork()
+	meta, err := input.BlockMetadataFork()
 	if err != nil {
 		return nil, err
 	}
 
 	pi := &PublicInput{
-		transition:     wit.Transition(),
+		transition:     input.Transition(),
 		block_metadata: meta,
 		verifier:       verifierAddress,
-		prover:         wit.Prover(),
+		prover:         input.Prover(),
 		sgxInstance:    common.Address{},
-		chainID:        wit.ChainID(),
+		chainID:        input.ChainID(),
 	}
 
-	if wit.IsTaiko() && wit.BlockProposedFork().BlockMetadataFork() != nil {
+	if input.IsTaiko() && input.BlockProposedFork().BlockMetadataFork() != nil {
 		got, _ := pi.block_metadata.ABIEncode()
-		want, _ := wit.BlockProposedFork().BlockMetadataFork().ABIEncode()
+		want, _ := input.BlockProposedFork().BlockMetadataFork().ABIEncode()
 		if !slices.Equal(got, want) {
 			return nil, fmt.Errorf("block hash mismatch, expected: %#x, got: %#x", want, got)
 		}
