@@ -140,6 +140,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 }
 
 //go:generate go run github.com/fjl/gencodec -type TxLegacy -field-override txLegacyMarshaling -out gen_tx_legacy.go
+
 type TxLegacy struct {
 	ChainID  *big.Int        `json:"chain_id"`
 	Nonce    uint64          `json:"nonce"     gencodec:"required"`
@@ -160,6 +161,7 @@ type txLegacyMarshaling struct {
 }
 
 //go:generate go run github.com/fjl/gencodec -type TxEip2930 -field-override txEip2930Marshaling -out gen_tx_eip2930.go
+
 type TxEip2930 struct {
 	ChainID    *big.Int        `json:"chain_id"    gencodec:"required"`
 	Nonce      uint64          `json:"nonce"       gencodec:"required"`
@@ -181,6 +183,7 @@ type txEip2930Marshaling struct {
 }
 
 //go:generate go run github.com/fjl/gencodec -type TxEip1559 -field-override txEip1559Marshaling -out gen_tx_eip1559.go
+
 type TxEip1559 struct {
 	ChainID              *big.Int        `json:"chain_id"                 gencodec:"required"`
 	Nonce                uint64          `json:"nonce"                    gencodec:"required"`
@@ -204,6 +207,8 @@ type txEip1559Marshaling struct {
 }
 
 //go:generate go run github.com/fjl/gencodec -type TxEip4844 -field-override txEip4844Marshaling -out gen_tx_eip4844.go
+
+// TODO: unsupported in l2
 type TxEip4844 struct {
 	ChainID              *big.Int       `json:"chain_id"                 gencodec:"required"`
 	Nonce                uint64         `json:"nonce"                    gencodec:"required"`

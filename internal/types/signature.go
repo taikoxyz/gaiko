@@ -7,6 +7,8 @@ import (
 )
 
 //go:generate go run github.com/fjl/gencodec -type Signature -field-override signatureMarshaling -out gen_signature.go
+
+// Signature represents a signature of a transaction has the same format with raiko.
 type Signature struct {
 	R          *big.Int `json:"r"            gencodec:"required"`
 	S          *big.Int `json:"s"            gencodec:"required"`

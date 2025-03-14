@@ -20,6 +20,8 @@ func (h Headers) GethType() []*types.Header {
 }
 
 //go:generate go run github.com/fjl/gencodec -type Header -field-override headerMarshaling -out gen_header.go
+
+// Header represents a block header has the same format with raiko
 type Header struct {
 	ParentHash            common.Hash    `json:"parent_hash"              gencodec:"required"`
 	OmmerHash             common.Hash    `json:"ommers_hash"              gencodec:"required"`
