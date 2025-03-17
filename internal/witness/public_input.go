@@ -59,7 +59,7 @@ func NewPublicInput(
 	proofType ProofType,
 	sgxInstance common.Address,
 ) (*PublicInput, error) {
-	verifierAddress, err := input.ForkVerifierAddress(proofType)
+	verifier, err := input.ForkVerifierAddress(proofType)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func NewPublicInput(
 	pi := &PublicInput{
 		transition:     input.Transition(),
 		block_metadata: meta,
-		verifier:       verifierAddress,
+		verifier:       verifier,
 		prover:         input.Prover(),
 		sgxInstance:    common.Address{},
 		chainID:        input.ChainID(),
