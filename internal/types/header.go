@@ -43,7 +43,7 @@ type Header struct {
 	BlobGasUsed           *uint64        `json:"blob_gas_used"`
 	ExcessBlobGas         *uint64        `json:"excess_blob_gas"`
 	ParentBeaconBlockRoot *common.Hash   `json:"parent_beacon_block_root"`
-	// FIXME: requests_root => requests_hash
+	// BYPASS: This is a workaround for the fact that the `requests_root`(requests_hash) field, same name with raiko-host
 	RequestsRoot *common.Hash `json:"requests_root"`
 }
 
