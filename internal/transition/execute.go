@@ -139,19 +139,6 @@ func apply(
 	getHash func(uint64) common.Hash,
 	chainConfig *params.ChainConfig,
 ) (*state.StateDB, error) {
-	var (
-		signer = types.MakeSigner(
-			chainConfig,
-			new(big.Int).SetUint64(block.NumberU64()),
-			block.Time(),
-		)
-		gasPool = new(core.GasPool)
-		gasUsed = uint64(0)
-		txIndex = 0
-	)
-
-	gasPool.AddGas(block.GasLimit())
-
 	rnd := block.MixDigest()
 	vmContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
@@ -165,6 +152,16 @@ func apply(
 		BaseFee:     block.BaseFee(),
 		Random:      &rnd,
 	}
+	var (
+		gasPool    = new(core.GasPool)
+		gasUsed    = uint64(0)
+		txIndex    = 0
+		invalidTxs types.Transactions
+		validTxs   types.Transactions
+		signer     = types.MakeSigner(chainConfig, block.Number(), block.Time())
+	)
+	gasPool.AddGas(block.GasLimit())
+	rules := chainConfig.Rules(block.Number(), true, block.Time())
 
 	for _, tx := range txs {
 		isAnchor := txIndex == 0
@@ -179,25 +176,25 @@ func apply(
 				return nil, errors.New("anchor tx cannot be a blob tx")
 			}
 			log.Warn("Skip a blob transaction", "hash", tx.Hash())
+			invalidTxs = append(invalidTxs, tx)
 			continue
 		}
-		msg, err := core.TransactionToMessage(tx, signer, block.BaseFee())
-		if err != nil {
-			if isAnchor {
-				return nil, err
-			}
-			log.Warn("rejected tx", "index", txIndex, "hash", tx.Hash(), "error", err)
-			continue
-		}
+		from, _ := types.Sender(signer, tx)
+		stateDB.Prepare(
+			rules,
+			from,
+			block.Coinbase(),
+			tx.To(),
+			vm.ActivePrecompiles(rules),
+			tx.AccessList(),
+		)
 		stateDB.SetTxContext(tx.Hash(), txIndex)
 		var (
-			txContext = core.NewEVMTxContext(msg)
-			snapshot  = stateDB.Snapshot()
-			prevGas   = gasPool.Gas()
+			snapshot = stateDB.Snapshot()
+			prevGas  = gasPool.Gas()
 		)
-		evm := vm.NewEVM(vmContext, txContext, stateDB, chainConfig, vmConfig)
-
-		msgResult, err := core.ApplyMessage(evm, msg, gasPool)
+		evm := vm.NewEVM(vmContext, stateDB, chainConfig, vmConfig)
+		_, err := core.ApplyTransaction(evm, gasPool, stateDB, block.Header(), tx, &gasUsed)
 		if err != nil {
 			if isAnchor {
 				return nil, err
@@ -206,24 +203,19 @@ func apply(
 				"rejected tx",
 				"index", txIndex,
 				"hash", tx.Hash(),
-				"from", msg.From,
+				"from", from,
 				"error", err,
 			)
 			stateDB.RevertToSnapshot(snapshot)
 			gasPool.SetGas(prevGas)
+			invalidTxs = append(invalidTxs, tx)
 			continue
 		}
 
-		gasUsed += msgResult.UsedGas
-		if chainConfig.IsByzantium(vmContext.BlockNumber) {
-			stateDB.Finalise(true)
-		} else {
-			stateDB.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
-		}
 		txIndex++
+		validTxs = append(validTxs, tx)
 	}
 	stateDB.IntermediateRoot(chainConfig.IsEIP158(vmContext.BlockNumber))
-
 	// Apply withdrawals
 	for _, w := range block.Withdrawals() {
 		// Amount is in gwei, turn into wei
@@ -238,10 +230,16 @@ func apply(
 	root, err := stateDB.Commit(
 		vmContext.BlockNumber.Uint64(),
 		chainConfig.IsEIP158(vmContext.BlockNumber),
+		chainConfig.IsCancun(vmContext.BlockNumber, vmContext.Time),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not commit state: %v", err)
 	}
 
+	_ = validTxs
+
+	if len(invalidTxs) > 0 {
+		log.Warn("invalid transactions", len(invalidTxs))
+	}
 	return state.New(root, stateDB.Database())
 }

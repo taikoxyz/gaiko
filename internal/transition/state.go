@@ -85,7 +85,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 			}
 		}
 		stateDB.SetCode(addr, code)
-		stateDB.SetNonce(addr, acc.Nonce)
+		stateDB.SetNonce(addr, acc.Nonce, tracing.NonceChangeGenesis)
 		stateDB.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
@@ -96,7 +96,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 			stateDB.SetState(addr, key, value)
 		}
 	}
-	root, _ := stateDB.Commit(0, false)
+	root, _ := stateDB.Commit(0, false, false)
 	stateDB, _ = state.New(root, sdb)
 
 	historyHashes := make(map[uint64]common.Hash, len(g.AncestorHeaders)+1)
