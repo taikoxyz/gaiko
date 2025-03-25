@@ -42,7 +42,7 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 				m.data = &data
 			case "Leaf":
 				// {"data": {"Leaf": [prefix, value]}}
-				var data [2]json.RawMessage
+				var data [2][]byte
 				if err := json.Unmarshal(val, &data); err != nil {
 					return err
 				}
@@ -56,12 +56,16 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 				if err := json.Unmarshal(val, &data); err != nil {
 					return err
 				}
+				var prefix []byte
+				if err := json.Unmarshal(data[0], &prefix); err != nil {
+					return err
+				}
 				var child MptNode
 				if err := json.Unmarshal(data[1], &child); err != nil {
 					return err
 				}
 				ext := &extensionNode{
-					prefix: data[0],
+					prefix: prefix,
 					child:  &child,
 				}
 				m.data = ext
