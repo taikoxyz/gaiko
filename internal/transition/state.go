@@ -89,7 +89,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 		stateDB.SetBalance(addr, acc.Balance, tracing.BalanceIncreaseGenesisBalance)
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
-			value, err := getStorage(g.ParentStateTrie, key)
+			value, err := getStorage(storage.Trie, key)
 			if err != nil && err != ErrNotFound {
 				return nil, err
 			}
