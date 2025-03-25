@@ -5,7 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/taikoxyz/gaiko/internal/witness"
 	"github.com/urfave/cli/v2"
 )
 
@@ -83,6 +85,8 @@ type Arguments struct {
 	SecretDir     string
 	ConfigDir     string
 	SGXType       string
+	ProverType    witness.ProofType
+	SgxInstance   common.Address
 	SGXInstanceID uint32
 	WitnessReader io.Reader
 	ProofWriter   io.Writer
@@ -96,6 +100,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
 		WitnessReader: os.Stdin,
 		ProofWriter:   os.Stdout,
+		ProverType:    witness.PivotProofType,
 	}
 }
 

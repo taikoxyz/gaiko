@@ -131,7 +131,10 @@ func genOneshotProof(
 	}
 
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
-	pi, err := witness.NewPublicInput(input, witness.PivotProofType, newInstance)
+	if args.SGXType == "debug" {
+		newInstance = args.SgxInstance
+	}
+	pi, err := witness.NewPublicInput(input, args.ProverType, newInstance)
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
+	"github.com/taikoxyz/gaiko/internal/witness"
 	"github.com/taikoxyz/gaiko/tests/fixtures"
 )
 
@@ -31,6 +32,7 @@ func TestBatch(t *testing.T) {
 				SecretDir:     "",
 				ConfigDir:     "",
 				SGXType:       "debug",
+				ProverType:    witness.PivotProofType,
 				SGXInstanceID: 0,
 				WitnessReader: bytes.NewBuffer(input.Input),
 				ProofWriter:   &b,
