@@ -124,7 +124,7 @@ func (b *blockProposedForkJSON) UnmarshalJSON(data []byte) error {
 }
 
 func (s *StorageEntry) UnmarshalJSON(data []byte) error {
-	raw := [2]json.RawMessage{}
+	var raw [2]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
