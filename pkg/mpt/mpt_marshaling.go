@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -66,11 +67,11 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 				m.data = ext
 			case "Digest":
 				// {"data": {"Digest": ""}}
-				var data digestNode
+				var data common.Hash
 				if err := json.Unmarshal(val, &data); err != nil {
 					return err
 				}
-				m.data = &data
+				m.data = (*digestNode)(&data)
 			default:
 				return fmt.Errorf("unknown MptNodeData type: %s", key)
 			}
