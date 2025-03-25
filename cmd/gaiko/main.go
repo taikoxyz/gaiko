@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
 	"github.com/taikoxyz/gaiko/internal/version"
@@ -66,7 +65,7 @@ func newApp(usage string) *cli.App {
 	git, _ := version.VCS()
 	app := cli.NewApp()
 	app.EnableBashCompletion = true
-	app.Version = params.VersionWithCommit(git.Commit, git.Date)
+	app.Version = version.WithCommit(git.Commit, git.Date)
 	app.Usage = usage
 	app.Copyright = "Copyright 2025-2025 The Gaiko Authors"
 	return app

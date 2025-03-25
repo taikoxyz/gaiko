@@ -10,6 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/params"
 	"gitlab.com/c0b/go-ordered-json"
 )
@@ -187,15 +188,27 @@ func (c *ChainSpec) getForkVerifierAddress(
 func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
 	switch c.Name {
 	case TaikoA7Network:
-		return params.NetworkIDToChainConfigOrDefault(params.HeklaNetworkID), nil
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.HeklaNetworkID)
+		chainConfig.ChainID = params.HeklaNetworkID
+		chainConfig.OntakeBlock = core.HeklaOntakeBlock
+		chainConfig.PacayaBlock = core.HeklaPacayaBlock
+		return chainConfig, nil
 	case TaikoMainnetNetwork:
-		return params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID), nil
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID)
+		chainConfig.ChainID = params.TaikoMainnetNetworkID
+		chainConfig.OntakeBlock = core.MainnetOntakeBlock
+		chainConfig.PacayaBlock = core.MainnetPacayaBlock
+		return chainConfig, nil
 	case EthereumNetwork:
 		return params.MainnetChainConfig, nil
 	case HoleskyNetwork:
 		return params.HoleskyChainConfig, nil
 	case TaikoDevNetwork:
-		return params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID), nil
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID)
+		chainConfig.ChainID = params.TaikoInternalL2ANetworkID
+		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
+		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
+		return chainConfig, nil
 	default:
 		return nil, errors.New("unsupported chain spec")
 	}

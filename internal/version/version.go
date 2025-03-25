@@ -1,7 +1,10 @@
 package version
 
 import (
+	"fmt"
 	"runtime/debug"
+
+	"github.com/ethereum/go-ethereum/version"
 )
 
 const ourPath = "github.com/taikoxyz/gaiko" // Path to our module
@@ -29,4 +32,25 @@ func VCS() (VCSInfo, bool) {
 		}
 	}
 	return VCSInfo{}, false
+}
+
+var Semantic = fmt.Sprintf("%d.%d.%d", version.Major, version.Minor, version.Patch)
+
+var WithMeta = func() string {
+	v := Semantic
+	if version.Meta != "" {
+		v += "-" + version.Meta
+	}
+	return v
+}()
+
+func WithCommit(gitCommit, gitDate string) string {
+	vsn := WithMeta
+	if len(gitCommit) >= 8 {
+		vsn += "-" + gitCommit[:8]
+	}
+	if (version.Meta != "stable") && (gitDate != "") {
+		vsn += "-" + gitDate
+	}
+	return vsn
 }

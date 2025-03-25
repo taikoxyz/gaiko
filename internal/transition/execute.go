@@ -237,7 +237,6 @@ func apply(
 	}
 
 	_ = validTxs
-
 	if len(invalidTxs) > 0 {
 		log.Warn("invalid transactions", len(invalidTxs))
 	}
