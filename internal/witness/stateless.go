@@ -16,14 +16,19 @@ import (
 func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 	wit := new(stateless.Witness)
 	// set headers
-	parentHeader := types.CopyHeader(g.ParentHeader)
-	parentHeader.Root = common.Hash{}
-	wit.Headers = append([]*types.Header{parentHeader}, g.AncestorHeaders...)
+	wit.Headers = append([]*types.Header{g.ParentHeader}, g.AncestorHeaders...)
+	wit.State = map[string]struct{}{}
+	wit.Codes = map[string]struct{}{}
 	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
 		codeHash := keccak.Keccak(contract)
 		contracts[codeHash] = contract
 	}
+	rootBytes, err := rlp.EncodeToBytes(g.ParentStateTrie)
+	if err != nil {
+		return nil, err
+	}
+	wit.State[string(rootBytes)] = struct{}{}
 	for addr, storage := range g.ParentStorage {
 		acc, accBytes, err := getAccount(g.ParentStateTrie, addr)
 		if err != nil {
@@ -35,11 +40,7 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 			}
 		}
 		// set accounts
-		if wit.State == nil {
-			wit.State = map[string]struct{}{}
-		}
 		wit.State[string(accBytes)] = struct{}{}
-
 		root, err := storage.Trie.Hash()
 		if err != nil {
 			return nil, err
@@ -56,9 +57,6 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 			}
 		}
 		// set codes
-		if wit.Codes == nil {
-			wit.Codes = map[string]struct{}{}
-		}
 		wit.Codes[string(code)] = struct{}{}
 		for _, slot := range storage.Slots {
 			key := common.BigToHash(slot)
