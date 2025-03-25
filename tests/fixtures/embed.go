@@ -2,7 +2,6 @@ package fixtures
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strconv"
@@ -59,17 +58,19 @@ func GetBatchInputs() (map[uint64]*Pair, error) {
 				return err
 			}
 			ty, id := parseFileName(path)
-			_, ok := inputs[id]
-			if !ok {
-				inputs[id] = &Pair{}
-			}
 			switch ty {
 			case "input":
+				if inputs[id] == nil {
+					inputs[id] = &Pair{}
+				}
 				inputs[id].Input = file
 			case "output":
+				if inputs[id] == nil {
+					inputs[id] = &Pair{}
+				}
 				inputs[id].Output = file
 			default:
-				return fmt.Errorf("invalid file name: %s", path)
+				return nil
 			}
 			return nil
 		},

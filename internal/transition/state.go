@@ -49,9 +49,12 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 			g.ParentHeader.Root, parentRoot)
 	}
 	mdb := rawdb.NewMemoryDatabase()
-	tdb := triedb.NewDatabase(mdb, &triedb.Config{Preimages: true})
+	tdb := triedb.NewDatabase(mdb, triedb.HashDefaults)
 	sdb := state.NewDatabase(tdb, nil)
-	stateDB, _ := state.New(types.EmptyRootHash, sdb)
+	stateDB, err := state.New(types.EmptyRootHash, sdb)
+	if err != nil {
+		return nil, err
+	}
 	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
 		codeHash := keccak.Keccak(contract)
@@ -96,8 +99,14 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 			stateDB.SetState(addr, key, value)
 		}
 	}
-	root, _ := stateDB.Commit(0, false, false)
-	stateDB, _ = state.New(root, sdb)
+	root, err := stateDB.Commit(0, false, false)
+	if err != nil {
+		return nil, err
+	}
+	stateDB, err = state.New(root, sdb)
+	if err != nil {
+		return nil, err
+	}
 
 	historyHashes := make(map[uint64]common.Hash, len(g.AncestorHeaders)+1)
 	historyHashes[g.ParentHeader.Number.Uint64()] = g.ParentHeader.Hash()

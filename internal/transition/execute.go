@@ -37,10 +37,42 @@ func ExecuteAndVerify(
 	for pair := range input.GuestInputs() {
 		pair := pair // https://go.dev/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
-			return executeAndVerify(ctx, pair, chainConfig)
+			return executeWitness(ctx, pair, chainConfig)
 		})
 	}
 	return eg.Wait()
+}
+
+func executeWitness(
+	_ context.Context,
+	pair *witness.Pair,
+	chainConfig *params.ChainConfig,
+) error {
+	g := pair.Input
+	txs := pair.Txs
+	wit, err := g.NewWitness()
+	if err != nil {
+		return err
+	}
+	block := g.Block.WithBody(types.Body{
+		Transactions: txs,
+		Uncles:       g.Block.Uncles(),
+		Withdrawals:  g.Block.Withdrawals(),
+	})
+	stateRoot, _, err := core.ExecuteStateless(chainConfig, vm.Config{}, block, wit)
+	if err != nil {
+		return err
+	}
+	expected := g.Block.Root()
+	if expected != stateRoot {
+		return fmt.Errorf(
+			"block %d root mismatch: expected %#x, got %#x",
+			g.Block.NumberU64(),
+			expected,
+			stateRoot,
+		)
+	}
+	return nil
 }
 
 func executeAndVerify(
@@ -235,7 +267,6 @@ func apply(
 	if err != nil {
 		return nil, fmt.Errorf("could not commit state: %v", err)
 	}
-
 	_ = validTxs
 	if len(invalidTxs) > 0 {
 		log.Warn("invalid transactions", len(invalidTxs))
