@@ -12,8 +12,6 @@ import (
 	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
-func noopOnRLP([]byte) {}
-
 // MptNode porting from taikoxzy/raiko
 type MptNode struct {
 	data      mptNodeData
@@ -23,8 +21,7 @@ type MptNode struct {
 
 func newMptNode(data mptNodeData) *MptNode {
 	return &MptNode{
-		data:  data,
-		onRLP: noopOnRLP,
+		data: data,
 	}
 }
 
