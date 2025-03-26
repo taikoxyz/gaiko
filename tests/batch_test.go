@@ -51,6 +51,5 @@ func TestBatch(t *testing.T) {
 
 			assert.Equal(t, expectedOutput.Hash, output.Input)
 		})
-		return
 	}
 }

@@ -24,6 +24,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 		data []byte
 		err  error
 	)
+	metaHash := p.block_metadata.Hash()
 	switch transition := p.transition.(type) {
 	case *ontake.TaikoDataTransition:
 		data, err = publicInputsV1Type.Pack(
@@ -33,7 +34,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 			transition,
 			p.sgxInstance,
 			p.prover,
-			p.block_metadata.Hash(),
+			metaHash,
 		)
 	case *pacaya.ITaikoInboxTransition:
 		data, err = publicInputsV2Type.Pack(
@@ -42,7 +43,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 			p.verifier,
 			transition,
 			p.sgxInstance,
-			p.block_metadata.Hash(),
+			metaHash,
 		)
 	default:
 		return common.Hash{}, fmt.Errorf("unsupported transition type: %T", transition)

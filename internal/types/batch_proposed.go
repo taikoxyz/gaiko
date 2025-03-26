@@ -44,7 +44,7 @@ func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 			InfoHash:   b.Meta.InfoHash,
 			Proposer:   b.Meta.Proposer,
 			BatchId:    b.Meta.BatchID,
-			ProposedAt: b.Info.ProposedIn,
+			ProposedAt: b.Meta.ProposedAt,
 		},
 		TxList: b.TxList,
 	}

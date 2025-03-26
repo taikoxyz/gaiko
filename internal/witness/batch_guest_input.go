@@ -269,10 +269,12 @@ func (g *BatchGuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 }
 
 func (g *BatchGuestInput) Transition() any {
+	firstBlock := g.Inputs[0].Block
+	lastBlock := g.Inputs[len(g.Inputs)-1].Block
 	return &pacaya.ITaikoInboxTransition{
-		ParentHash: g.Inputs[0].ParentHeader.Hash(),
-		BlockHash:  g.Inputs[len(g.Inputs)-1].Block.Hash(),
-		StateRoot:  g.Inputs[len(g.Inputs)-1].ParentHeader.Root,
+		ParentHash: firstBlock.ParentHash(),
+		BlockHash:  lastBlock.Hash(),
+		StateRoot:  lastBlock.Root(),
 	}
 }
 
