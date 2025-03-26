@@ -12,6 +12,7 @@ import (
 
 var ErrNotFound = errors.New("not found")
 
+// Deprecated: use Witness instead
 func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount, error) {
 	res, err := trie.Get(keccak.Keccak(address.Bytes()).Bytes())
 	if err != nil {
@@ -29,6 +30,7 @@ func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount,
 	return ret, nil
 }
 
+// Deprecated: use Witness instead
 func getStorage(trie *mpt.MptNode, key common.Hash) (common.Hash, error) {
 	enc, err := trie.Get(keccak.Keccak(key.Bytes()).Bytes())
 	if err != nil {
@@ -45,6 +47,7 @@ func getStorage(trie *mpt.MptNode, key common.Hash) (common.Hash, error) {
 	return common.BytesToHash(content), nil
 }
 
+// Deprecated: use Witness instead
 func updateAccount(trie *mpt.MptNode, address common.Address, acc *types.StateAccount) error {
 	hk := keccak.Keccak(address.Bytes())
 	data, err := rlp.EncodeToBytes(acc)
@@ -55,6 +58,7 @@ func updateAccount(trie *mpt.MptNode, address common.Address, acc *types.StateAc
 	return err
 }
 
+// Deprecated: use Witness instead
 func updateStorage(trie *mpt.MptNode, key, value []byte) error {
 	hk := keccak.Keccak(key)
 	v, err := rlp.EncodeToBytes(value)

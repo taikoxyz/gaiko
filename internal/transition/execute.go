@@ -85,6 +85,7 @@ func executeWitness(
 	return nil
 }
 
+// Deprecated: use Witness instead
 func executeAndVerify(
 	_ context.Context,
 	pair *witness.Pair,
