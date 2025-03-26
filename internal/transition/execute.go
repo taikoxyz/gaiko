@@ -49,17 +49,18 @@ func executeWitness(
 	chainConfig *params.ChainConfig,
 ) error {
 	g := pair.Input
-	txs := pair.Txs
+	// txs := pair.Txs
 	wit, err := g.NewWitness()
 	if err != nil {
 		return err
 	}
-	block := g.Block.WithBody(types.Body{
-		Transactions: txs,
-		Uncles:       g.Block.Uncles(),
-		Withdrawals:  g.Block.Withdrawals(),
-	})
-	stateRoot, _, err := core.ExecuteStateless(chainConfig, vm.Config{}, block, wit)
+	// FIXME: this is a workaround for the stateless witness
+	// block := g.Block.WithBody(types.Body{
+	// 	Transactions: txs,
+	// 	Uncles:       g.Block.Uncles(),
+	// 	Withdrawals:  g.Block.Withdrawals(),
+	// })
+	stateRoot, _, err := core.ExecuteStateless(chainConfig, vm.Config{}, g.Block, wit)
 	if err != nil {
 		return err
 	}

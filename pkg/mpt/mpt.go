@@ -12,21 +12,29 @@ import (
 	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
+func noopOnRLP([]byte) {}
+
 // MptNode porting from taikoxzy/raiko
 type MptNode struct {
 	data      mptNodeData
 	cachedRef mptNodeRef
+	onRLP     func([]byte)
 }
 
 func newMptNode(data mptNodeData) *MptNode {
 	return &MptNode{
-		data: data,
+		data:  data,
+		onRLP: noopOnRLP,
 	}
 }
 
 // New creates a new empty MPT node.
 func New() *MptNode {
 	return newMptNode(&nullNode{})
+}
+
+func (m *MptNode) SetOnRLP(onRLP func([]byte)) {
+	m.onRLP = onRLP
 }
 
 // Clear resets the node to an empty state.
@@ -376,6 +384,7 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 			if err != nil {
 				return nil, err
 			}
+			m.onRLP(encoded)
 			if len(encoded) < common.HashLength {
 				m.cachedRef = bytesMptNodeRef(encoded)
 			} else {

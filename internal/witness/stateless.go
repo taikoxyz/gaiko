@@ -19,18 +19,24 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 	wit.Headers = append([]*types.Header{g.ParentHeader}, g.AncestorHeaders...)
 	wit.State = map[string]struct{}{}
 	wit.Codes = map[string]struct{}{}
-	contracts := make(map[common.Hash][]byte, len(g.Contracts))
 	for _, contract := range g.Contracts {
-		codeHash := keccak.Keccak(contract)
-		contracts[codeHash] = contract
+		wit.Codes[string(contract)] = struct{}{}
 	}
-	rootBytes, err := rlp.EncodeToBytes(g.ParentStateTrie)
+	onRLP := func(data []byte) {
+		wit.Codes[string(data)] = struct{}{}
+	}
+	g.ParentStateTrie.SetOnRLP(onRLP)
+	parentRoot, err := g.ParentStateTrie.Hash()
 	if err != nil {
 		return nil, err
 	}
-	wit.State[string(rootBytes)] = struct{}{}
+	if g.ParentHeader.Root != parentRoot {
+		return nil, fmt.Errorf("parent state root mismatch: expected %#x, got %#x",
+			g.ParentHeader.Root, parentRoot)
+	}
+
 	for addr, storage := range g.ParentStorage {
-		acc, accBytes, err := getAccount(g.ParentStateTrie, addr)
+		acc, err := getAccount(g.ParentStateTrie, addr)
 		if err != nil {
 			if err == ErrNotFound {
 				log.Warn("account not found", "address", addr)
@@ -39,35 +45,13 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 				return nil, err
 			}
 		}
-		// set accounts
-		wit.State[string(accBytes)] = struct{}{}
+		storage.Trie.SetOnRLP(onRLP)
 		root, err := storage.Trie.Hash()
 		if err != nil {
 			return nil, err
 		}
 		if root != acc.Root {
 			return nil, fmt.Errorf("account root mismatch for address: %#x", addr)
-		}
-
-		var code []byte
-		if common.BytesToHash(acc.CodeHash) != types.EmptyCodeHash {
-			code = contracts[common.BytesToHash(acc.CodeHash)]
-			if code == nil {
-				return nil, errors.New("missing code")
-			}
-		}
-		// set codes
-		wit.Codes[string(code)] = struct{}{}
-		for _, slot := range storage.Slots {
-			key := common.BigToHash(slot)
-			value, err := getStorage(storage.Trie, key)
-			if err != nil {
-				if err != ErrNotFound {
-					return nil, err
-				}
-				log.Warn("slot not found", "key", key)
-			}
-			wit.State[string(value)] = struct{}{}
 		}
 	}
 
@@ -76,23 +60,19 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 
 var ErrNotFound = errors.New("not found")
 
-func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount, []byte, error) {
+func getAccount(trie *mpt.MptNode, address common.Address) (*types.StateAccount, error) {
 	accBytes, err := trie.Get(keccak.Keccak(address.Bytes()).Bytes())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if accBytes == nil {
-		return nil, nil, ErrNotFound
+		return nil, ErrNotFound
 	}
 
 	acc := new(types.StateAccount)
 	err = rlp.DecodeBytes(accBytes, acc)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return acc, accBytes, nil
-}
-
-func getStorage(trie *mpt.MptNode, key common.Hash) ([]byte, error) {
-	return trie.Get(keccak.Keccak(key.Bytes()).Bytes())
+	return acc, nil
 }
