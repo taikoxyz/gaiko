@@ -60,14 +60,23 @@ func executeWitness(
 	// 	Uncles:       g.Block.Uncles(),
 	// 	Withdrawals:  g.Block.Withdrawals(),
 	// })
-	stateRoot, _, err := core.ExecuteStateless(chainConfig, vm.Config{}, g.Block, wit)
+	stateRoot, receiptRoot, err := core.ExecuteStateless(chainConfig, vm.Config{}, g.Block, wit)
 	if err != nil {
 		return err
 	}
 	expected := g.Block.Root()
 	if expected != stateRoot {
 		return fmt.Errorf(
-			"block %d root mismatch: expected %#x, got %#x",
+			"block %d state root mismatch: expected %#x, got %#x",
+			g.Block.NumberU64(),
+			expected,
+			stateRoot,
+		)
+	}
+	expected = g.Block.ReceiptHash()
+	if expected != receiptRoot {
+		return fmt.Errorf(
+			"block %d receipt root mismatch: expected %#x, got %#x",
 			g.Block.NumberU64(),
 			expected,
 			stateRoot,
