@@ -79,7 +79,7 @@ func NewPublicInput(
 	}
 
 	if input.IsTaiko() && input.BlockProposedFork().BlockMetadataFork() != nil {
-		got, err := pi.block_metadata.ABIEncode()
+		got, err := meta.ABIEncode()
 		if err != nil {
 			return nil, err
 		}
