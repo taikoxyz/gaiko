@@ -12,19 +12,19 @@ import (
 // MarshalJSON marshals as JSON.
 func (c ChainSpec) MarshalJSON() ([]byte, error) {
 	type ChainSpec struct {
-		Name                 Network                                  `json:"name"                   gencodec:"required"`
-		ChainID              uint64                                   `json:"chain_id"               gencodec:"required"`
-		MaxSpecID            SpecID                                   `json:"max_spec_id"            gencodec:"required"`
-		HardForks            HardForks                                `json:"hard_forks"             gencodec:"required"`
-		Eip1559Constants     Eip1559Constants                         `json:"eip_1559_constants"     gencodec:"required"`
-		L1Contract           *common.Address                          `json:"l1_contract"`
-		L2Contract           *common.Address                          `json:"l2_contract"`
-		RPC                  string                                   `json:"rpc"                    gencodec:"required"`
-		BeaconRPC            *string                                  `json:"beacon_rpc"`
-		VerifierAddressForks map[SpecID]map[ProofType]*common.Address `json:"verifier_address_forks" gencodec:"required"`
-		GenesisTime          uint64                                   `json:"genesis_time"           gencodec:"required"`
-		SecondsPerSlot       uint64                                   `json:"seconds_per_slot"       gencodec:"required"`
-		IsTaiko              bool                                     `json:"is_taiko"               gencodec:"required"`
+		Name                 Network                        `json:"name"                   gencodec:"required"`
+		ChainID              uint64                         `json:"chain_id"               gencodec:"required"`
+		MaxSpecID            SpecID                         `json:"max_spec_id"            gencodec:"required"`
+		HardForks            HardForks                      `json:"hard_forks"             gencodec:"required"`
+		Eip1559Constants     *Eip1559Constants              `json:"eip_1559_constants"     gencodec:"required"`
+		L1Contract           *common.Address                `json:"l1_contract"`
+		L2Contract           *common.Address                `json:"l2_contract"`
+		RPC                  string                         `json:"rpc"                    gencodec:"required"`
+		BeaconRPC            *string                        `json:"beacon_rpc"`
+		VerifierAddressForks map[SpecID]VerifierAddressFork `json:"verifier_address_forks" gencodec:"required"`
+		GenesisTime          uint64                         `json:"genesis_time"           gencodec:"required"`
+		SecondsPerSlot       uint64                         `json:"seconds_per_slot"       gencodec:"required"`
+		IsTaiko              bool                           `json:"is_taiko"               gencodec:"required"`
 	}
 	var enc ChainSpec
 	enc.Name = c.Name
@@ -46,19 +46,19 @@ func (c ChainSpec) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (c *ChainSpec) UnmarshalJSON(input []byte) error {
 	type ChainSpec struct {
-		Name                 *Network                                 `json:"name"                   gencodec:"required"`
-		ChainID              *uint64                                  `json:"chain_id"               gencodec:"required"`
-		MaxSpecID            *SpecID                                  `json:"max_spec_id"            gencodec:"required"`
-		HardForks            *HardForks                               `json:"hard_forks"             gencodec:"required"`
-		Eip1559Constants     *Eip1559Constants                        `json:"eip_1559_constants"     gencodec:"required"`
-		L1Contract           *common.Address                          `json:"l1_contract"`
-		L2Contract           *common.Address                          `json:"l2_contract"`
-		RPC                  *string                                  `json:"rpc"                    gencodec:"required"`
-		BeaconRPC            *string                                  `json:"beacon_rpc"`
-		VerifierAddressForks map[SpecID]map[ProofType]*common.Address `json:"verifier_address_forks" gencodec:"required"`
-		GenesisTime          *uint64                                  `json:"genesis_time"           gencodec:"required"`
-		SecondsPerSlot       *uint64                                  `json:"seconds_per_slot"       gencodec:"required"`
-		IsTaiko              *bool                                    `json:"is_taiko"               gencodec:"required"`
+		Name                 *Network                       `json:"name"                   gencodec:"required"`
+		ChainID              *uint64                        `json:"chain_id"               gencodec:"required"`
+		MaxSpecID            *SpecID                        `json:"max_spec_id"            gencodec:"required"`
+		HardForks            *HardForks                     `json:"hard_forks"             gencodec:"required"`
+		Eip1559Constants     *Eip1559Constants              `json:"eip_1559_constants"     gencodec:"required"`
+		L1Contract           *common.Address                `json:"l1_contract"`
+		L2Contract           *common.Address                `json:"l2_contract"`
+		RPC                  *string                        `json:"rpc"                    gencodec:"required"`
+		BeaconRPC            *string                        `json:"beacon_rpc"`
+		VerifierAddressForks map[SpecID]VerifierAddressFork `json:"verifier_address_forks" gencodec:"required"`
+		GenesisTime          *uint64                        `json:"genesis_time"           gencodec:"required"`
+		SecondsPerSlot       *uint64                        `json:"seconds_per_slot"       gencodec:"required"`
+		IsTaiko              *bool                          `json:"is_taiko"               gencodec:"required"`
 	}
 	var dec ChainSpec
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -83,7 +83,7 @@ func (c *ChainSpec) UnmarshalJSON(input []byte) error {
 	if dec.Eip1559Constants == nil {
 		return errors.New("missing required field 'eip_1559_constants' for ChainSpec")
 	}
-	c.Eip1559Constants = *dec.Eip1559Constants
+	c.Eip1559Constants = dec.Eip1559Constants
 	if dec.L1Contract != nil {
 		c.L1Contract = dec.L1Contract
 	}

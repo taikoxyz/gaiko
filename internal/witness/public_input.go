@@ -59,11 +59,7 @@ func NewPublicInput(
 	proofType ProofType,
 	sgxInstance common.Address,
 ) (*PublicInput, error) {
-	verifier, err := input.ForkVerifierAddress(proofType)
-	if err != nil {
-		return nil, err
-	}
-
+	verifier := input.ForkVerifierAddress(proofType)
 	if err := input.Verify(proofType); err != nil {
 		return nil, err
 	}
@@ -83,8 +79,14 @@ func NewPublicInput(
 	}
 
 	if input.IsTaiko() && input.BlockProposedFork().BlockMetadataFork() != nil {
-		got, _ := pi.block_metadata.ABIEncode()
-		want, _ := input.BlockProposedFork().BlockMetadataFork().ABIEncode()
+		got, err := pi.block_metadata.ABIEncode()
+		if err != nil {
+			return nil, err
+		}
+		want, err := input.BlockProposedFork().BlockMetadataFork().ABIEncode()
+		if err != nil {
+			return nil, err
+		}
 		if !slices.Equal(got, want) {
 			return nil, fmt.Errorf("block hash mismatch, expected: %#x, got: %#x", want, got)
 		}

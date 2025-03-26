@@ -79,7 +79,7 @@ func executeWitness(
 			"block %d receipt root mismatch: expected %#x, got %#x",
 			g.Block.NumberU64(),
 			expected,
-			stateRoot,
+			receiptRoot,
 		)
 	}
 	return nil

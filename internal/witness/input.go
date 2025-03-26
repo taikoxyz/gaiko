@@ -26,7 +26,7 @@ type WitnessInput interface {
 	// Transition returns the transition data.
 	Transition() any
 	// ForkVerifierAddress returns the verifier address.
-	ForkVerifierAddress(proofType ProofType) (common.Address, error)
+	ForkVerifierAddress(proofType ProofType) common.Address
 	// Prover returns the prover address.
 	Prover() common.Address
 	// ChainID returns the chain ID.

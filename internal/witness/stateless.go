@@ -23,7 +23,7 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 		wit.Codes[string(contract)] = struct{}{}
 	}
 	onRLP := func(data []byte) {
-		wit.Codes[string(data)] = struct{}{}
+		wit.State[string(data)] = struct{}{}
 	}
 	g.ParentStateTrie.SetOnRLP(onRLP)
 	parentRoot, err := g.ParentStateTrie.Hash()

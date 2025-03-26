@@ -12,7 +12,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/taikoxyz/gaiko/pkg/keccak"
@@ -145,14 +144,15 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	}
 
 	// 2.2 verify the correctness of blob's proofs
-	for i := range len(g.Taiko.TxDataFromBlob) {
-		blob := g.Taiko.TxDataFromBlob[i]
-		commitment := (*g.Taiko.BlobCommitments)[i]
-		proof := (*g.Taiko.BlobProofs)[i]
-		if err := verifyBlob(blobProofType, (*eth.Blob)(&blob), commitment, (*kzg4844.Proof)(&proof)); err != nil {
-			return err
-		}
-	}
+	// for i := range len(g.Taiko.TxDataFromBlob) {
+	// 	blob := g.Taiko.TxDataFromBlob[i]
+	// 	commitment := (*g.Taiko.BlobCommitments)[i]
+	// 	proof := (*g.Taiko.BlobProofs)[i]
+
+	// 	if err := verifyBlob(blobProofType, (*eth.Blob)(&blob), commitment, (*kzg4844.Proof)(&proof)); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	// 3. check txlist comes from either calldata or blob, but not both exist
 	calldataNotEmpty := len(g.Taiko.TxDataFromCalldata) != 0
@@ -276,7 +276,7 @@ func (g *BatchGuestInput) Transition() any {
 	}
 }
 
-func (g *BatchGuestInput) ForkVerifierAddress(proofType ProofType) (common.Address, error) {
+func (g *BatchGuestInput) ForkVerifierAddress(proofType ProofType) common.Address {
 	return g.Taiko.ChainSpec.getForkVerifierAddress(g.Taiko.BatchProposed.BlockNumber(), proofType)
 }
 

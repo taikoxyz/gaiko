@@ -95,6 +95,7 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 			if child == nil {
 				w.Write(rlp.EmptyString)
 			} else {
+				child.onRLP = m.onRLP
 				if err := child.refEncode(w); err != nil {
 					return err
 				}
@@ -110,6 +111,7 @@ func (m *MptNode) EncodeRLP(_w io.Writer) error {
 	case *extensionNode:
 		_tmp0 := w.List()
 		w.WriteBytes(data.prefix)
+		data.child.onRLP = m.onRLP
 		if err := data.child.refEncode(w); err != nil {
 			return err
 		}

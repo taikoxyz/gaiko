@@ -65,7 +65,7 @@ func NewPacayaBlockMetadata(meta *pacaya.ITaikoInboxBatchMetadata) *PacayaBlockM
 }
 
 func (m *PacayaBlockMetadata) ABIEncode() ([]byte, error) {
-	return blockMetadataComponentsArgs.Pack(m.ITaikoInboxBatchMetadata)
+	return batchMetadataComponentsArgs.Pack(m.ITaikoInboxBatchMetadata)
 }
 
 func (m *PacayaBlockMetadata) Hash() common.Hash {

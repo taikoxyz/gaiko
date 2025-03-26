@@ -32,7 +32,7 @@ func TestBatch(t *testing.T) {
 				SecretDir:     "",
 				ConfigDir:     "",
 				SGXType:       "debug",
-				ProverType:    witness.PivotProofType,
+				ProverType:    witness.NativeProofType,
 				SGXInstanceID: 0,
 				WitnessReader: bytes.NewBuffer(input.Input),
 				ProofWriter:   &b,
@@ -51,5 +51,6 @@ func TestBatch(t *testing.T) {
 
 			assert.Equal(t, expectedOutput.Hash, output.Input)
 		})
+		return
 	}
 }

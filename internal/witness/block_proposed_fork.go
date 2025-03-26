@@ -74,7 +74,7 @@ func (b *PacayaBlockProposed) ABIEncode() ([]byte, error) {
 }
 
 func (b *PacayaBlockProposed) BlockNumber() uint64 {
-	return 0
+	return b.Info.LastBlockId - uint64(len(b.Info.Blocks)) + 1
 }
 
 func (b *PacayaBlockProposed) BlockTimestamp() uint64 {

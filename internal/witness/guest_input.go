@@ -222,7 +222,7 @@ func (g *GuestInput) Transition() any {
 	}
 }
 
-func (g *GuestInput) ForkVerifierAddress(proofType ProofType) (common.Address, error) {
+func (g *GuestInput) ForkVerifierAddress(proofType ProofType) common.Address {
 	return g.ChainSpec.getForkVerifierAddress(g.Taiko.BlockProposed.BlockNumber(), proofType)
 }
 
