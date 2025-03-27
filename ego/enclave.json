@@ -8,14 +8,14 @@
     "securityVersion": 1,
     "mounts": [
         {
-            "source": "/root/.config/gaiko/config",
-            "target": "/root/.config/gaiko/config",
+            "source": "/root/.config/raiko/config",
+            "target": "/root/.config/raiko/config",
             "type": "hostfs",
             "readOnly": false
         },
         {
-            "source": "/root/.config/gaiko/secrets",
-            "target": "/root/.config/gaiko/secrets",
+            "source": "/root/.config/raiko/secrets",
+            "target": "/root/.config/raiko/secrets",
             "type": "hostfs",
             "readOnly": false
         },
