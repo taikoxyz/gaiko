@@ -38,12 +38,8 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 	for addr, storage := range g.ParentStorage {
 		acc, err := getAccount(g.ParentStateTrie, addr)
 		if err != nil {
-			if err == ErrNotFound {
-				log.Warn("account not found", "address", addr)
-				acc = types.NewEmptyStateAccount()
-			} else {
-				return nil, err
-			}
+			log.Warn("account not found", "address", addr, "err", err)
+			acc = types.NewEmptyStateAccount()
 		}
 		storage.Trie.SetOnRLP(onRLP)
 		root, err := storage.Trie.Hash()
