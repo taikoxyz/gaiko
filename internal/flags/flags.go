@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultGaikoUserConfigSubDir = ".config/gaiko"
+	defaultGaikoUserConfigSubDir = ".config/raiko"
 	globalCategory               = "GLOBAL"
 	loggingCategory              = "LOGGING"
 )
