@@ -47,8 +47,7 @@ func (p *SGXGramineProvider) SavePrivateKey(
 }
 
 func (p *SGXGramineProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
-	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
-	return b.SaveToFile(filename)
+	return b.SaveToFile(args)
 }
 
 func saveAttestationUserReportData(pubKey common.Address) error {

@@ -82,14 +82,15 @@ var GlobalFlags = []cli.Flag{
 }
 
 type Arguments struct {
-	SecretDir     string
-	ConfigDir     string
-	SGXType       string
-	ProverType    witness.ProofType
-	SgxInstance   common.Address
-	SGXInstanceID uint32
-	WitnessReader io.Reader
-	ProofWriter   io.Writer
+	SecretDir       string
+	ConfigDir       string
+	SGXType         string
+	ProverType      witness.ProofType
+	SgxInstance     common.Address
+	SGXInstanceID   uint32
+	WitnessReader   io.Reader
+	ProofWriter     io.Writer
+	BootstrapWriter io.Writer
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
@@ -102,13 +103,14 @@ func NewArguments(cli *cli.Context) *Arguments {
 		configDir = cli.String(GlobalConfigDir.Name)
 	}
 	return &Arguments{
-		SecretDir:     secretDir,
-		ConfigDir:     configDir,
-		SGXType:       cli.String(GlobalSGXType.Name),
-		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
-		WitnessReader: os.Stdin,
-		ProofWriter:   os.Stdout,
-		ProverType:    witness.PivotProofType,
+		SecretDir:       secretDir,
+		ConfigDir:       configDir,
+		SGXType:         cli.String(GlobalSGXType.Name),
+		ProverType:      witness.PivotProofType,
+		SGXInstanceID:   uint32(cli.Uint64(SGXInstanceID.Name)),
+		WitnessReader:   os.Stdin,
+		ProofWriter:     os.Stdout,
+		BootstrapWriter: os.Stdout,
 	}
 }
 

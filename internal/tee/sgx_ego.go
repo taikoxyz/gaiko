@@ -58,8 +58,7 @@ func (p *SGXEgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.Pr
 }
 
 func (p *SGXEgoProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
-	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
-	return b.SaveToFile(filename)
+	return b.SaveToFile(args)
 }
 
 func getRemoteReport(userReport []byte) ([]byte, error) {

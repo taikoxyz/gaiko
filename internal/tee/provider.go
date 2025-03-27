@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,7 +40,14 @@ type BootstrapData struct {
 // SaveToFile saves the BootstrapData to a specified file in JSON format.
 // The JSON output is indented for readability.
 // Print details before save.
-func (b *BootstrapData) SaveToFile(filename string) error {
+func (b *BootstrapData) SaveToFile(args *flags.Arguments) error {
+	// 1. write to output
+	stdioEncoder := json.NewEncoder(args.BootstrapWriter)
+	if err := stdioEncoder.Encode(b); err != nil {
+		return err
+	}
+	// 2. write to file
+	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
 	fmt.Printf("Bootstrap details saved in: %s\n", filename)
 	file, err := os.Create(filename)
 	if err != nil {
@@ -47,7 +55,7 @@ func (b *BootstrapData) SaveToFile(filename string) error {
 	}
 	defer file.Close()
 
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	return encoder.Encode(b)
+	fileEncoder := json.NewEncoder(file)
+	fileEncoder.SetIndent("", "  ")
+	return fileEncoder.Encode(b)
 }
