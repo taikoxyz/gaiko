@@ -4,7 +4,6 @@ package tee
 
 import (
 	"crypto/ecdsa"
-	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/go-tdx-guest/client"
@@ -48,6 +47,5 @@ func (p *TDXProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.Priva
 }
 
 func (p *TDXProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {
-	filename := filepath.Join(args.ConfigDir, bootstrapInfoFilename)
-	return b.SaveToFile(filename)
+	return b.SaveToFile(args)
 }
