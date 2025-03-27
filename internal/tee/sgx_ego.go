@@ -32,6 +32,7 @@ func (p *SGXEgoProvider) LoadQuote(args *flags.Arguments, key common.Address) (Q
 
 func (p *SGXEgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKey, error) {
 	filename := filepath.Join(args.SecretDir, privKeyFilename)
+	fmt.Println("Loading private key from", filename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -52,6 +53,7 @@ func (p *SGXEgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.Pr
 		return err
 	}
 	filename := filepath.Join(args.SecretDir, privKeyFilename)
+	fmt.Println("Save private key to", filename)
 	return os.WriteFile(filename, sealedText, 0600)
 }
 
