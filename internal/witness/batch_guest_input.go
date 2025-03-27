@@ -214,7 +214,15 @@ func (g *BatchGuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 
 	blocks := make([]pacaya.ITaikoInboxBlockParams, 0, len(g.Inputs))
 	parentTs := g.Inputs[0].Block.Time()
-	for input := range slices.Values(g.Inputs) {
+
+	if len(g.Inputs) != len(g.Taiko.BatchProposed.BlockParams()) {
+		return nil, fmt.Errorf(
+			"mismatched inputs: %d and block parameters: %d length",
+			len(g.Inputs),
+			len(g.Taiko.BatchProposed.BlockParams()),
+		)
+	}
+	for idx, input := range g.Inputs {
 		signalSlots, err := decodeAnchorV3Args_signalSlots(input.Taiko.AnchorTx.Data()[4:])
 		if err != nil {
 			return nil, err
@@ -227,7 +235,7 @@ func (g *BatchGuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 			)
 		}
 		blockParams := pacaya.ITaikoInboxBlockParams{
-			NumTransactions: uint16(input.Block.Transactions().Len()) - 1,
+			NumTransactions: g.Taiko.BatchProposed.BlockParams()[idx].NumTransactions,
 			TimeShift:       uint8(input.Block.Time() - parentTs),
 			SignalSlots:     signalSlots,
 		}
