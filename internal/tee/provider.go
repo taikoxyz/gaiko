@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	privKeyFilename       = "priv.key"
-	bootstrapInfoFilename = "bootstrap.json"
+	privKeyFilename       = "priv.gaiko.key"
+	bootstrapInfoFilename = "bootstrap.gaiko.json"
 )
 
 // Provider is the interface that wraps the basic methods to interact with the TEE.
