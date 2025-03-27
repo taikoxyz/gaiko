@@ -1,5 +1,5 @@
 {
-    "exe": "gaiko",
+    "exe": "gaiko-ego",
     "key": "private.pem",
     "debug": false,
     "heapSize": 4096,
