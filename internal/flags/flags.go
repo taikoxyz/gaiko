@@ -93,9 +93,17 @@ type Arguments struct {
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
+	secretDir := GlobalSecretDir.GetDefaultText()
+	if cli.IsSet(GlobalSecretDir.Name) {
+		secretDir = cli.String(GlobalSecretDir.Name)
+	}
+	configDir := GlobalConfigDir.GetDefaultText()
+	if cli.IsSet(GlobalConfigDir.Name) {
+		configDir = cli.String(GlobalConfigDir.Name)
+	}
 	return &Arguments{
-		SecretDir:     cli.String(GlobalSecretDir.Name),
-		ConfigDir:     cli.String(GlobalConfigDir.Name),
+		SecretDir:     secretDir,
+		ConfigDir:     configDir,
 		SGXType:       cli.String(GlobalSGXType.Name),
 		SGXInstanceID: uint32(cli.Uint64(SGXInstanceID.Name)),
 		WitnessReader: os.Stdin,
