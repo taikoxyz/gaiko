@@ -68,7 +68,7 @@ func genAggregateProof(
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {
-		pubKey, err := crypto.SigToPub(proof.Input.Bytes(), proof.Proof[24:])
+		pubKey, err := SigToPub(proof.Input.Bytes(), proof.Proof[24:])
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func genAggregateProof(
 	}
 
 	aggHash := keccak.Keccak(combinedHashes)
-	sign, err := crypto.Sign(aggHash.Bytes(), prevPrivKey)
+	sign, err := Sign(aggHash.Bytes(), prevPrivKey)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func genOneshotProof(
 		return err
 	}
 
-	sign, err := crypto.Sign(piHash.Bytes(), prevPrivKey)
+	sign, err := Sign(piHash.Bytes(), prevPrivKey)
 	if err != nil {
 		return err
 	}
