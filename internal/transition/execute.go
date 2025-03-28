@@ -60,25 +60,35 @@ func executeWitness(
 	// 	Uncles:       g.Block.Uncles(),
 	// 	Withdrawals:  g.Block.Withdrawals(),
 	// })
-	stateRoot, receiptRoot, err := core.ExecuteStateless(chainConfig, vm.Config{}, g.Block, wit)
+	expectedRoot := g.Block.Root()
+	expectedReceiptRoot := g.Block.ReceiptHash()
+
+	newHeader := types.CopyHeader(g.Block.Header())
+	// clear the fields that are not needed for the stateless witness
+	newHeader.Root = common.Hash{}
+	newHeader.ReceiptHash = common.Hash{}
+	block := types.NewBlockWithHeader(newHeader).WithBody(types.Body{
+		Transactions: g.Block.Transactions(),
+		Uncles:       g.Block.Uncles(),
+		Withdrawals:  g.Block.Withdrawals(),
+	})
+	stateRoot, receiptRoot, err := core.ExecuteStateless(chainConfig, vm.Config{}, block, wit)
 	if err != nil {
 		return err
 	}
-	expected := g.Block.Root()
-	if expected != stateRoot {
+	if expectedRoot != stateRoot {
 		return fmt.Errorf(
 			"block %d state root mismatch: expected %#x, got %#x",
 			g.Block.NumberU64(),
-			expected,
+			expectedRoot,
 			stateRoot,
 		)
 	}
-	expected = g.Block.ReceiptHash()
-	if expected != receiptRoot {
+	if expectedReceiptRoot != receiptRoot {
 		return fmt.Errorf(
 			"block %d receipt root mismatch: expected %#x, got %#x",
 			g.Block.NumberU64(),
-			expected,
+			expectedReceiptRoot,
 			receiptRoot,
 		)
 	}
