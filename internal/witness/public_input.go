@@ -75,7 +75,7 @@ func NewPublicInput(
 		block_metadata: meta,
 		verifier:       verifier,
 		prover:         input.Prover(),
-		sgxInstance:    common.Address{},
+		sgxInstance:    sgxInstance,
 		chainID:        input.ChainID(),
 	}
 
