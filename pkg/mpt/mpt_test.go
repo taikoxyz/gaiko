@@ -3,6 +3,7 @@ package mpt
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -309,4 +310,9 @@ func TestIndexTrie(t *testing.T) {
 		require.Equal(t, expected, actual)
 	}
 	assert.True(t, trie.IsEmpty())
+}
+
+func TestFmt(t *testing.T) {
+	digestNode := (*digestNode)(&types.EmptyRootHash)
+	fmt.Printf("%#x\n", *digestNode)
 }

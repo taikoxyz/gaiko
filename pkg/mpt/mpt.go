@@ -208,7 +208,7 @@ func (m *MptNode) insert(keyNibs []byte, value []byte) (bool, error) {
 			}
 		}
 	case *digestNode:
-		return false, fmt.Errorf("node not resolved: %s", data)
+		return false, fmt.Errorf("node not resolved: %#x", data)
 	}
 	m.cachedRef = nil
 	return true, nil
@@ -328,7 +328,7 @@ func (m *MptNode) delete(keyNibs []byte) (bool, error) {
 		case *branchNode, *digestNode:
 		}
 	case *digestNode:
-		return false, fmt.Errorf("node not resolved: %s", data)
+		return false, fmt.Errorf("node not resolved: %#x", data)
 	}
 	m.cachedRef = nil
 	return true, nil
@@ -356,7 +356,7 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 		prefix := prefixNibs(data.prefix)
 		return data.child.get(stripPrefix(keyNibs, prefix))
 	case *digestNode:
-		return nil, fmt.Errorf("node not resolved: %s", data)
+		return nil, fmt.Errorf("node not resolved: %#x", data)
 	}
 	return nil, nil
 }

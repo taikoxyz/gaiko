@@ -2,6 +2,7 @@ package witness
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"iter"
 	"math"
@@ -152,7 +153,7 @@ func (g *GuestInput) BlockMetadataFork() (BlockMetadataFork, error) {
 
 	if g.Taiko.BlockProposed.BlobUsed() {
 		if g.Taiko.BlobCommitment == nil {
-			return nil, fmt.Errorf("missing blob commitment")
+			return nil, errors.New("missing blob commitment")
 		}
 		commitment := kzg4844.Commitment(*g.Taiko.BlobCommitment)
 		txListHash = eth.KZGToVersionedHash(commitment)

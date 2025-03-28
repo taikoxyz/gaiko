@@ -1,6 +1,7 @@
 package witness
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
@@ -46,11 +47,11 @@ func verifyBlob(
 		}
 	case ProofOfEquivalence:
 		if proof == nil {
-			return fmt.Errorf("missing proof")
+			return errors.New("missing proof")
 		}
 		return eth.VerifyBlobProof(blob, commitment, *proof)
 	default:
-		return fmt.Errorf("unsupported blob proof type: %v", blobProofType)
+		return fmt.Errorf("unsupported blob proof type: %s", blobProofType)
 	}
 	return nil
 }

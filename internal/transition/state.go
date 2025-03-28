@@ -65,7 +65,7 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	for addr, storage := range g.ParentStorage {
 		acc, err := getAccount(g.ParentStateTrie, addr)
 		if err != nil {
-			if err == ErrNotFound {
+			if errors.Is(err, ErrNotFound) {
 				acc = types.NewEmptyStateAccount()
 			} else {
 				return nil, err

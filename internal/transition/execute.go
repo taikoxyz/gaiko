@@ -286,7 +286,7 @@ func apply(
 		chainConfig.IsCancun(vmContext.BlockNumber, vmContext.Time),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("could not commit state: %v", err)
+		return nil, fmt.Errorf("could not commit state: %w", err)
 	}
 	_ = validTxs
 	if len(invalidTxs) > 0 {
