@@ -360,7 +360,7 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (m *MptNode) refEncode(w rlp.EncoderBuffer, wlk func([]byte)) error {
+func (m *MptNode) refEncodeRLP(w rlp.EncoderBuffer, wlk func([]byte)) error {
 	ref, err := m.ref(wlk)
 	if err != nil {
 		return err

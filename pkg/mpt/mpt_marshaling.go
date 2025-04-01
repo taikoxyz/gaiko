@@ -85,10 +85,10 @@ func (m *MptNode) UnmarshalJSON(data []byte) error {
 }
 
 func (m *MptNode) EncodeRLP(_w io.Writer) error {
-	return m.encodeRLPWithWalker(_w, nil)
+	return m.encodeRLP(_w, nil)
 }
 
-func (m *MptNode) encodeRLPWithWalker(_w io.Writer, wlk func([]byte)) error {
+func (m *MptNode) encodeRLP(_w io.Writer, wlk func([]byte)) error {
 	w := rlp.NewEncoderBuffer(_w)
 	switch data := m.data.(type) {
 	case *nullNode:
@@ -99,7 +99,7 @@ func (m *MptNode) encodeRLPWithWalker(_w io.Writer, wlk func([]byte)) error {
 			if child == nil {
 				w.Write(rlp.EmptyString)
 			} else {
-				if err := child.refEncode(w, wlk); err != nil {
+				if err := child.refEncodeRLP(w, wlk); err != nil {
 					return err
 				}
 			}
@@ -114,7 +114,7 @@ func (m *MptNode) encodeRLPWithWalker(_w io.Writer, wlk func([]byte)) error {
 	case *extensionNode:
 		_tmp0 := w.List()
 		w.WriteBytes(data.prefix)
-		if err := data.child.refEncode(w, wlk); err != nil {
+		if err := data.child.refEncodeRLP(w, wlk); err != nil {
 			return err
 		}
 		w.ListEnd(_tmp0)
@@ -132,5 +132,5 @@ type walkMptNode struct {
 }
 
 func (m *walkMptNode) EncodeRLP(_w io.Writer) error {
-	return m.mpt.encodeRLPWithWalker(_w, m.walker)
+	return m.mpt.encodeRLP(_w, m.walker)
 }
