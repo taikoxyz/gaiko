@@ -16,7 +16,6 @@ import (
 type MptNode struct {
 	data      mptNodeData
 	cachedRef mptNodeRef
-	onRLP     func([]byte)
 }
 
 func newMptNode(data mptNodeData) *MptNode {
@@ -30,10 +29,6 @@ func New() *MptNode {
 	return newMptNode(&nullNode{})
 }
 
-func (m *MptNode) SetOnRLP(onRLP func([]byte)) {
-	m.onRLP = onRLP
-}
-
 // Clear resets the node to an empty state.
 func (m *MptNode) Clear() {
 	m.data = &nullNode{}
@@ -43,12 +38,16 @@ func (m *MptNode) Clear() {
 // Hash returns the Keccak-256 hash of the node.
 // For null nodes, it returns the EmptyRootHash.
 // For other nodes, it computes the hash from the node reference.
-func (m *MptNode) Hash() (common.Hash, error) {
+func (m *MptNode) Hash(wlkOpt ...func([]byte)) (common.Hash, error) {
 	_, ok := m.data.(*nullNode)
 	if ok {
 		return types.EmptyRootHash, nil
 	}
-	ref, err := m.ref()
+	var wlk func([]byte)
+	if len(wlkOpt) != 0 {
+		wlk = wlkOpt[0]
+	}
+	ref, err := m.ref(wlk)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -361,15 +360,15 @@ func (m *MptNode) get(keyNibs []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (m *MptNode) refEncode(w rlp.EncoderBuffer) error {
-	ref, err := m.ref()
+func (m *MptNode) refEncode(w rlp.EncoderBuffer, wlk func([]byte)) error {
+	ref, err := m.ref(wlk)
 	if err != nil {
 		return err
 	}
 	return ref.encodeRLP(w)
 }
 
-func (m *MptNode) ref() (mptNodeRef, error) {
+func (m *MptNode) ref(wlk func([]byte)) (mptNodeRef, error) {
 	if m.cachedRef == nil {
 		switch data := m.data.(type) {
 		case *nullNode:
@@ -377,11 +376,14 @@ func (m *MptNode) ref() (mptNodeRef, error) {
 		case *digestNode:
 			m.cachedRef = digestMptNodeRef(*data)
 		default:
-			encoded, err := rlp.EncodeToBytes(m)
+			wlkMpt := &walkMptNode{mpt: m, walker: wlk}
+			encoded, err := rlp.EncodeToBytes(wlkMpt)
 			if err != nil {
 				return nil, err
 			}
-			m.onRLP(encoded)
+			if wlk != nil {
+				wlk(encoded)
+			}
 			if len(encoded) < common.HashLength {
 				m.cachedRef = bytesMptNodeRef(encoded)
 			} else {

@@ -32,7 +32,7 @@ func TestTriePointerNoKeccak(t *testing.T) {
 		expected, err := rlp.EncodeToBytes(node)
 		require.NoError(t, err)
 
-		ref, err := node.ref()
+		ref, err := node.ref(nil)
 		require.NoError(t, err)
 		actual := ref.(bytesMptNodeRef)
 		assert.Equal(t, expected, []byte(actual))
@@ -114,7 +114,7 @@ func TestTiny(t *testing.T) {
 	assert.False(t, trie.IsEmpty())
 	expected, err := hex.DecodeString("d816d680c3208180c220018080808080808080808080808080")
 	require.NoError(t, err)
-	ref, err := trie.ref()
+	ref, err := trie.ref(nil)
 	require.NoError(t, err)
 	actual := ref.(bytesMptNodeRef)
 	assert.Equal(t, expected, []byte(actual))

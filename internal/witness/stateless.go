@@ -25,8 +25,7 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 	onRLP := func(data []byte) {
 		wit.State[string(data)] = struct{}{}
 	}
-	g.ParentStateTrie.SetOnRLP(onRLP)
-	parentRoot, err := g.ParentStateTrie.Hash()
+	parentRoot, err := g.ParentStateTrie.Hash(onRLP)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +40,7 @@ func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
 			log.Warn("account not found", "address", addr, "err", err)
 			acc = types.NewEmptyStateAccount()
 		}
-		storage.Trie.SetOnRLP(onRLP)
-		root, err := storage.Trie.Hash()
+		root, err := storage.Trie.Hash(onRLP)
 		if err != nil {
 			return nil, err
 		}
