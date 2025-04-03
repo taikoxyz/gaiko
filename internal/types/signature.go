@@ -16,19 +16,19 @@ type Signature struct {
 }
 
 func (s *Signature) V(chainID *big.Int) *big.Int {
-	oddYParity := uint64(0)
+	v := uint64(0)
 	if s.OddYParity {
-		oddYParity = 1
+		v = 1
 	}
-	return new(big.Int).SetUint64(oddYParity)
+	return new(big.Int).SetUint64(v)
 }
 
 func (s *Signature) LegacyV(chainID *big.Int) *big.Int {
-	oddYParity := uint64(0)
+	v := uint64(0)
 	if s.OddYParity {
-		oddYParity = 1
+		v = 1
 	}
-	return new(big.Int).SetUint64(oddYParity + 35 + 2*chainID.Uint64())
+	return new(big.Int).SetUint64(v + 35 + 2*chainID.Uint64())
 }
 
 type signatureMarshaling struct {
