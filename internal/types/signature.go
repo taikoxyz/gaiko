@@ -15,20 +15,15 @@ type Signature struct {
 	OddYParity bool     `json:"odd_y_parity" gencodec:"required"`
 }
 
-func (s *Signature) V(chainID *big.Int) *big.Int {
-	v := uint64(0)
+func (s *Signature) V(chainID *big.Int, isLegacy bool) *big.Int {
+	oddYParity := uint64(0)
 	if s.OddYParity {
-		v = 1
+		oddYParity = 1
 	}
-	return new(big.Int).SetUint64(v)
-}
-
-func (s *Signature) LegacyV(chainID *big.Int) *big.Int {
-	v := uint64(0)
-	if s.OddYParity {
-		v = 1
+	if isLegacy {
+		return new(big.Int).SetUint64(oddYParity + 35 + chainID.Uint64()*2)
 	}
-	return new(big.Int).SetUint64(v + 35 + 2*chainID.Uint64())
+	return new(big.Int).SetUint64(oddYParity)
 }
 
 type signatureMarshaling struct {
