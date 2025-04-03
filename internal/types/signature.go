@@ -21,6 +21,7 @@ func (s *Signature) V(chainID *big.Int, isLegacy bool) *big.Int {
 		oddYParity = 1
 	}
 	if isLegacy {
+		// self.odd_y_parity as u64 + chain_id * 2 + 35
 		return new(big.Int).SetUint64(oddYParity + 35 + chainID.Uint64()*2)
 	}
 	return new(big.Int).SetUint64(oddYParity)
