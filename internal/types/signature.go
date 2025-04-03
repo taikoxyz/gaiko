@@ -20,11 +20,15 @@ func (s *Signature) V(chainID *big.Int) *big.Int {
 	if s.OddYParity {
 		oddYParity = 1
 	}
-	if chainID == nil {
-		// self.odd_y_parity as u64 + chain_id * 2 + 35
-		return new(big.Int).SetUint64(oddYParity + 35 + chainID.Uint64()*2)
-	}
 	return new(big.Int).SetUint64(oddYParity)
+}
+
+func (s *Signature) LegacyV(chainID *big.Int) *big.Int {
+	oddYParity := uint64(0)
+	if s.OddYParity {
+		oddYParity = 1
+	}
+	return new(big.Int).SetUint64(oddYParity + 35 + 2*chainID.Uint64())
 }
 
 type signatureMarshaling struct {

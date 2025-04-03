@@ -42,7 +42,7 @@ func (t *TransactionSigned) GethType() *types.Transaction {
 			To:       inner.To,
 			Value:    inner.Value,
 			Data:     inner.Input,
-			V:        t.Signature.V(inner.ChainID),
+			V:        t.Signature.LegacyV(inner.ChainID),
 			R:        t.Signature.R,
 			S:        t.Signature.S,
 		}
