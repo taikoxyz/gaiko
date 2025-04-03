@@ -15,12 +15,12 @@ type Signature struct {
 	OddYParity bool     `json:"odd_y_parity" gencodec:"required"`
 }
 
-func (s *Signature) V(chainID *big.Int) *big.Int {
+func (s *Signature) V(chainID *big.Int, isLegacy bool) *big.Int {
 	oddYParity := uint64(0)
 	if s.OddYParity {
 		oddYParity = 1
 	}
-	if chainID == nil {
+	if isLegacy {
 		// self.odd_y_parity as u64 + chain_id * 2 + 35
 		return new(big.Int).SetUint64(oddYParity + 35 + chainID.Uint64()*2)
 	}

@@ -42,7 +42,7 @@ func (t *TransactionSigned) GethType() *types.Transaction {
 			To:       inner.To,
 			Value:    inner.Value,
 			Data:     inner.Input,
-			V:        t.Signature.V(inner.ChainID),
+			V:        t.Signature.V(inner.ChainID, true),
 			R:        t.Signature.R,
 			S:        t.Signature.S,
 		}
@@ -57,7 +57,7 @@ func (t *TransactionSigned) GethType() *types.Transaction {
 			Value:      inner.Value,
 			Data:       inner.Input,
 			AccessList: inner.AccessList.GethType(),
-			V:          t.Signature.V(inner.ChainID),
+			V:          t.Signature.V(inner.ChainID, false),
 			R:          t.Signature.R,
 			S:          t.Signature.S,
 		}
@@ -73,7 +73,7 @@ func (t *TransactionSigned) GethType() *types.Transaction {
 			Value:      inner.Value,
 			Data:       inner.Input,
 			AccessList: inner.AccessList.GethType(),
-			V:          t.Signature.V(inner.ChainID),
+			V:          t.Signature.V(inner.ChainID, false),
 			R:          t.Signature.R,
 			S:          t.Signature.S,
 		}
@@ -91,7 +91,7 @@ func (t *TransactionSigned) GethType() *types.Transaction {
 			AccessList: inner.AccessList.GethType(),
 			BlobFeeCap: uint256.MustFromBig(inner.MaxFeePerBlobGas),
 			BlobHashes: inner.BlobVersionedHashes,
-			V:          uint256.MustFromBig(t.Signature.V(inner.ChainID)),
+			V:          uint256.MustFromBig(t.Signature.V(inner.ChainID, false)),
 			R:          uint256.MustFromBig(t.Signature.R),
 			S:          uint256.MustFromBig(t.Signature.S),
 		}
