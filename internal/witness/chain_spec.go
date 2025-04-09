@@ -79,11 +79,11 @@ type SpecID string
 type ProofType string
 
 const (
-	NativeProofType ProofType = "NATIVE"
-	Sp1ProofType    ProofType = "SP1"
-	SGXProofType    ProofType = "SGX"
-	Risc0ProofType  ProofType = "RISC0"
-	PivotProofType  ProofType = "PIVOT"
+	NativeProofType  ProofType = "NATIVE"
+	Sp1ProofType     ProofType = "SP1"
+	SGXProofType     ProofType = "SGX"
+	Risc0ProofType   ProofType = "RISC0"
+	SgxGethProofType ProofType = "SGXGETH"
 )
 
 type HardFork struct {
