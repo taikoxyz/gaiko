@@ -106,7 +106,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 		SecretDir:       secretDir,
 		ConfigDir:       configDir,
 		SGXType:         cli.String(GlobalSGXType.Name),
-		ProverType:      witness.SgxGethProofType,
+		ProverType:      witness.SGXGethProofType,
 		SGXInstanceID:   uint32(cli.Uint64(SGXInstanceID.Name)),
 		WitnessReader:   os.Stdin,
 		ProofWriter:     os.Stdout,

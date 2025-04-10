@@ -60,7 +60,7 @@ func getBlobProofType(proofType ProofType, blobProofTypeHint BlobProofType) Blob
 	switch proofType {
 	case NativeProofType:
 		return blobProofTypeHint
-	case SGXProofType, SgxGethProofType:
+	case SGXProofType, SGXGethProofType:
 		return KzgVersionedHash
 	case Sp1ProofType, Risc0ProofType:
 		//TODO: Implement support for zk proofs

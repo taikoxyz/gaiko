@@ -83,7 +83,7 @@ const (
 	Sp1ProofType     ProofType = "SP1"
 	SGXProofType     ProofType = "SGX"
 	Risc0ProofType   ProofType = "RISC0"
-	SgxGethProofType ProofType = "SGXGETH"
+	SGXGethProofType ProofType = "SGXGETH"
 )
 
 type HardFork struct {
