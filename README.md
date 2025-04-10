@@ -70,5 +70,5 @@ GLOBAL OPTIONS:
    --version, -v       print the version
 
 COPYRIGHT:
-   Copyright 2025-2025 The Gaiko Authors
+   Copyright 2025 The Gaiko Authors
 ```
