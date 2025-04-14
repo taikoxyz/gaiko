@@ -44,6 +44,10 @@
             "value": "ego"
         },
         {
+            "name": "GAIKO",
+            "value": "1"
+        },
+        {
             "name": "HOME",
             "value": "/root"
         }

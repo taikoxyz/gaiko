@@ -134,7 +134,7 @@ func genOneshotProof(
 	if args.SGXType == "debug" {
 		newInstance = args.SgxInstance
 	}
-	pi, err := witness.NewPublicInput(input, args.ProverType, newInstance)
+	pi, err := witness.NewPublicInput(input, args.ProofType, args.SGXType, newInstance)
 	if err != nil {
 		return err
 	}

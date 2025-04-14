@@ -32,7 +32,7 @@ func TestBatch(t *testing.T) {
 				SecretDir:     "",
 				ConfigDir:     "",
 				SGXType:       "debug",
-				ProverType:    witness.NativeProofType,
+				ProofType:     witness.NativeProofType,
 				SGXInstanceID: 0,
 				WitnessReader: bytes.NewBuffer(input.Input),
 				ProofWriter:   &b,

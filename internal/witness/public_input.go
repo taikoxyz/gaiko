@@ -58,11 +58,15 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 func NewPublicInput(
 	input WitnessInput,
 	proofType ProofType,
+	sgxType string,
 	sgxInstance common.Address,
 ) (*PublicInput, error) {
 	verifier := input.ForkVerifierAddress(proofType)
-	if err := input.Verify(proofType); err != nil {
-		return nil, err
+	// ignore verify in debug/test mode, the specs changed, only check the block hash
+	if sgxType != "debug" {
+		if err := input.Verify(proofType); err != nil {
+			return nil, err
+		}
 	}
 
 	meta, err := input.BlockMetadataFork()

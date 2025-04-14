@@ -85,7 +85,7 @@ type Arguments struct {
 	SecretDir       string
 	ConfigDir       string
 	SGXType         string
-	ProverType      witness.ProofType
+	ProofType       witness.ProofType
 	SgxInstance     common.Address
 	SGXInstanceID   uint32
 	WitnessReader   io.Reader
@@ -106,7 +106,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 		SecretDir:       secretDir,
 		ConfigDir:       configDir,
 		SGXType:         cli.String(GlobalSGXType.Name),
-		ProverType:      witness.SGXGethProofType,
+		ProofType:       witness.SGXGethProofType,
 		SGXInstanceID:   uint32(cli.Uint64(SGXInstanceID.Name)),
 		WitnessReader:   os.Stdin,
 		ProofWriter:     os.Stdout,
