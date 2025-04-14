@@ -2,6 +2,7 @@ package transition
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -12,6 +13,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
@@ -20,6 +23,58 @@ import (
 	"github.com/taikoxyz/gaiko/pkg/keccak"
 	"golang.org/x/sync/errgroup"
 )
+
+type MultiTxCallTracer struct {
+	txs     []interface{}
+	current *tracers.Tracer
+}
+
+func newCallTracer() *tracers.Tracer {
+	config := &tracers.TraceConfig{}
+	logger := logger.NewStructLogger(config.Config)
+	tracer := &tracers.Tracer{
+		Hooks:     logger.Hooks(),
+		GetResult: logger.GetResult,
+		Stop:      logger.Stop,
+	}
+	return tracer
+}
+
+func NewMultiTxCallTracer() *MultiTxCallTracer {
+	return &MultiTxCallTracer{
+		current: newCallTracer(),
+	}
+}
+
+// func (m *MultiTxCallTracer) Hooks() *tracing.Hooks {
+// 	hooks := m.current.Hooks
+// 	hooks.OnTxEnd = func(receipt *types.Receipt, err error) {
+// 		m.current.OnTxEnd(receipt, err)
+// 		res, _ := m.current.GetResult()
+// 		m.txs = append(m.txs, res)
+// 		m.current = newCallTracer()
+// 	}
+// 	return hooks
+// }
+
+func (m *MultiTxCallTracer) Hooks() *tracing.Hooks {
+	return &tracing.Hooks{
+		OnTxStart: m.current.OnTxStart,
+		OnEnter:   m.current.OnEnter,
+		OnExit:    m.current.OnExit,
+		OnLog:     m.current.OnLog,
+		OnTxEnd: func(receipt *types.Receipt, err error) {
+			m.current.OnTxEnd(receipt, err)
+			res, _ := m.current.GetResult()
+			m.txs = append(m.txs, res)
+			m.current = newCallTracer()
+		},
+	}
+}
+
+func (m *MultiTxCallTracer) Result() (interface{}, error) {
+	return m.txs, nil
+}
 
 // ExecuteAndVerify executes and verifies the given arguments using the provided witness.
 // It retrieves the chain configuration from the witness and processes each guest input
@@ -72,9 +127,40 @@ func executeWitness(
 		Uncles:       g.Block.Uncles(),
 		Withdrawals:  g.Block.Withdrawals(),
 	})
-	stateRoot, receiptRoot, err := core.ExecuteStateless(chainConfig, vm.Config{}, block, wit)
+
+	tracer := NewMultiTxCallTracer()
+	stateRoot, receiptRoot, err := core.ExecuteStateless(chainConfig, vm.Config{Tracer: tracer.Hooks()}, block, wit)
 	if err != nil {
 		return err
+	}
+	res, err := tracer.Result()
+	if err != nil {
+		return err
+	}
+	out, _ := json.MarshalIndent(res, "", "  ")
+	fmt.Println(string(out))
+	// print block
+	fmt.Println("Block:")
+	fmt.Printf("  Number: %d\n", g.Block.NumberU64())
+	fmt.Printf("  Hash: %#x\n", g.Block.Hash())
+	fmt.Printf("  Parent: %#x\n", g.Block.ParentHash())
+	fmt.Printf("  State Root: %#x\n", stateRoot)
+	fmt.Printf("  Receipt Root: %#x\n", receiptRoot)
+	fmt.Printf("  Gas Limit: %d\n", g.Block.GasLimit())
+	fmt.Printf("  Gas Used: %d\n", g.Block.GasUsed())
+	fmt.Printf("  Timestamp: %d\n", g.Block.Time())
+	fmt.Printf("  Difficulty: %d\n", g.Block.Difficulty())
+	fmt.Printf("  Base Fee: %d\n", g.Block.BaseFee())
+	fmt.Printf("  Mix Digest: %#x\n", g.Block.MixDigest())
+	fmt.Printf("  CoinBase: %#x\n", g.Block.Coinbase())
+
+	if expectedReceiptRoot != receiptRoot {
+		return fmt.Errorf(
+			"block %d receipt root mismatch: expected %#x, got %#x",
+			g.Block.NumberU64(),
+			expectedReceiptRoot,
+			receiptRoot,
+		)
 	}
 	if expectedRoot != stateRoot {
 		return fmt.Errorf(
@@ -84,14 +170,7 @@ func executeWitness(
 			stateRoot,
 		)
 	}
-	if expectedReceiptRoot != receiptRoot {
-		return fmt.Errorf(
-			"block %d receipt root mismatch: expected %#x, got %#x",
-			g.Block.NumberU64(),
-			expectedReceiptRoot,
-			receiptRoot,
-		)
-	}
+
 	return nil
 }
 
