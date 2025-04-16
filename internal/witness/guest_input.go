@@ -78,7 +78,7 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 				} else if len(blobDataBuf) > maxBlobDataSize {
 					panic(fmt.Sprintf("Blob data size exceeds the limit: %d", len(blobDataBuf)))
 				} else if compressedTxListBuf, err = sliceTxList(g.Block.Number(), blobDataBuf, blockProposed.BlobTxSliceParam()); err != nil {
-					log.Error(
+					log.Warn(
 						"Invalid txlist offset and size in metadata",
 						"blockID", g.Block.NumberU64(),
 						"err", err,
