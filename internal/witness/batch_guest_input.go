@@ -62,7 +62,7 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 				batchProposed.BlobTxSliceParam(),
 			)
 			if err != nil {
-				log.Error(
+				log.Warn(
 					"Invalid txlist offset and size in metadata",
 					"batchId", batchID,
 					"err", err,

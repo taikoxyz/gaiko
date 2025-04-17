@@ -90,7 +90,7 @@ func (b *PacayaBlockProposed) BlobTxSliceParam() *Slice {
 }
 
 func (b *PacayaBlockProposed) BlobUsed() bool {
-	return true
+	return len(b.BlobHashes()) > 0
 }
 
 func (b *PacayaBlockProposed) HardFork() string {
