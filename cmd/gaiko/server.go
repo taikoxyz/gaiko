@@ -23,7 +23,7 @@ type ProveData struct {
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
-	Proof   string `json:"proof,omitempty"`
+	Proof   string `json:"proof"`
 }
 
 type ProveMode int
@@ -58,28 +58,39 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 	}
 
 	// call different command according to data.Type
+	var err error
 	switch proveMode {
 	case TestHeartBeat:
 		fmt.Fprintf(args.ProofWriter, "Hello, %s!", "world")
 	case OntakeBlock:
-		oneshot(ctx, sgxProver, args)
+		err = oneshot(ctx, sgxProver, args)
 	case HeklaBlock:
 		http.Error(w, "Hekla block prove is deprecated", http.StatusBadRequest)
+		err = fmt.Errorf("hekla block prove is deprecated")
 	case PacayaBatch:
-		batchOneshot(ctx, sgxProver, args)
+		err = batchOneshot(ctx, sgxProver, args)
 	case Aggregation:
-		aggregate(ctx, sgxProver, args)
+		err = aggregate(ctx, sgxProver, args)
 	case Bootstrap:
-		bootstrap(ctx, sgxProver, args)
+		err = bootstrap(ctx, sgxProver, args)
 	case Check:
-		check(ctx, sgxProver, args)
+		err = check(ctx, sgxProver, args)
 	default:
 		http.Error(w, "Unknown prove mode", http.StatusBadRequest)
+		err = fmt.Errorf("unknown prove mode: %d", proveMode)
+	}
+	var status string = "success"
+	var message string
+	if err != nil {
+		message = err.Error()
+		status = "failed"
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	fmt.Println("Prove finished, get proof %s", args.ProofWriter.(*bytes.Buffer).String())
 	response := Response{
-		Status:  "success",
-		Message: "",
+		Status:  status,
+		Message: message,
 		Proof:   args.ProofWriter.(*bytes.Buffer).String(),
 	}
 
@@ -138,7 +149,7 @@ func runServer(c *cli.Context) error {
 		// override the proof writer to get the proof & return as response
 		args.ProofWriter = new(bytes.Buffer)
 		sgxProver := prover.NewSGXProver(args)
-		proveHandler(c.Context, args, sgxProver, w, r, PacayaBatch)
+		proveHandler(c.Context, args, sgxProver, w, r, Bootstrap)
 	})
 
 	server := &http.Server{

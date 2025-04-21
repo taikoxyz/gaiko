@@ -35,13 +35,17 @@ func (p *SGXEgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKe
 	fmt.Println("Loading private key from", filename)
 	sealedText, err := os.ReadFile(filename)
 	if err != nil {
+		fmt.Println("Failed to load private key:", err)
 		return nil, err
 	}
+
 	// decrypt private key with a key derived from a measurement of the enclave.
 	plainText, err := ecrypto.Unseal(sealedText, nil)
 	if err != nil {
+		fmt.Println("Failed to unseal private key:", err)
 		return nil, err
 	}
+	fmt.Println("Unsealed private key successfully: %#x", plainText)
 	return crypto.ToECDSA(plainText)
 }
 
