@@ -60,6 +60,22 @@ var checkCommand = &cli.Command{
 	Action: withSGX(check),
 }
 
+var serverCommand = &cli.Command{
+	Name:    "server",
+	Aliases: []string{"serve", "s"},
+	Usage:   "Start Gaiko HTTP Server",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    "port",
+			Aliases: []string{"p"},
+			Value:   "8080",
+			Usage:   "Listening on port",
+		},
+		flags.SGXInstanceID,
+	},
+	Action: runServer,
+}
+
 // newApp creates an app with sane defaults.
 func newApp(usage string) *cli.App {
 	git, _ := version.VCS()
@@ -81,6 +97,7 @@ func init() {
 		aggregateCommand,
 		bootstrapCommand,
 		checkCommand,
+		serverCommand,
 	}
 	app.Before = flags.InitLogger
 }
