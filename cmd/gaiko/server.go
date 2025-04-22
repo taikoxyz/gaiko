@@ -59,20 +59,25 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	// call different command according to data.Type
 	var err error
+	var proofResponse string
 	switch proveMode {
 	case TestHeartBeat:
 		fmt.Fprintf(args.ProofWriter, "Hello, %s!", "world")
 	case OntakeBlock:
 		err = oneshot(ctx, sgxProver, args)
+		proofResponse = args.ProofWriter.(*bytes.Buffer).String()
 	case HeklaBlock:
 		http.Error(w, "Hekla block prove is deprecated", http.StatusBadRequest)
 		err = fmt.Errorf("hekla block prove is deprecated")
 	case PacayaBatch:
 		err = batchOneshot(ctx, sgxProver, args)
+		proofResponse = args.ProofWriter.(*bytes.Buffer).String()
 	case Aggregation:
 		err = aggregate(ctx, sgxProver, args)
+		proofResponse = args.ProofWriter.(*bytes.Buffer).String()
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
+		proofResponse = args.BootstrapWriter.(*bytes.Buffer).String()
 	case Check:
 		err = check(ctx, sgxProver, args)
 	default:
@@ -87,11 +92,11 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	fmt.Println("Prove finished, get proof %s", args.ProofWriter.(*bytes.Buffer).String())
+	fmt.Printf("Prove finished, get proof %s\n", proofResponse)
 	response := Response{
 		Status:  status,
 		Message: message,
-		Proof:   args.ProofWriter.(*bytes.Buffer).String(),
+		Proof:   proofResponse,
 	}
 
 	responseJSON, err := json.Marshal(response)
@@ -112,7 +117,7 @@ func runServer(c *cli.Context) error {
 	}
 
 	// TODO: using closet for easy test maybe not a good idea
-	http.HandleFunc("/block", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/prove/block", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
 		args.ProofWriter = new(bytes.Buffer)
@@ -120,7 +125,7 @@ func runServer(c *cli.Context) error {
 		sgxProver := prover.NewSGXProver(args)
 		proveHandler(c.Context, args, sgxProver, w, r, OntakeBlock)
 	})
-	http.HandleFunc("/batch", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/prove/batch", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
 		args.ProofWriter = new(bytes.Buffer)
@@ -128,7 +133,7 @@ func runServer(c *cli.Context) error {
 		sgxProver := prover.NewSGXProver(args)
 		proveHandler(c.Context, args, sgxProver, w, r, PacayaBatch)
 	})
-	http.HandleFunc("/aggregation", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/prove/aggregation", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
 		args.ProofWriter = new(bytes.Buffer)
@@ -147,7 +152,7 @@ func runServer(c *cli.Context) error {
 	http.HandleFunc("/bootstrap", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
-		args.ProofWriter = new(bytes.Buffer)
+		args.BootstrapWriter = new(bytes.Buffer)
 		sgxProver := prover.NewSGXProver(args)
 		proveHandler(c.Context, args, sgxProver, w, r, Bootstrap)
 	})
