@@ -21,9 +21,9 @@ type ProveData struct {
 }
 
 type Response struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Proof   string `json:"proof"`
+	Status  string               `json:"status"`
+	Message string               `json:"message"`
+	Proof   prover.ProofResponse `json:"proof"`
 }
 
 type ProveMode int
@@ -59,25 +59,25 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	// call different command according to data.Type
 	var err error
-	var proofResponse string
+	var proofResponse prover.ProofResponse
 	switch proveMode {
 	case TestHeartBeat:
 		fmt.Fprintf(args.ProofWriter, "Hello, %s!", "world")
 	case OntakeBlock:
 		err = oneshot(ctx, sgxProver, args)
-		proofResponse = args.ProofWriter.(*bytes.Buffer).String()
+		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case HeklaBlock:
 		http.Error(w, "Hekla block prove is deprecated", http.StatusBadRequest)
 		err = fmt.Errorf("hekla block prove is deprecated")
 	case PacayaBatch:
 		err = batchOneshot(ctx, sgxProver, args)
-		proofResponse = args.ProofWriter.(*bytes.Buffer).String()
+		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case Aggregation:
 		err = aggregate(ctx, sgxProver, args)
-		proofResponse = args.ProofWriter.(*bytes.Buffer).String()
+		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
-		proofResponse = args.BootstrapWriter.(*bytes.Buffer).String()
+		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case Check:
 		err = check(ctx, sgxProver, args)
 	default:
@@ -88,7 +88,7 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 	var message string
 	if err != nil {
 		message = err.Error()
-		status = "failed"
+		status = "error"
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
