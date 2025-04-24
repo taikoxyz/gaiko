@@ -27,9 +27,9 @@ type ProofResponse struct {
 
 func NewDefaultProofResponse() ProofResponse {
 	return ProofResponse{
-		Proof:           hexutil.Bytes("0xdefac0de"),
-		Quote:           hexutil.Bytes("0xdefac0de"),
-		PublicKey:       hexutil.Bytes("0xdefac0de"),
+		Proof:           hexutil.MustDecode("0xdeffc0de"),
+		Quote:           hexutil.MustDecode("0xdeffc0de"),
+		PublicKey:       hexutil.MustDecode("0xdeffc0de"),
 		InstanceAddress: common.Address{},
 		Input:           common.Hash{},
 	}
@@ -75,6 +75,7 @@ func genAggregateProof(
 	if err != nil {
 		return err
 	}
+	fmt.Println("receive input: ", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {

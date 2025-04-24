@@ -33,7 +33,7 @@ const (
 	PacayaBatch                    // 1
 	Aggregation                    // 2
 	Bootstrap                      // 3
-	Check                          // 4
+	StatusCheck                    // 4
 	TestHeartBeat                  // 5
 	HeklaBlock                     // 6 deprecated
 )
@@ -77,7 +77,7 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
-	case Check:
+	case StatusCheck:
 		err = check(ctx, sgxProver, args)
 	default:
 		http.Error(w, "Unknown prove mode", http.StatusBadRequest)
@@ -86,7 +86,7 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	var response Response
 	if err != nil {
-		fmt.Printf("Prove finished, get error %s\n", err.Error())
+		fmt.Println("Prove finished, get error: ", err.Error())
 		response = Response{
 			Status:  "error",
 			Message: err.Error(),
@@ -148,7 +148,7 @@ func runServer(c *cli.Context) error {
 		args.ProofWriter = new(bytes.Buffer)
 		args.WitnessReader = r.Body
 		sgxProver := prover.NewSGXProver(args)
-		proveHandler(c.Context, args, sgxProver, w, r, PacayaBatch)
+		proveHandler(c.Context, args, sgxProver, w, r, StatusCheck)
 	})
 	http.HandleFunc("/bootstrap", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
