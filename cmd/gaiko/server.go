@@ -77,28 +77,29 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
-		_ = json.Unmarshal(args.ProofWriter.(*bytes.Buffer).Bytes(), &proofResponse)
 	case Check:
 		err = check(ctx, sgxProver, args)
 	default:
 		http.Error(w, "Unknown prove mode", http.StatusBadRequest)
 		err = fmt.Errorf("unknown prove mode: %d", proveMode)
 	}
-	var status string = "success"
-	var message string
+
+	var response Response
 	if err != nil {
-		message = err.Error()
-		status = "error"
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("Prove finished, get error %s\n", err.Error())
+		response = Response{
+			Status:  "error",
+			Message: err.Error(),
+			Proof:   prover.NewDefaultProofResponse(),
+		}
+	} else {
+		fmt.Printf("Prove finished, get proof %s\n", proofResponse)
+		response = Response{
+			Status:  "success",
+			Message: "",
+			Proof:   proofResponse,
+		}
 	}
-
-	fmt.Printf("Prove finished, get proof %s\n", proofResponse)
-	response := Response{
-		Status:  status,
-		Message: message,
-		Proof:   proofResponse,
-	}
-
 	responseJSON, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Response serialize failed", http.StatusInternalServerError)
@@ -133,13 +134,13 @@ func runServer(c *cli.Context) error {
 		sgxProver := prover.NewSGXProver(args)
 		proveHandler(c.Context, args, sgxProver, w, r, PacayaBatch)
 	})
-	http.HandleFunc("/prove/aggregation", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/prove/aggregate", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
 		args.ProofWriter = new(bytes.Buffer)
 		args.WitnessReader = r.Body
 		sgxProver := prover.NewSGXProver(args)
-		proveHandler(c.Context, args, sgxProver, w, r, PacayaBatch)
+		proveHandler(c.Context, args, sgxProver, w, r, Aggregation)
 	})
 	http.HandleFunc("/check", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)

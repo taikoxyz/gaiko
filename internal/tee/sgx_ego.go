@@ -45,7 +45,7 @@ func (p *SGXEgoProvider) LoadPrivateKey(args *flags.Arguments) (*ecdsa.PrivateKe
 		fmt.Println("Failed to unseal private key:", err)
 		return nil, err
 	}
-	fmt.Println("Unsealed private key successfully: %#x", plainText)
+
 	return crypto.ToECDSA(plainText)
 }
 
