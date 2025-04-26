@@ -27,9 +27,9 @@ type ProofResponse struct {
 
 func NewDefaultProofResponse() ProofResponse {
 	return ProofResponse{
-		Proof:           hexutil.MustDecode("0xdeffc0de"),
-		Quote:           hexutil.MustDecode("0xdeffc0de"),
-		PublicKey:       hexutil.MustDecode("0xdeffc0de"),
+		Proof:           hexutil.MustDecode("0xdefac0de"),
+		Quote:           hexutil.MustDecode("0xdefac0de"),
+		PublicKey:       hexutil.MustDecode("0xdefac0de"),
 		InstanceAddress: common.Address{},
 		Input:           common.Hash{},
 	}

@@ -60,6 +60,7 @@ COMMANDS:
    aggregate       Run the aggregate process
    bootstrap       Run the bootstrap process
    check           Run the check process
+   serve, s        Run the server mode, like: ./gaiko s --port 8090 --sgx-instance-id N
    help, h         Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
