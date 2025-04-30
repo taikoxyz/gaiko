@@ -248,9 +248,9 @@ func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
 		return params.HoleskyChainConfig, nil
 	case TaikoDevNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID)
-		chainConfig.ChainID = params.TaikoInternalL2ANetworkID
+		chainConfig.ChainID = big.NewInt(167011)
 		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
-		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
+		chainConfig.PacayaBlock = new(big.Int).SetUint64(0)
 		return chainConfig, nil
 	default:
 		return nil, errors.New("unsupported chain spec")
