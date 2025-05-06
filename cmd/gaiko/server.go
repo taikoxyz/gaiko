@@ -81,7 +81,7 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		err = check(ctx, sgxProver, args)
 	default:
 		http.Error(w, "Unknown prove mode", http.StatusBadRequest)
-		err = fmt.Errorf("unknown prove mode: %d", proveMode)
+		return
 	}
 
 	var response Response
