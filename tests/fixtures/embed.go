@@ -14,38 +14,24 @@ var singleInputs embed.FS
 //go:embed batch/*
 var batchInputs embed.FS
 
-func GetSingleInputs() ([][]byte, error) {
-	var inputs [][]byte
-	return inputs, fs.WalkDir(
-		singleInputs,
-		"single",
-		func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if d.IsDir() || filepath.Ext(path) != ".json" {
-				return nil
-			}
-			file, err := fs.ReadFile(singleInputs, path)
-			if err != nil {
-				return err
-			}
-			inputs = append(inputs, file)
-			return nil
-		},
-	)
-}
-
 type Pair struct {
 	Input  []byte
 	Output []byte
 }
 
+func GetSingleInputs() (map[uint64]*Pair, error) {
+	return getInputs(singleInputs, "single")
+}
+
 func GetBatchInputs() (map[uint64]*Pair, error) {
+	return getInputs(batchInputs, "batch")
+}
+
+func getInputs(fsys fs.FS, root string) (map[uint64]*Pair, error) {
 	inputs := map[uint64]*Pair{}
 	return inputs, fs.WalkDir(
-		batchInputs,
-		"batch",
+		fsys,
+		root,
 		func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
@@ -53,7 +39,7 @@ func GetBatchInputs() (map[uint64]*Pair, error) {
 			if d.IsDir() || filepath.Ext(path) != ".json" {
 				return nil
 			}
-			file, err := fs.ReadFile(batchInputs, path)
+			file, err := fs.ReadFile(fsys, path)
 			if err != nil {
 				return err
 			}
@@ -79,8 +65,8 @@ func GetBatchInputs() (map[uint64]*Pair, error) {
 
 func parseFileName(p string) (string, uint64) {
 	p = filepath.Base(p)
-	const inputPrefix = "batch-input-"
-	const outputPrefix = "batch-output-"
+	const inputPrefix = "input-"
+	const outputPrefix = "output-"
 	if strings.HasPrefix(p, inputPrefix) {
 		p = strings.TrimPrefix(p, inputPrefix)
 		p = strings.TrimSuffix(p, ".json")
