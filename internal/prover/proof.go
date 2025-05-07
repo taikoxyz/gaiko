@@ -3,9 +3,11 @@ package prover
 import (
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/ethereum/go-ethereum/log"
+	json "github.com/goccy/go-json"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -23,6 +25,16 @@ type ProofResponse struct {
 	PublicKey       hexutil.Bytes  `json:"public_key"`
 	InstanceAddress common.Address `json:"instance_address"`
 	Input           common.Hash    `json:"input"`
+}
+
+func NewDefaultProofResponse() ProofResponse {
+	return ProofResponse{
+		Proof:           hexutil.MustDecode("0xdefac0de"),
+		Quote:           hexutil.MustDecode("0xdefac0de"),
+		PublicKey:       hexutil.MustDecode("0xdefac0de"),
+		InstanceAddress: common.Address{},
+		Input:           common.Hash{},
+	}
 }
 
 func (p *ProofResponse) Output(w io.Writer) error {
@@ -65,6 +77,7 @@ func genAggregateProof(
 	if err != nil {
 		return err
 	}
+	log.Info("receive input: ", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {
@@ -121,6 +134,7 @@ func genOneshotProof(
 	if err != nil {
 		return err
 	}
+	log.Info("Start generate proof: ", "id", input.ID())
 	err = transition.ExecuteAndVerify(ctx, args, input)
 	if err != nil {
 		return err

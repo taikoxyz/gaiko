@@ -24,6 +24,7 @@ var _ WitnessInput = (*GuestInput)(nil)
 var _ json.Unmarshaler = (*GuestInput)(nil)
 
 type GuestInput struct {
+	parent          *BatchGuestInput
 	Block           *types.Block
 	ChainSpec       *ChainSpec
 	ParentHeader    *types.Header
@@ -233,6 +234,16 @@ func (g *GuestInput) Prover() common.Address {
 
 func (g *GuestInput) ChainID() uint64 {
 	return g.ChainSpec.ChainID
+}
+
+func (g *GuestInput) ID() ID {
+	id := ID{
+		BlockID: g.Block.NumberU64(),
+	}
+	if g.parent != nil {
+		id.BatchID = g.parent.Taiko.BatchID
+	}
+	return id
 }
 
 func (g *GuestInput) IsTaiko() bool {

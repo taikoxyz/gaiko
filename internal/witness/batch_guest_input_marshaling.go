@@ -1,7 +1,7 @@
 package witness
 
 import (
-	"encoding/json"
+	json "github.com/goccy/go-json"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
@@ -14,13 +14,16 @@ type batchGuestInputJSON struct {
 
 func (g *batchGuestInputJSON) GethType() *BatchGuestInput {
 	inputs := make([]*GuestInput, len(g.Inputs))
-	for i, input := range g.Inputs {
-		inputs[i] = input.GethType()
-	}
-	return &BatchGuestInput{
+	res := &BatchGuestInput{
 		Inputs: inputs,
 		Taiko:  g.Taiko.GethType(),
 	}
+	for i, input := range g.Inputs {
+		input := input.GethType()
+		input.parent = res
+		inputs[i] = input
+	}
+	return res
 }
 
 type taikoGuestBatchInputJSON struct {

@@ -13,6 +13,11 @@ type Pair struct {
 	Txs   types.Transactions
 }
 
+type ID struct {
+	BatchID uint64
+	BlockID uint64
+}
+
 // WitnessInput is an interface for witnesses.
 type WitnessInput interface {
 	// GuestInputs returns a sequence of pairs of GuestInput and Transactions.
@@ -31,6 +36,8 @@ type WitnessInput interface {
 	Prover() common.Address
 	// ChainID returns the chain ID.
 	ChainID() uint64
+	// Block ID or Batch ID
+	ID() ID
 	// IsTaiko returns true if the driver is for Taiko.
 	IsTaiko() bool
 	// ChainConfig returns the chain config.
