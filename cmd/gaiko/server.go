@@ -48,12 +48,6 @@ const (
 )
 
 func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.SGXProver, w http.ResponseWriter, r *http.Request, proveMode ProveMode) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "POST Only", http.StatusMethodNotAllowed)
-		return
-	}
-
-	defer r.Body.Close()
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/json" {
 		fmt.Printf("Prove recievied content type: %s\n", contentType)
@@ -117,6 +111,8 @@ func runServer(c *cli.Context) error {
 		port = "8080"
 	}
 	http.HandleFunc("POST /prove/{action}", func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
 		args.ProofWriter = bytesBufferPool.Get().(*bytes.Buffer)
