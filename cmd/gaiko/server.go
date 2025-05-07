@@ -141,6 +141,6 @@ func runServer(c *cli.Context) error {
 		server.Close()
 	}()
 
-	log.Info("Start server @ http://localhost: ", "port", port)
+	log.Info("Start server @ http://[::]: ", "port", port)
 	return server.ListenAndServe()
 }
