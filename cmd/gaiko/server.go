@@ -11,6 +11,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
 	"github.com/urfave/cli/v2"
@@ -62,22 +63,18 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	// call different command according to data.Type
 	var err error
-	var proofResponse []byte
 	switch proveMode {
 	case TestHeartBeat:
 		fmt.Fprintf(args.ProofWriter, "Hello, %s!", "world")
 	case OntakeBlock:
 		err = oneshot(ctx, sgxProver, args)
-		proofResponse = args.ProofWriter.(*bytes.Buffer).Bytes()
 	case HeklaBlock:
 		http.Error(w, "Hekla block prove is deprecated", http.StatusBadRequest)
 		return
 	case PacayaBatch:
 		err = batchOneshot(ctx, sgxProver, args)
-		proofResponse = args.ProofWriter.(*bytes.Buffer).Bytes()
 	case Aggregation:
 		err = aggregate(ctx, sgxProver, args)
-		proofResponse = args.ProofWriter.(*bytes.Buffer).Bytes()
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
 	case StatusCheck:
@@ -89,18 +86,18 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	var response Response
 	if err != nil {
-		fmt.Printf("Prove finished, get error: %s, response: %s\n", err.Error(), string(proofResponse))
+		log.Debug("Prove finished, get error: %s, response: %s\n", err.Error(), args.ProofWriter.(*bytes.Buffer).Bytes())
 		response = Response{
 			Status:  "error",
 			Message: err.Error(),
 			Proof:   []byte("{}"),
 		}
 	} else {
-		fmt.Printf("Prove finished, get proof %s\n", proofResponse)
+		log.Debug("Prove finished, get proof %s\n", args.ProofWriter.(*bytes.Buffer).Bytes())
 		response = Response{
 			Status:  "success",
 			Message: "",
-			Proof:   proofResponse,
+			Proof:   args.ProofWriter.(*bytes.Buffer).Bytes(),
 		}
 	}
 	responseJSON, err := json.Marshal(response)
@@ -157,10 +154,10 @@ func runServer(c *cli.Context) error {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 		<-sigChan
-		fmt.Println("\nServer is closing...")
+		log.Info("\nServer is closing...")
 		server.Close()
 	}()
 
-	fmt.Printf("Start server @ http://localhost:%s\n", port)
+	log.Info("Start server @ http://localhost: ", "port", port)
 	return server.ListenAndServe()
 }
