@@ -1,7 +1,7 @@
 package witness
 
 import (
-	"encoding/json"
+	json "github.com/goccy/go-json"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"

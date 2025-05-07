@@ -41,6 +41,12 @@ $ tree -d
 
 ![alt text](assets/dataflow.png)
 
+## Build
+ego-go build -o gaiko-ego ./cmd/gaiko
+ego sign && ego bundle gaiko-ego gaiko
+ego uniqueid gaiko-ego
+ego signerid gaiko-ego
+
 ## Command Help
 
 ```text
