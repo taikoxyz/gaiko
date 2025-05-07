@@ -77,7 +77,7 @@ func genAggregateProof(
 	if err != nil {
 		return err
 	}
-	log.Debug("receive input: ", input)
+	log.Info("receive input: ", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {
@@ -130,6 +130,7 @@ func genOneshotProof(
 	input witness.WitnessInput,
 	provider tee.Provider,
 ) error {
+	log.Info("Start generate proof: ", "id", input.ID())
 	err := json.NewDecoder(args.WitnessReader).Decode(input)
 	if err != nil {
 		return err
