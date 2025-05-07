@@ -130,11 +130,11 @@ func genOneshotProof(
 	input witness.WitnessInput,
 	provider tee.Provider,
 ) error {
-	log.Info("Start generate proof: ", "id", input.ID())
 	err := json.NewDecoder(args.WitnessReader).Decode(input)
 	if err != nil {
 		return err
 	}
+	log.Info("Start generate proof: ", "id", input.ID())
 	err = transition.ExecuteAndVerify(ctx, args, input)
 	if err != nil {
 		return err
