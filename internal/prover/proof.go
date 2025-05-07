@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ethereum/go-ethereum/log"
 	json "github.com/goccy/go-json"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -76,7 +77,7 @@ func genAggregateProof(
 	if err != nil {
 		return err
 	}
-	fmt.Println("receive input: ", input)
+	log.Info("receive input: ", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {
@@ -133,6 +134,7 @@ func genOneshotProof(
 	if err != nil {
 		return err
 	}
+	log.Info("Start generate proof: ", "id", input.ID())
 	err = transition.ExecuteAndVerify(ctx, args, input)
 	if err != nil {
 		return err
