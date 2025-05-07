@@ -3,15 +3,14 @@ package prover
 import (
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
-
-	"github.com/ethereum/go-ethereum/log"
-	json "github.com/goccy/go-json"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/tee"
 	"github.com/taikoxyz/gaiko/internal/transition"
