@@ -7,7 +7,6 @@ require (
 	github.com/ethereum-optimism/optimism v1.7.4
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/fjl/gencodec v0.1.1
-	github.com/goccy/go-json v0.10.4
 	github.com/google/go-tdx-guest v0.3.1
 	github.com/holiman/uint256 v1.3.2
 	github.com/stretchr/testify v1.10.0
