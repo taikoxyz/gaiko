@@ -8,12 +8,19 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
 	"github.com/urfave/cli/v2"
 )
+
+var bytesBufferPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
 
 type ProveData struct {
 	ProveMode string `json:"prove_mode"` // block, batch, aggregation
@@ -115,7 +122,8 @@ func runServer(c *cli.Context) error {
 	http.HandleFunc("/prove/{action}", func(w http.ResponseWriter, r *http.Request) {
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
-		args.ProofWriter = new(bytes.Buffer)
+		args.ProofWriter = bytesBufferPool.Get().(*bytes.Buffer)
+		defer bytesBufferPool.Put(args.ProofWriter)
 		args.WitnessReader = r.Body
 		sgxProver := prover.NewSGXProver(args)
 		proveMode := Unknown
