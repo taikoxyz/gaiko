@@ -34,17 +34,17 @@ type Response struct {
 	Proof   json.RawMessage `json:"proof"`
 }
 
-type ProveMode int
+type ProveMode string
 
 const (
-	Unknown       ProveMode = iota // 0
-	OntakeBlock                    // 1
-	PacayaBatch                    // 2
-	Aggregation                    // 3
-	Bootstrap                      // 4
-	StatusCheck                    // 5
-	TestHeartBeat                  // 6
-	HeklaBlock                     // 7 deprecated
+	Unknown       ProveMode = "unknown"
+	OntakeBlock   ProveMode = "block"
+	PacayaBatch   ProveMode = "batch"
+	Aggregation   ProveMode = "aggregate"
+	Bootstrap     ProveMode = "bootstrap"
+	StatusCheck   ProveMode = "check"
+	TestHeartBeat ProveMode = "heartbeat"
+	HeklaBlock    ProveMode = "hekla" // deprecated
 )
 
 func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.SGXProver, w http.ResponseWriter, r *http.Request, proveMode ProveMode) {
@@ -127,21 +127,8 @@ func runServer(c *cli.Context) error {
 		if r.URL.Query().Get("debug") == "true" {
 			args.SGXType = "debug"
 		}
-		switch r.PathValue("action") {
-		case "block":
-			proveMode = OntakeBlock
-		case "batch":
-			proveMode = PacayaBatch
-		case "aggregate":
-			proveMode = Aggregation
-		case "bootstrap":
-			proveMode = Bootstrap
-		case "check":
-			proveMode = StatusCheck
-		case "heartbeat":
-			proveMode = TestHeartBeat
-		case "hekla":
-			proveMode = HeklaBlock
+		if r.PathValue("action") != "" {
+			proveMode = ProveMode(r.PathValue("action"))
 		}
 		proveHandler(r.Context(), args, sgxProver, w, r, proveMode)
 	})
