@@ -298,6 +298,12 @@ func (g *BatchGuestInput) ChainID() uint64 {
 	return g.Taiko.ChainSpec.ChainID
 }
 
+func (g *BatchGuestInput) ID() ID {
+	return ID{
+		BatchID: g.Taiko.BatchID,
+	}
+}
+
 func (g *BatchGuestInput) IsTaiko() bool {
 	return g.Taiko.ChainSpec.IsTaiko
 }
