@@ -125,8 +125,8 @@ func runServer(c *cli.Context) error {
 		proveMode := Unknown
 		if r.URL.Query().Get("debug") == "true" {
 			args.SGXType = "debug"
-			if r.URL.Query().Get("debug") != "" {
-				args.SGXInstance = common.HexToAddress(r.URL.Query().Get("debug"))
+			if r.URL.Query().Get("sgx_instance") != "" {
+				args.SGXInstance = common.HexToAddress(r.URL.Query().Get("sgx_instance"))
 			}
 		}
 		if r.PathValue("action") != "" {
