@@ -13,15 +13,16 @@ case "$docker_type" in
     exit 1
     ;;
 *)
-    echo "unknown proof type to build"
-    exit 1
+    echo "unknown gaiko type to build, use 'local' as default"
+    image_name=gaiko-local
+    target_dockerfile=docker/Dockerfile.local
     ;;
 esac
 
 read -p "Image version: " tag
 if [ -z "$tag" ]; then
-    echo "Image version is required"
-    exit 1
+    echo "Image version is missing, use 'latest' as default"
+    tag=latest
 fi
 
 docker buildx build . \
