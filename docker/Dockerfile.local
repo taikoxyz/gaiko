@@ -23,6 +23,7 @@ WORKDIR /opt/gaiko
 
 RUN apt-get update && \
     apt-get install -y \
+    time \
     cracklib-runtime \
     libsgx-dcap-default-qpl \
     libsgx-dcap-ql \
