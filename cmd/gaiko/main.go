@@ -26,7 +26,9 @@ var oneshotCommand = &cli.Command{
 	Usage:  "Run state transition once",
 	Action: withSGX(oneshot),
 	Flags: []cli.Flag{
-		flags.SGXInstanceID,
+		flags.SGXInstanceIDFlag,
+		flags.WitnessFlag,
+		flags.ProofFlag,
 	},
 }
 
@@ -35,7 +37,9 @@ var batchOneshotCommand = &cli.Command{
 	Usage:  "Run multi states transition once",
 	Action: withSGX(batchOneshot),
 	Flags: []cli.Flag{
-		flags.SGXInstanceID,
+		flags.SGXInstanceIDFlag,
+		flags.WitnessFlag,
+		flags.ProofFlag,
 	},
 }
 
@@ -43,6 +47,9 @@ var bootstrapCommand = &cli.Command{
 	Name:   "bootstrap",
 	Usage:  "Run the bootstrap process",
 	Action: withSGX(bootstrap),
+	Flags: []cli.Flag{
+		flags.BootstrapFlag,
+	},
 }
 
 var aggregateCommand = &cli.Command{
@@ -50,7 +57,9 @@ var aggregateCommand = &cli.Command{
 	Usage:  "Run the aggregate process",
 	Action: withSGX(aggregate),
 	Flags: []cli.Flag{
-		flags.SGXInstanceID,
+		flags.SGXInstanceIDFlag,
+		flags.WitnessFlag,
+		flags.ProofFlag,
 	},
 }
 
@@ -71,7 +80,7 @@ var serverCommand = &cli.Command{
 			Value:   "8080",
 			Usage:   "Listening on port",
 		},
-		flags.SGXInstanceID,
+		flags.SGXInstanceIDFlag,
 	},
 	Action: runServer,
 }
