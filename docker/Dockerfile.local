@@ -1,0 +1,25 @@
+FROM ghcr.io/edgelesssys/ego-dev:v1.7.0 AS builder
+WORKDIR /opt/gaiko
+
+# Install dependencies
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+# Build
+COPY . .
+RUN ego-go build -o gaiko-ego ./cmd/gaiko
+
+# Sign with our enclave config and private key
+COPY ego/enclave.json .
+COPY docker/enclave-key.pem private.pem
+RUN ego sign && ego bundle gaiko-ego gaiko
+RUN ego uniqueid gaiko-ego
+RUN ego signerid gaiko-ego
+
+FROM ghcr.io/edgelesssys/ego-dev:v1.7.0 AS runtime
+WORKDIR /opt/gaiko
+RUN mkdir ./bin
+COPY --from=builder /opt/gaiko/gaiko ./bin/
+
+ENTRYPOINT ["/opt/gaiko/bin/gaiko"]
