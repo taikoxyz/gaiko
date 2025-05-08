@@ -17,9 +17,28 @@ RUN ego sign && ego bundle gaiko-ego gaiko
 RUN ego uniqueid gaiko-ego
 RUN ego signerid gaiko-ego
 
-FROM ghcr.io/edgelesssys/ego-dev:v1.7.0 AS runtime
+FROM gramineproject/gramine:1.8-jammy AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /opt/gaiko
+
+RUN apt-get update && \
+    apt-get install -y \
+    cracklib-runtime \
+    libsgx-dcap-default-qpl \
+    libsgx-dcap-ql \
+    libsgx-urts \
+    sgx-pck-id-retrieval-tool \
+    build-essential \
+    libssl-dev \
+    jq \
+    sudo && \
+    apt-get clean all && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN sed -i 's/#default quoting type = ecdsa_256/default quoting type = ecdsa_256/' /etc/aesmd.conf && \
+    sed -i 's/,"use_secure_cert": true/,"use_secure_cert": false/' /etc/sgx_default_qcnl.conf
 RUN mkdir ./bin
+
 COPY --from=builder /opt/gaiko/gaiko ./bin/
 
 ENTRYPOINT ["/opt/gaiko/bin/gaiko"]
