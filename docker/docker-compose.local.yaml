@@ -1,0 +1,14 @@
+services:
+  gaiko:
+    image: gaiko-local:latest
+    container_name: gaiko
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: /bin/sh
+    command: -c 'sed -i "s/https:\/\/localhost:8081/https:\/\/host.docker.internal:8081/g" /etc/sgx_default_qcnl.conf;/restart_aesm.sh;time /opt/gaiko/bin/gaiko one-batch-shot --witness=/root/.config/raiko/config/batch-input-21289.json'
+    volumes:
+      - ./config/:/root/.config/raiko
+      - ./tests/fixtures/batch/batch-input-21289.json:/root/.config/raiko/config/batch-input-21289.json
+    devices:
+      - "/dev/sgx_enclave:/dev/sgx_enclave"
+      - "/dev/sgx_provision:/dev/sgx_provision"
