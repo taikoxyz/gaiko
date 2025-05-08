@@ -11,6 +11,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/prover"
@@ -124,6 +125,9 @@ func runServer(c *cli.Context) error {
 		proveMode := Unknown
 		if r.URL.Query().Get("debug") == "true" {
 			args.SGXType = "debug"
+			if r.URL.Query().Get("debug") != "" {
+				args.SGXInstance = common.HexToAddress(r.URL.Query().Get("debug"))
+			}
 		}
 		if r.PathValue("action") != "" {
 			proveMode = ProveMode(r.PathValue("action"))
