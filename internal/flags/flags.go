@@ -87,8 +87,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	GlobalSecretDirFlag.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
-	GlobalConfigDirFlag.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
+	GlobalSecretDirFlag.Value = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
+	GlobalConfigDirFlag.Value = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
 }
 
 const (
@@ -123,16 +123,10 @@ func (args *Arguments) Copy() *Arguments {
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
-	secretDir := GlobalSecretDirFlag.GetDefaultText()
-	if cli.IsSet(GlobalSecretDirFlag.Name) {
-		secretDir = cli.String(GlobalSecretDirFlag.Name)
-	}
-	configDir := GlobalConfigDirFlag.GetDefaultText()
-	if cli.IsSet(GlobalConfigDirFlag.Name) {
-		configDir = cli.String(GlobalConfigDirFlag.Name)
-	}
 	var (
 		err             error
+		secretDir       = cli.String(GlobalSecretDirFlag.Name)
+		configDir       = cli.String(GlobalConfigDirFlag.Name)
 		witnessReader   io.Reader
 		witnessStr      = cli.String(WitnessFlag.Name)
 		proofWriter     io.Writer
