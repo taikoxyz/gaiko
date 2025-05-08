@@ -142,14 +142,14 @@ func NewArguments(cli *cli.Context) *Arguments {
 		}
 	}
 
-	if proofStr != stdoutSelector {
+	if proofStr == stdoutSelector {
 		proofWriter = os.Stdout
 	} else {
 		if proofWriter, err = os.Create(proofStr); err != nil {
 			panic(err)
 		}
 	}
-	if bootstrapStr != stdoutSelector {
+	if bootstrapStr == stdoutSelector {
 		bootstrapWriter = os.Stdout
 	} else {
 		if bootstrapWriter, err = os.Create(bootstrapStr); err != nil {
