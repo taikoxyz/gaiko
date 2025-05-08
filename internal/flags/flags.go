@@ -134,7 +134,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 		bootstrapStr    = cli.String(BootstrapFlag.Name)
 		bootstrapWriter io.Writer
 	)
-	if witnessStr == stdinSelector {
+	if witnessStr == stdinSelector || bootstrapStr == "" {
 		witnessReader = os.Stdin
 	} else {
 		if witnessReader, err = os.Open(witnessStr); err != nil {
@@ -142,14 +142,14 @@ func NewArguments(cli *cli.Context) *Arguments {
 		}
 	}
 
-	if proofStr == stdoutSelector {
+	if proofStr == stdoutSelector || bootstrapStr == "" {
 		proofWriter = os.Stdout
 	} else {
 		if proofWriter, err = os.Create(proofStr); err != nil {
 			panic(err)
 		}
 	}
-	if bootstrapStr == stdoutSelector {
+	if bootstrapStr == stdoutSelector || bootstrapStr == "" {
 		bootstrapWriter = os.Stdout
 	} else {
 		if bootstrapWriter, err = os.Create(bootstrapStr); err != nil {
