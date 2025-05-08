@@ -134,7 +134,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 		bootstrapStr    = cli.String(BootstrapFlag.Name)
 		bootstrapWriter io.Writer
 	)
-	if witnessStr != stdinSelector {
+	if witnessStr == stdinSelector {
 		witnessReader = os.Stdin
 	} else {
 		if witnessReader, err = os.Open(witnessStr); err != nil {
