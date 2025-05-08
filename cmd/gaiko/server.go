@@ -115,7 +115,9 @@ func runServer(c *cli.Context) error {
 
 		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
-		args.ProofWriter = bytesBufferPool.Get().(*bytes.Buffer)
+		buf := bytesBufferPool.Get().(*bytes.Buffer)
+		buf.Reset()
+		args.ProofWriter = buf
 		defer bytesBufferPool.Put(args.ProofWriter)
 		args.WitnessReader = r.Body
 		sgxProver := prover.NewSGXProver(args)
