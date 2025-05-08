@@ -82,11 +82,12 @@ var GlobalFlags = []cli.Flag{
 }
 
 type Arguments struct {
-	SecretDir       string
-	ConfigDir       string
-	SGXType         string
-	ProofType       witness.ProofType
-	SgxInstance     common.Address
+	SecretDir string
+	ConfigDir string
+	SGXType   string
+	ProofType witness.ProofType
+	// if SGXType is "debug", specify the SGX instance address with custom private key
+	SGXInstance     common.Address
 	SGXInstanceID   uint32
 	WitnessReader   io.Reader
 	ProofWriter     io.Writer
