@@ -17,42 +17,65 @@ const (
 	loggingCategory              = "LOGGING"
 )
 
+const (
+	stdinSelector  = "stdin"
+	stdoutSelector = "stdout"
+)
+
 var (
-	GlobalSecretDir = &cli.StringFlag{
+	GlobalSecretDirFlag = &cli.StringFlag{
 		Name:     "secret-dir",
 		Usage:    "Directory for the secret files",
 		Category: globalCategory,
 	}
 
-	GlobalConfigDir = &cli.StringFlag{
+	GlobalConfigDirFlag = &cli.StringFlag{
 		Name:     "config-dir",
 		Usage:    "Directory for configuration files",
 		Category: globalCategory,
 	}
 
-	GlobalSGXType = &cli.StringFlag{
+	GlobalSGXTypeFlag = &cli.StringFlag{
 		Name:     "sgx-type",
 		Usage:    `Which SGX type? "debug", "ego" or "gramine"`,
 		Category: globalCategory,
 		EnvVars:  []string{"SGX_TYPE"},
 	}
 
-	SGXInstanceID = &cli.Uint64Flag{
+	SGXInstanceIDFlag = &cli.Uint64Flag{
 		Name:  "sgx-instance-id",
 		Usage: "SGX Instance ID for one-(batch-)shot operation",
 	}
 
+	WitnessFlag = &cli.StringFlag{
+		Name:  "witness",
+		Usage: "`stdin` or file name of where to find the witness data to use.",
+		Value: stdinSelector,
+	}
+
+	ProofFlag = &cli.StringFlag{
+		Name:  "proof",
+		Usage: "`stdout` or file name of where to write the proof data.",
+		Value: stdoutSelector,
+	}
+
+	BootstrapFlag = &cli.StringFlag{
+		Name:  "bootstrap",
+		Usage: "`stdout` or file name of where to write the bootstrap data.",
+		Value: stdoutSelector,
+	}
+
 	// Optional flags used by all client software.
 	// Logging
-	Verbosity = &cli.IntFlag{
+	VerbosityFlag = &cli.IntFlag{
 		Name:     "verbosity",
 		Usage:    "Logging verbosity: 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=detail",
 		Value:    3,
 		Category: loggingCategory,
 		EnvVars:  []string{"VERBOSITY"},
 	}
-	LogJSON = &cli.BoolFlag{
-		Name:     "log.json",
+	LogJSONFlag = &cli.BoolFlag{
+		Name:     "log-json",
 		Usage:    "Format logs with JSON",
 		Category: loggingCategory,
 		EnvVars:  []string{"LOG_JSON"},
@@ -64,8 +87,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	GlobalSecretDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
-	GlobalConfigDir.DefaultText = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
+	GlobalSecretDirFlag.Value = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
+	GlobalConfigDirFlag.Value = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
 }
 
 const (
@@ -74,11 +97,11 @@ const (
 )
 
 var GlobalFlags = []cli.Flag{
-	GlobalSecretDir,
-	GlobalConfigDir,
-	GlobalSGXType,
-	Verbosity,
-	LogJSON,
+	GlobalSecretDirFlag,
+	GlobalConfigDirFlag,
+	GlobalSGXTypeFlag,
+	VerbosityFlag,
+	LogJSONFlag,
 }
 
 type Arguments struct {
@@ -94,33 +117,63 @@ type Arguments struct {
 	BootstrapWriter io.Writer
 }
 
+func (args *Arguments) Copy() *Arguments {
+	argsCopy := *args
+	return &argsCopy
+}
+
 func NewArguments(cli *cli.Context) *Arguments {
-	secretDir := GlobalSecretDir.GetDefaultText()
-	if cli.IsSet(GlobalSecretDir.Name) {
-		secretDir = cli.String(GlobalSecretDir.Name)
+	var (
+		err             error
+		secretDir       = cli.String(GlobalSecretDirFlag.Name)
+		configDir       = cli.String(GlobalConfigDirFlag.Name)
+		witnessReader   io.Reader
+		witnessStr      = cli.String(WitnessFlag.Name)
+		proofWriter     io.Writer
+		proofStr        = cli.String(ProofFlag.Name)
+		bootstrapStr    = cli.String(BootstrapFlag.Name)
+		bootstrapWriter io.Writer
+	)
+	if witnessStr == stdinSelector || witnessStr == "" {
+		witnessReader = os.Stdin
+	} else {
+		if witnessReader, err = os.Open(witnessStr); err != nil {
+			panic(err)
+		}
 	}
-	configDir := GlobalConfigDir.GetDefaultText()
-	if cli.IsSet(GlobalConfigDir.Name) {
-		configDir = cli.String(GlobalConfigDir.Name)
+
+	if proofStr == stdoutSelector || proofStr == "" {
+		proofWriter = os.Stdout
+	} else {
+		if proofWriter, err = os.Create(proofStr); err != nil {
+			panic(err)
+		}
+	}
+	if bootstrapStr == stdoutSelector || bootstrapStr == "" {
+		bootstrapWriter = os.Stdout
+	} else {
+		if bootstrapWriter, err = os.Create(bootstrapStr); err != nil {
+			panic(err)
+		}
 	}
 	return &Arguments{
 		SecretDir:       secretDir,
 		ConfigDir:       configDir,
-		SGXType:         cli.String(GlobalSGXType.Name),
+		SGXType:         cli.String(GlobalSGXTypeFlag.Name),
 		ProofType:       witness.SGXGethProofType,
-		SGXInstanceID:   uint32(cli.Uint64(SGXInstanceID.Name)),
-		WitnessReader:   os.Stdin,
-		ProofWriter:     os.Stdout,
-		BootstrapWriter: os.Stdout,
+		SGXInstanceID:   uint32(cli.Uint64(SGXInstanceIDFlag.Name)),
+		WitnessReader:   witnessReader,
+		ProofWriter:     proofWriter,
+		BootstrapWriter: bootstrapWriter,
 	}
 }
 
 // InitLogger initializes the root logger with the command line flags.
 func InitLogger(c *cli.Context) error {
 	var (
-		slogVerbosity = log.FromLegacyLevel(c.Int(Verbosity.Name))
+		slogVerbosity = log.FromLegacyLevel(c.Int(VerbosityFlag.Name))
 	)
-	if c.Bool(LogJSON.Name) {
+	if c.Bool(LogJSONFlag.Name) {
 		glogger := log.NewGlogHandler(log.NewGlogHandler(log.JSONHandler(os.Stdout)))
 		glogger.Verbosity(slogVerbosity)
 		log.SetDefault(log.NewLogger(glogger))

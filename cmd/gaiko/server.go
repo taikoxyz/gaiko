@@ -111,10 +111,10 @@ func runServer(c *cli.Context) error {
 	if port == "" {
 		port = "8080"
 	}
+	args := flags.NewArguments(c)
 	http.HandleFunc("POST /prove/{action}", func(w http.ResponseWriter, r *http.Request) {
+		args := args.Copy()
 		defer r.Body.Close()
-
-		args := flags.NewArguments(c)
 		// override the proof writer to get the proof & return as response
 		buf := bytesBufferPool.Get().(*bytes.Buffer)
 		buf.Reset()
