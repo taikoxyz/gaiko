@@ -133,6 +133,9 @@
       "ONTAKE": {
         "Block": 538304
       },
+      "PACAYA": {
+        "Block": 99999999
+      },
       "CANCUN": "TBD"
     },
     "eip_1559_constants": {
