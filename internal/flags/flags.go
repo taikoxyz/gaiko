@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -49,7 +50,7 @@ var (
 
 	WitnessFlag = &cli.StringFlag{
 		Name:  "witness",
-		Usage: "`stdin` or file name of where to find the witness data to use.",
+		Usage: "`stdin`, `fd` or file name of where to find the witness data to use.",
 		Value: stdinSelector,
 	}
 
@@ -137,8 +138,13 @@ func NewArguments(cli *cli.Context) *Arguments {
 	if witnessStr == stdinSelector || witnessStr == "" {
 		witnessReader = os.Stdin
 	} else {
-		if witnessReader, err = os.Open(witnessStr); err != nil {
-			panic(err)
+		fd, err := strconv.Atoi(witnessStr)
+		if err == nil {
+			witnessReader = os.NewFile(uintptr(fd), "memfd")
+		} else {
+			if witnessReader, err = os.Open(witnessStr); err != nil {
+				panic(err)
+			}
 		}
 	}
 
