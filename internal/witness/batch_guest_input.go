@@ -86,15 +86,16 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 		}
 
 		blockParams := batchProposed.BlockParams()
-		next := 0
+		start := 0
 		for i, blockParam := range blockParams {
 			numTxs := int(blockParam.NumTransactions)
+			end := min(start+numTxs, len(txs))
 			_txs := []*types.Transaction{g.Inputs[i].Taiko.AnchorTx}
-			_txs = append(_txs, txs[next:next+numTxs]...)
+			_txs = append(_txs, txs[start:end]...)
 			if !yield(&Pair{g.Inputs[i], _txs}) {
 				return
 			}
-			next += numTxs
+			start = end
 		}
 	}
 }
