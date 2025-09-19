@@ -42,7 +42,6 @@ type TaikoGuestBatchInput struct {
 func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 	return func(yield func(*Pair) bool) {
 		batchProposed := g.Taiko.BatchProposed
-		chainID := big.NewInt(int64(g.ChainID()))
 		var txs types.Transactions
 		if batchProposed.BlobUsed() {
 			var compressedTxListBuf []byte
@@ -72,16 +71,12 @@ func (g *BatchGuestInput) GuestInputs() iter.Seq[*Pair] {
 				compressedTxListBuf,
 				blobMaxTxListBytes,
 				batchProposed.BlobUsed(),
-				true,
-				chainID,
 			)
 		} else {
 			txs = decompressTxList(
 				g.Taiko.TxDataFromCalldata,
 				calldataMaxTxListBytes,
 				batchProposed.BlobUsed(),
-				true,
-				chainID,
 			)
 		}
 

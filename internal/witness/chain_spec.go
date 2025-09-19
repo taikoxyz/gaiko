@@ -189,6 +189,7 @@ const (
 	EthereumNetwork     Network = "ethereum"
 	HoleskyNetwork      Network = "holesky"
 	TaikoDevNetwork     Network = "taiko_dev"
+	TaikoHoodiNetwork   Network = "taiko_hoodi"
 )
 
 //go:generate go run github.com/fjl/gencodec -type ChainSpec -out gen_chain_spec.go
@@ -251,6 +252,12 @@ func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
 		chainConfig.ChainID = params.TaikoInternalL2ANetworkID
 		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
 		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
+		return chainConfig, nil
+	case TaikoHoodiNetwork:
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TolbaNetworkID)
+		chainConfig.ChainID = params.TolbaNetworkID
+		chainConfig.OntakeBlock = core.TolbaOntakeBlock
+		chainConfig.PacayaBlock = core.TolbaPacayaBlock
 		return chainConfig, nil
 	default:
 		return nil, errors.New("unsupported chain spec")

@@ -1,257 +1,230 @@
 [
-  {
-    "name": "ethereum",
-    "chain_id": 1,
-    "max_spec_id": "CANCUN",
-    "hard_forks": {
-      "FRONTIER": {
-        "Block": 0
-      },
-      "MERGE": {
-        "Block": 15537394
-      },
-      "SHANGHAI": {
-        "Block": 17034870
-      },
-      "CANCUN": {
-        "Timestamp": 1710338135
-      }
+    {
+        "name": "ethereum",
+        "chain_id": 1,
+        "max_spec_id": "CANCUN",
+        "hard_forks": {
+            "FRONTIER": {
+                "Block": 0
+            },
+            "MERGE": {
+                "Block": 15537394
+            },
+            "SHANGHAI": {
+                "Block": 17034870
+            },
+            "CANCUN": {
+                "Timestamp": 1710338135
+            }
+        },
+        "eip_1559_constants": {
+            "base_fee_change_denominator": "0x8",
+            "base_fee_max_increase_denominator": "0x8",
+            "base_fee_max_decrease_denominator": "0x8",
+            "elasticity_multiplier": "0x2"
+        },
+        "l1_contract": null,
+        "l2_contract": null,
+        "rpc": "https://ethereum-rpc.publicnode.com",
+        "beacon_rpc": "https://ethereum-beacon-api.publicnode.com",
+        "verifier_address_forks": {
+            "FRONTIER": {
+                "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
+                "SP1": null,
+                "RISC0": "0x0000000000000000000000000000000000000000"
+            }
+        },
+        "genesis_time": 1606824023,
+        "seconds_per_slot": 12,
+        "is_taiko": false
     },
-    "eip_1559_constants": {
-      "base_fee_change_denominator": "0x8",
-      "base_fee_max_increase_denominator": "0x8",
-      "base_fee_max_decrease_denominator": "0x8",
-      "elasticity_multiplier": "0x2"
+    {
+        "name": "holesky",
+        "chain_id": 17000,
+        "max_spec_id": "CANCUN",
+        "hard_forks": {
+            "FRONTIER": {
+                "Block": 0
+            },
+            "SHANGHAI": {
+                "Timestamp": 1696000704
+            },
+            "CANCUN": {
+                "Timestamp": 1707305664
+            }
+        },
+        "eip_1559_constants": {
+            "base_fee_change_denominator": "0x8",
+            "base_fee_max_increase_denominator": "0x8",
+            "base_fee_max_decrease_denominator": "0x8",
+            "elasticity_multiplier": "0x2"
+        },
+        "l1_contract": null,
+        "l2_contract": null,
+        "rpc": "https://ethereum-holesky-rpc.publicnode.com",
+        "beacon_rpc": "https://fabled-weathered-cherry.ethereum-holesky.quiknode.pro/8f1c66935fa5f9afbda0db43318fe3c9e7b061e1/",
+        "verifier_address_forks": {
+            "FRONTIER": {
+                "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
+                "SP1": null,
+                "RISC0": "0x0000000000000000000000000000000000000000"
+            }
+        },
+        "genesis_time": 1695902400,
+        "seconds_per_slot": 12,
+        "is_taiko": false
     },
-    "l1_contract": null,
-    "l2_contract": null,
-    "rpc": "https://ethereum-rpc.publicnode.com",
-    "beacon_rpc": "https://ethereum-beacon-api.publicnode.com",
-    "verifier_address_forks": {
-      "FRONTIER": {
-        "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
-        "SP1": null,
-        "RISC0": "0x0000000000000000000000000000000000000000"
-      }
+    {
+        "name": "hoodi",
+        "chain_id": 560048,
+        "max_spec_id": "CANCUN",
+        "hard_forks": {
+            "FRONTIER": {
+                "Block": 0
+            },
+            "SHANGHAI": {
+                "Timestamp": 1696000704
+            },
+            "CANCUN": {
+                "Timestamp": 1707305664
+            }
+        },
+        "eip_1559_constants": {
+            "base_fee_change_denominator": "0x8",
+            "base_fee_max_increase_denominator": "0x8",
+            "base_fee_max_decrease_denominator": "0x8",
+            "elasticity_multiplier": "0x2"
+        },
+        "l1_contract": null,
+        "l2_contract": null,
+        "rpc": "https://ethereum-hoodi-rpc.publicnode.com",
+        "beacon_rpc": "https://ethereum-hoodi-beacon-api.publicnode.com",
+        "verifier_address_forks": {
+            "FRONTIER": {
+                "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
+                "SP1": null,
+                "RISC0": "0x0000000000000000000000000000000000000000"
+            }
+        },
+        "genesis_time": 1742213400,
+        "seconds_per_slot": 12,
+        "is_taiko": false
     },
-    "genesis_time": 1606824023,
-    "seconds_per_slot": 12,
-    "is_taiko": false
-  },
-  {
-    "name": "holesky",
-    "chain_id": 17000,
-    "max_spec_id": "CANCUN",
-    "hard_forks": {
-      "FRONTIER": {
-        "Block": 0
-      },
-      "SHANGHAI": {
-        "Timestamp": 1696000704
-      },
-      "CANCUN": {
-        "Timestamp": 1707305664
-      }
+    {
+        "name": "taiko_a7",
+        "chain_id": 167009,
+        "max_spec_id": "PACAYA",
+        "hard_forks": {
+            "HEKLA": {
+                "Block": 0
+            },
+            "ONTAKE": {
+                "Block": 840512
+            },
+            "PACAYA": {
+                "Block": 1299888
+            },
+            "CANCUN": "TBD"
+        },
+        "eip_1559_constants": {
+            "base_fee_change_denominator": "0x8",
+            "base_fee_max_increase_denominator": "0x8",
+            "base_fee_max_decrease_denominator": "0x8",
+            "elasticity_multiplier": "0x2"
+        },
+        "l1_contract": "0x79c9109b764609df928d16fc4a91e9081f7e87db",
+        "l2_contract": "0x1670090000000000000000000000000000010001",
+        "rpc": "https://rpc.hekla.taiko.xyz",
+        "beacon_rpc": null,
+        "verifier_address_forks": {
+            "PACAYA": {
+                "SGX": "0xa8cD459E3588D6edE42177193284d40332c3bcd4",
+                "SP1": "0x1138aA994477f0880001aa1E8106D749035b6250",
+                "RISC0": "0xCDdf353C838542834E443C3c9dE3ab3F81F27aF2",
+                "SGXGETH": "0x4361B85093720bD50d25236693CA58FD6e1b3a53"
+            }
+        },
+        "genesis_time": 0,
+        "seconds_per_slot": 1,
+        "is_taiko": true
     },
-    "eip_1559_constants": {
-      "base_fee_change_denominator": "0x8",
-      "base_fee_max_increase_denominator": "0x8",
-      "base_fee_max_decrease_denominator": "0x8",
-      "elasticity_multiplier": "0x2"
+    {
+        "name": "taiko_mainnet",
+        "chain_id": 167000,
+        "max_spec_id": "PACAYA",
+        "hard_forks": {
+            "HEKLA": {
+                "Block": 0
+            },
+            "ONTAKE": {
+                "Block": 538304
+            },
+            "PACAYA": {
+                "Block": 1166000
+            },
+            "CANCUN": "TBD"
+        },
+        "eip_1559_constants": {
+            "base_fee_change_denominator": "0x8",
+            "base_fee_max_increase_denominator": "0x8",
+            "base_fee_max_decrease_denominator": "0x8",
+            "elasticity_multiplier": "0x2"
+        },
+        "l1_contract": "0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a",
+        "l2_contract": "0x1670000000000000000000000000000000010001",
+        "rpc": "https://rpc.mainnet.taiko.xyz",
+        "beacon_rpc": null,
+        "verifier_address_forks": {
+            "PACAYA": {
+                "SGX": "0x9e322fC59b8f4A29e6b25c3a166ac1892AA30136",
+                "SP1": "0xbee1040D0Aab17AE19454384904525aE4A3602B9",
+                "RISC0": "0x73Ee496dA20e5C65340c040B0D8c3C891C1f74AE",
+                "SGXGETH": "0x7e6409e9b6c5e2064064a6cC994f9a2e95680782"
+            }
+        },
+        "genesis_time": 0,
+        "seconds_per_slot": 1,
+        "is_taiko": true
     },
-    "l1_contract": null,
-    "l2_contract": null,
-    "rpc": "https://ethereum-holesky-rpc.publicnode.com",
-    "beacon_rpc": "https://fabled-weathered-cherry.ethereum-holesky.quiknode.pro/8f1c66935fa5f9afbda0db43318fe3c9e7b061e1/",
-    "verifier_address_forks": {
-      "FRONTIER": {
-        "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
-        "SP1": null,
-        "RISC0": "0x0000000000000000000000000000000000000000"
-      }
-    },
-    "genesis_time": 1695902400,
-    "seconds_per_slot": 12,
-    "is_taiko": false
-  },
-  {
-    "name": "taiko_a7",
-    "chain_id": 167009,
-    "max_spec_id": "PACAYA",
-    "hard_forks": {
-      "HEKLA": {
-        "Block": 0
-      },
-      "ONTAKE": {
-        "Block": 840512
-      },
-      "PACAYA": {
-        "Block": 1299888
-      },
-      "CANCUN": "TBD"
-    },
-    "eip_1559_constants": {
-      "base_fee_change_denominator": "0x8",
-      "base_fee_max_increase_denominator": "0x8",
-      "base_fee_max_decrease_denominator": "0x8",
-      "elasticity_multiplier": "0x2"
-    },
-    "l1_contract": "0x79c9109b764609df928d16fc4a91e9081f7e87db",
-    "l2_contract": "0x1670090000000000000000000000000000010001",
-    "rpc": "https://rpc.hekla.taiko.xyz",
-    "beacon_rpc": null,
-    "verifier_address_forks": {
-      "HEKLA": {
-        "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
-        "SP1": "0xFbE49f777E0078b3Fa0bae6de4794c88d6EA6DDD",
-        "RISC0": "0x4fEd801C5a876D4289e869cbEfA1E1A448b10714"
-      },
-      "ONTAKE": {
-        "SGX": "0x532efbf6d62720d0b2a2bb9d11066e8588cae6d9",
-        "SP1": "0xFbE49f777E0078b3Fa0bae6de4794c88d6EA6DDD",
-        "RISC0": "0x4fEd801C5a876D4289e869cbEfA1E1A448b10714"
-      },
-      "PACAYA": {
-        "SGX": "0xa8cD459E3588D6edE42177193284d40332c3bcd4",
-        "SP1": "0x1138aA994477f0880001aa1E8106D749035b6250",
-        "RISC0": "0xCDdf353C838542834E443C3c9dE3ab3F81F27aF2",
-        "SGXGETH": "0x4361B85093720bD50d25236693CA58FD6e1b3a53"
-      }
-    },
-    "genesis_time": 0,
-    "seconds_per_slot": 1,
-    "is_taiko": true
-  },
-  {
-    "name": "taiko_mainnet",
-    "chain_id": 167000,
-    "max_spec_id": "PACAYA",
-    "hard_forks": {
-      "HEKLA": {
-        "Block": 0
-      },
-      "ONTAKE": {
-        "Block": 538304
-      },
-      "PACAYA": {
-        "Block": 1166000
-      },
-      "CANCUN": "TBD"
-    },
-    "eip_1559_constants": {
-      "base_fee_change_denominator": "0x8",
-      "base_fee_max_increase_denominator": "0x8",
-      "base_fee_max_decrease_denominator": "0x8",
-      "elasticity_multiplier": "0x2"
-    },
-    "l1_contract": "0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a",
-    "l2_contract": "0x1670000000000000000000000000000000010001",
-    "rpc": "https://rpc.mainnet.taiko.xyz",
-    "beacon_rpc": null,
-    "verifier_address_forks": {
-      "HEKLA": {
-        "SGX": "0xb0f3186FC1963f774f52ff455DC86aEdD0b31F81",
-        "SP1": "0x5c44f2239925b0d86d2BFEe539f19CD0A08Af452",
-        "RISC0": "0x55902b2D3DF2A65370A89C86Ae9dd71Ecd508edc"
-      },
-      "ONTAKE": {
-        "SGX": "0xb0f3186FC1963f774f52ff455DC86aEdD0b31F81",
-        "SP1": "0x5c44f2239925b0d86d2BFEe539f19CD0A08Af452",
-        "RISC0": "0x55902b2D3DF2A65370A89C86Ae9dd71Ecd508edc"
-      },
-      "PACAYA": {
-        "SGX": "0x9e322fC59b8f4A29e6b25c3a166ac1892AA30136",
-        "SP1": "0xbee1040D0Aab17AE19454384904525aE4A3602B9",
-        "RISC0": "0x73Ee496dA20e5C65340c040B0D8c3C891C1f74AE",
-        "SGXGETH": "0x7e6409e9b6c5e2064064a6cC994f9a2e95680782"
-      }
-    },
-    "genesis_time": 0,
-    "seconds_per_slot": 1,
-    "is_taiko": true
-  },
-  {
-    "name": "taiko_dev_l1",
-    "chain_id": 32382,
-    "max_spec_id": "CANCUN",
-    "hard_forks": {
-      "FRONTIER": {
-        "Block": 0
-      },
-      "SHANGHAI": {
-        "Timestamp": 0
-      },
-      "CANCUN": {
-        "Timestamp": 0
-      }
-    },
-    "eip_1559_constants": {
-      "base_fee_change_denominator": "0x8",
-      "base_fee_max_increase_denominator": "0x8",
-      "base_fee_max_decrease_denominator": "0x8",
-      "elasticity_multiplier": "0x2"
-    },
-    "l1_contract": null,
-    "l2_contract": null,
-    "rpc": "https://l1rpc.internal.taiko.xyz",
-    "beacon_rpc": "https://l1beacon.internal.taiko.xyz/",
-    "verifier_address_forks": {
-      "FRONTIER": {
-        "SGX": "0x2Ec730f0830803A022262e46375E33023faD65e5",
-        "SP1": null,
-        "RISC0": null
-      }
-    },
-    "genesis_time": 1744256500,
-    "seconds_per_slot": 12,
-    "is_taiko": false
-  },
-  {
-    "name": "taiko_dev",
-    "chain_id": 167001,
-    "max_spec_id": "PACAYA",
-    "hard_forks": {
-      "HEKLA": {
-        "Block": 0
-      },
-      "ONTAKE": {
-        "Block": 0
-      },
-      "PACAYA": {
-        "Block": 0
-      },
-      "CANCUN": "TBD"
-    },
-    "eip_1559_constants": {
-      "base_fee_change_denominator": "0x8",
-      "base_fee_max_increase_denominator": "0x8",
-      "base_fee_max_decrease_denominator": "0x8",
-      "elasticity_multiplier": "0x2"
-    },
-    "l1_contract": "0x6d2D299fEe48F3490Ed74d581bbDF4AD7b5Aa275",
-    "l2_contract": "0x1670010000000000000000000000000000010001",
-    "rpc": "https://rpc.internal.taiko.xyz",
-    "beacon_rpc": null,
-    "verifier_address_forks": {
-      "HEKLA": {
-        "SGX": "0x2Ec730f0830803A022262e46375E33023faD65e5",
-        "SP1": "0xf92809b39561F3f64f78Df469EE39CCfb62fe92D",
-        "RISC0": "0xde28533011Ef2d6484A03beFD8ffbF31d179AE6A"
-      },
-      "ONTAKE": {
-        "SGX": "0x2Ec730f0830803A022262e46375E33023faD65e5",
-        "SP1": "0xf92809b39561F3f64f78Df469EE39CCfb62fe92D",
-        "RISC0": "0xde28533011Ef2d6484A03beFD8ffbF31d179AE6A"
-      },
-      "PACAYA": {
-        "SGX": "0x0Cf58F3E8514d993cAC87Ca8FC142b83575cC4D3",
-        "SP1": "0xF3152569f2f74ec0f3fd0f57C09aCe07adDA7c5D",
-        "RISC0": "0x9C53004a840bbF58bF5C7084addD50498E12E9A9",
-        "SGXGETH": "0x698ceB7EF2E001347B1672389d6ca6aCE04b13C8"
-      }
-    },
-    "genesis_time": 0,
-    "seconds_per_slot": 1,
-    "is_taiko": true
-  }
+    {
+        "name": "taiko_hoodi",
+        "chain_id": 167012,
+        "max_spec_id": "PACAYA",
+        "hard_forks": {
+            "HEKLA": {
+                "Block": 0
+            },
+            "ONTAKE": {
+                "Block": 0
+            },
+            "PACAYA": {
+                "Block": 0
+            },
+            "SHASTA": {
+                "Block": 99999999
+            },
+            "CANCUN": "TBD"
+        },
+        "eip_1559_constants": {
+            "base_fee_change_denominator": "0x8",
+            "base_fee_max_increase_denominator": "0x8",
+            "base_fee_max_decrease_denominator": "0x8",
+            "elasticity_multiplier": "0x2"
+        },
+        "l1_contract": "0x50A576435E2D9c179124D657d804eb56A10b6999",
+        "l2_contract": "0x1670120000000000000000000000000000010001",
+        "rpc": "https://rpc.tolba.taiko.xyz",
+        "beacon_rpc": null,
+        "verifier_address_forks": {
+            "SHASTA": {
+                "SGX": "0x237506C97895771Ae3177dF31FC40D27c99fD382",
+                "SP1": "0x81d64E57E24AFae7E941976AB5A2976b390eAcD8",
+                "RISC0": "0xD1359ba7297e207b9B2519B0E1e15b0E0c8b790e",
+                "SGXGETH": "0xA75c8FCB2609eB66E0DAdd4ECA438870F4f22FE8"
+            }
+        },
+        "genesis_time": 0,
+        "seconds_per_slot": 1,
+        "is_taiko": true
+    }
 ]
