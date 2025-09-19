@@ -13,6 +13,7 @@ const (
 	HeklaHardFork   string = "Hekla"
 	OntakeHardFork  string = "Ontake"
 	PacayaHardFork  string = "Pacaya"
+	ShastaHardFork  string = "Shasta"
 )
 
 // Slice represents the offset and length of a slice.

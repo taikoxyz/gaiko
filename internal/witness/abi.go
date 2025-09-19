@@ -8,11 +8,30 @@ import (
 )
 
 var (
-	stringTy, _                       = abi.NewType("string", "", nil)
-	uint64Ty, _                       = abi.NewType("uint64", "", nil)
-	addressTy, _                      = abi.NewType("address", "", nil)
-	byte32Ty, _                       = abi.NewType("bytes32", "", nil)
-	byte32sTy, _                      = abi.NewType("bytes32[]", "", nil)
+	stringTy, _          = abi.NewType("string", "", nil)
+	uint64Ty, _          = abi.NewType("uint64", "", nil)
+	addressTy, _         = abi.NewType("address", "", nil)
+	byte32Ty, _          = abi.NewType("bytes32", "", nil)
+	byte32sTy, _         = abi.NewType("bytes32[]", "", nil)
+	transitionComponents = []abi.ArgumentMarshaling{
+		{
+			Name: "parentHash",
+			Type: "bytes32",
+		},
+		{
+			Name: "blockHash",
+			Type: "bytes32",
+		},
+		{
+			Name: "stateRoot",
+			Type: "bytes32",
+		},
+		{
+			Name: "graffiti",
+			Type: "bytes32",
+		},
+	}
+	ontakeTransitionComponentsType, _ = abi.NewType("tuple", "TaikoData.Transition", transitionComponents)
 	pacayaTransitionComponentsType, _ = abi.NewType(
 		"tuple",
 		"ITaikoInbox.Transition",
@@ -22,7 +41,7 @@ var (
 		{Name: "VERIFY_PROOF", Type: stringTy},
 		{Name: "_chainId", Type: uint64Ty},
 		{Name: "_verifierContract", Type: addressTy},
-		{Name: "_transition", Type: encoding.TransitionComponentsType},
+		{Name: "_transition", Type: ontakeTransitionComponentsType},
 		{Name: "_newInstance", Type: addressTy},
 		{Name: "_prover", Type: addressTy},
 		{Name: "_metaHash", Type: byte32Ty},

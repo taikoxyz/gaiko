@@ -66,9 +66,7 @@ type TaikoProverData struct {
 func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 	return func(yield func(*Pair) bool) {
 		blockProposed := g.Taiko.BlockProposed
-		chainID := new(big.Int).SetUint64(g.ChainID())
 		blobUsed := blockProposed.BlobUsed()
-		isPacaya := blockProposed.HardFork() == PacayaHardFork
 		compressedTxListBuf := g.Taiko.TxData
 		var txs types.Transactions
 		if g.IsTaiko() {
@@ -89,16 +87,12 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 					compressedTxListBuf,
 					blobMaxTxListBytes,
 					blobUsed,
-					isPacaya,
-					chainID,
 				)
 			} else {
 				txs = decompressTxList(
 					compressedTxListBuf,
 					calldataMaxTxListBytes,
 					blobUsed,
-					isPacaya,
-					chainID,
 				)
 			}
 		} else {
@@ -106,8 +100,6 @@ func (g *GuestInput) GuestInputs() iter.Seq[*Pair] {
 				compressedTxListBuf,
 				math.MaxUint64,
 				blobUsed,
-				isPacaya,
-				chainID,
 			)
 		}
 		txs = slices.Insert(txs, 0, g.Taiko.AnchorTx)
