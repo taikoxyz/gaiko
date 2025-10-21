@@ -437,8 +437,8 @@ github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d h1:vfofYNRScrDd
 github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d/go.mod h1:RRCYJbIwD5jmqPI9XoAFR0OcDxqUctll6zUj/+B4S48=
 github.com/taikoxyz/optimism v0.0.0-20250904153513-c03e7cc023f2 h1:rB8kA1Hx3dIJbKn0483GQLiDE//MvjSBlNm2gBSEf3U=
 github.com/taikoxyz/optimism v0.0.0-20250904153513-c03e7cc023f2/go.mod h1:V0VCkKtCzuaJH6qcL75SRcbdlakM9LhurMEJUhO6VXA=
-github.com/taikoxyz/taiko-geth v1.17.1-0.20250919075832-1549c0c4d15f h1:4VyMnbJ6ETL8L5T47NVqPYPGQCAmQBHh2HpoG2f4lXs=
-github.com/taikoxyz/taiko-geth v1.17.1-0.20250919075832-1549c0c4d15f/go.mod h1:1LG2LnMOx2yPRHR/S+xuipXH29vPr6BIH6GElD8N/fo=
+github.com/taikoxyz/taiko-geth v1.18.1-0.20251021025124-5ef5e12e8706 h1:IiaNZUWIQEOu863KWv7FbmZUhl91lR8mqlp1g64b6f4=
+github.com/taikoxyz/taiko-geth v1.18.1-0.20251021025124-5ef5e12e8706/go.mod h1:1LG2LnMOx2yPRHR/S+xuipXH29vPr6BIH6GElD8N/fo=
 github.com/taikoxyz/taiko-mono v0.0.0-20250919040801-b26bc33100c7 h1:tRGSfuTDiCdgU/jhliSebDlc/0sxt4ndeb1LUHAtJhE=
 github.com/taikoxyz/taiko-mono v0.0.0-20250919040801-b26bc33100c7/go.mod h1:g7KrVEhNcuj9EJG3tMnLUWsFukHX+J0/QHPCALdNBQY=
 github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e h1:cR8/SYRgyQCt5cNCMniB/ZScMkhI9nk8U5C7SbISXjo=

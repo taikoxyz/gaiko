@@ -184,11 +184,12 @@ func (vf *VerifierAddressFork) UnmarshalJSON(data []byte) error {
 type Network string
 
 const (
-	TaikoA7Network      Network = "taiko_a7"
 	TaikoMainnetNetwork Network = "taiko_mainnet"
 	EthereumNetwork     Network = "ethereum"
 	HoleskyNetwork      Network = "holesky"
 	TaikoDevNetwork     Network = "taiko_dev"
+	PreconfDevNetwork   Network = "preconf_dev"
+	MasayaDevNetwork    Network = "masaya_dev"
 	TaikoHoodiNetwork   Network = "taiko_hoodi"
 )
 
@@ -231,34 +232,40 @@ func (c *ChainSpec) getForkVerifierAddress(
 
 func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
 	switch c.Name {
-	case TaikoA7Network:
-		chainConfig := params.NetworkIDToChainConfigOrDefault(params.HeklaNetworkID)
-		chainConfig.ChainID = params.HeklaNetworkID
-		chainConfig.OntakeBlock = core.HeklaOntakeBlock
-		chainConfig.PacayaBlock = core.HeklaPacayaBlock
-		return chainConfig, nil
 	case TaikoMainnetNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID)
 		chainConfig.ChainID = params.TaikoMainnetNetworkID
 		chainConfig.OntakeBlock = core.MainnetOntakeBlock
 		chainConfig.PacayaBlock = core.MainnetPacayaBlock
 		return chainConfig, nil
+	case TaikoDevNetwork:
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoInternalNetworkID)
+		chainConfig.ChainID = params.TaikoInternalNetworkID
+		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
+		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
+		return chainConfig, nil
+	case PreconfDevNetwork:
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.PreconfDevnetNetworkID)
+		chainConfig.ChainID = params.PreconfDevnetNetworkID
+		chainConfig.OntakeBlock = core.PreconfDevnetOntakeBlock
+		chainConfig.PacayaBlock = core.PreconfDevnetPacayaBlock
+		return chainConfig, nil
+	case MasayaDevNetwork:
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.MasayaDevnetNetworkID)
+		chainConfig.ChainID = params.MasayaDevnetNetworkID
+		chainConfig.OntakeBlock = core.MasayaDevnetOntakeBlock
+		chainConfig.PacayaBlock = core.MasayaDevnetPacayaBlock
+		return chainConfig, nil
+	case TaikoHoodiNetwork:
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoHoodiNetworkID)
+		chainConfig.ChainID = params.TaikoHoodiNetworkID
+		chainConfig.OntakeBlock = core.TaikoHoodiOntakeBlock
+		chainConfig.PacayaBlock = core.TaikoHoodiPacayaBlock
+		return chainConfig, nil
 	case EthereumNetwork:
 		return params.MainnetChainConfig, nil
 	case HoleskyNetwork:
 		return params.HoleskyChainConfig, nil
-	case TaikoDevNetwork:
-		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoInternalL2ANetworkID)
-		chainConfig.ChainID = params.TaikoInternalL2ANetworkID
-		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
-		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
-		return chainConfig, nil
-	case TaikoHoodiNetwork:
-		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TolbaNetworkID)
-		chainConfig.ChainID = params.TolbaNetworkID
-		chainConfig.OntakeBlock = core.TolbaOntakeBlock
-		chainConfig.PacayaBlock = core.TolbaPacayaBlock
-		return chainConfig, nil
 	default:
 		return nil, errors.New("unsupported chain spec")
 	}
