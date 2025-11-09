@@ -27,6 +27,7 @@ func (t TransactionSignedList) GethType() []*types.Transaction {
 	return txs
 }
 
+//go:generate go run github.com/fjl/gencodec -type TransactionSigned -out gen_transaction_signed.go
 type TransactionSigned struct {
 	Hash        common.Hash  `json:"hash"        gencodec:"required"`
 	Signature   *Signature   `json:"signature"   gencodec:"required"`

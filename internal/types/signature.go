@@ -21,7 +21,14 @@ func (s *Signature) V(chainID *big.Int, isLegacy bool) *big.Int {
 		oddYParity = 1
 	}
 	if isLegacy {
-		// self.odd_y_parity as u64 + chain_id * 2 + 35
+		if chainID == nil {
+			// non-EIP-155 legacy scheme, v = 27 for even y-parity, v = 28 for odd y-parity
+			if s.OddYParity {
+				return new(big.Int).SetUint64(28)
+			}
+			return new(big.Int).SetUint64(27)
+		}
+		// EIP-155: v = {0, 1} + CHAIN_ID * 2 + 35
 		return new(big.Int).SetUint64(oddYParity + 35 + chainID.Uint64()*2)
 	}
 	return new(big.Int).SetUint64(oddYParity)

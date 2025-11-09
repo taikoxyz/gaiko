@@ -75,8 +75,10 @@ func cmpAddress(a, b *common.Address) bool {
 	return a.Cmp(*b) == 0
 }
 
-type SpecID string
-type ProofType string
+type (
+	SpecID    string
+	ProofType string
+)
 
 const (
 	NativeProofType  ProofType = "NATIVE"
@@ -267,7 +269,7 @@ func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
 	case HoleskyNetwork:
 		return params.HoleskyChainConfig, nil
 	default:
-		return nil, errors.New("unsupported chain spec")
+		return nil, fmt.Errorf("unsupported chain spec: %s", c.Name)
 	}
 }
 
