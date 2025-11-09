@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 	"github.com/taikoxyz/gaiko/pkg/mpt"
 )
@@ -26,6 +27,7 @@ type guestInputJSON struct {
 
 func (g *guestInputJSON) GethType() *GuestInput {
 	if g == nil {
+		log.Warn("missing guestInputJSON when converting to GethType")
 		return nil
 	}
 	contracts := make([][]byte, len(g.Contracts))
@@ -62,6 +64,7 @@ type taikoGuestInputJSON struct {
 
 func (t *taikoGuestInputJSON) GethType() *TaikoGuestInput {
 	if t == nil {
+		log.Warn("missing taikoGuestInputJSON when converting to GethType")
 		return nil
 	}
 	return &TaikoGuestInput{
@@ -82,6 +85,7 @@ type blockProposedForkJSON struct {
 
 func (b *blockProposedForkJSON) GethType() BlockProposedFork {
 	if b == nil {
+		log.Warn("missing blockProposedForkJSON when converting to GethType")
 		return nil
 	}
 	switch inner := b.inner.(type) {

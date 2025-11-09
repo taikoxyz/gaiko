@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum/go-ethereum/log"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 )
 
@@ -14,6 +15,7 @@ type batchGuestInputJSON struct {
 
 func (g *batchGuestInputJSON) GethType() *BatchGuestInput {
 	if g == nil {
+		log.Warn("missing batchGuestInputJSON when converting to GethType")
 		return nil
 	}
 	inputs := make([]*GuestInput, len(g.Inputs))
@@ -44,6 +46,7 @@ type taikoGuestBatchInputJSON struct {
 
 func (t *taikoGuestBatchInputJSON) GethType() *TaikoGuestBatchInput {
 	if t == nil {
+		log.Warn("missing taikoGuestBatchInputJSON when converting to GethType")
 		return nil
 	}
 	return &TaikoGuestBatchInput{

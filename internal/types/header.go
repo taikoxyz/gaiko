@@ -7,12 +7,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 type Headers []*Header
 
 func (h Headers) GethType() []*types.Header {
 	if h == nil {
+		log.Warn("missing Headers when converting to GethType")
 		return nil
 	}
 	headers := make([]*types.Header, len(h))
@@ -65,6 +67,7 @@ type headerMarshaling struct {
 
 func (h *Header) GethType() *types.Header {
 	if h == nil {
+		log.Warn("missing Header when converting to GethType")
 		return nil
 	}
 	return &types.Header{

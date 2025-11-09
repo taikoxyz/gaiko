@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -21,6 +22,7 @@ type BlockProposed struct {
 
 func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
 	if b == nil {
+		log.Warn("missing BlockProposed when converting to GethType")
 		return nil
 	}
 	deposits := make([]ontake.TaikoDataEthDeposit, len(b.DepositsProcessed))

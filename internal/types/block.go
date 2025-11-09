@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 type Block struct {
@@ -13,6 +14,7 @@ type Block struct {
 
 func (b *Block) GethType() *types.Block {
 	if b == nil {
+		log.Warn("missing Block when converting to GethType")
 		return nil
 	}
 	return types.NewBlockWithHeader(b.Header.GethType()).WithBody(types.Body{

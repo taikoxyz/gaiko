@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/holiman/uint256"
 )
 
@@ -16,6 +17,7 @@ type TransactionSignedList []*TransactionSigned
 
 func (t TransactionSignedList) GethType() []*types.Transaction {
 	if t == nil {
+		log.Warn("missing TransactionSignedList when converting to GethType")
 		return nil
 	}
 	txs := make([]*types.Transaction, len(t))
@@ -37,6 +39,7 @@ type Transaction struct {
 
 func (t *TransactionSigned) GethType() *types.Transaction {
 	if t == nil {
+		log.Warn("missing TransactionSigned when converting to GethType")
 		return nil
 	}
 	switch inner := t.Transaction.inner.(type) {

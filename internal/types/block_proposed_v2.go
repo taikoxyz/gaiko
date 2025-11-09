@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -18,6 +19,7 @@ type BlockProposedV2 struct {
 
 func (b *BlockProposedV2) GethType() *ontake.TaikoL1ClientBlockProposedV2 {
 	if b == nil {
+		log.Warn("missing BlockProposedV2 when converting to GethType")
 		return nil
 	}
 	return &ontake.TaikoL1ClientBlockProposedV2{

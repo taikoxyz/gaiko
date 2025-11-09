@@ -4,6 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 )
 
@@ -18,6 +19,7 @@ type BatchProposed struct {
 
 func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
 	if b == nil {
+		log.Warn("missing BatchProposed when converting to GethType")
 		return nil
 	}
 	blocks := make([]pacaya.ITaikoInboxBlockParams, len(b.Info.Blocks))

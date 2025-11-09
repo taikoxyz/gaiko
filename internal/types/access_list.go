@@ -3,12 +3,14 @@ package types
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 type AccessList []*AccessTuple
 
 func (a AccessList) GethType() types.AccessList {
 	if a == nil {
+		log.Warn("missing AccessList when converting to GethType")
 		return nil
 	}
 	accessList := make(types.AccessList, len(a))
