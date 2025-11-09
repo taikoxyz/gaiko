@@ -1,7 +1,7 @@
 {
     "exe": "gaiko-ego",
     "key": "private.pem",
-    "debug": true,
+    "debug": false,
     "heapSize": 16384,
     "executableHeap": false,
     "productID": 1,
