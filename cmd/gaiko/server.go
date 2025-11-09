@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"sync"
 	"syscall"
 
@@ -47,6 +48,18 @@ const (
 	TestHeartBeat ProveMode = "heartbeat"
 	HeklaBlock    ProveMode = "hekla" // deprecated
 )
+
+func recoverMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Printf("panic: %v\n%s", err, debug.Stack())
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
 
 func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.SGXProver, w http.ResponseWriter, r *http.Request, proveMode ProveMode) {
 	contentType := r.Header.Get("Content-Type")
@@ -112,7 +125,9 @@ func runServer(c *cli.Context) error {
 		port = "8080"
 	}
 	args := flags.NewArguments(c)
-	http.HandleFunc("POST /prove/{action}", func(w http.ResponseWriter, r *http.Request) {
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /prove/{action}", func(w http.ResponseWriter, r *http.Request) {
 		args := args.Copy()
 		defer r.Body.Close()
 		// override the proof writer to get the proof & return as response
@@ -136,7 +151,8 @@ func runServer(c *cli.Context) error {
 	})
 
 	server := &http.Server{
-		Addr: ":" + port,
+		Addr:    ":" + port,
+		Handler: recoverMiddleware(mux),
 	}
 
 	go func() {
