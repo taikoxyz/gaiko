@@ -50,6 +50,10 @@
         {
             "name": "HOME",
             "value": "/root"
+        },
+        {
+            "name": "GODEBUG",
+            "value": "madvdontneed=1"
         }
     ],
     "files": []
