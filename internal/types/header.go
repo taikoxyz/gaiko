@@ -12,6 +12,9 @@ import (
 type Headers []*Header
 
 func (h Headers) GethType() []*types.Header {
+	if h == nil {
+		return nil
+	}
 	headers := make([]*types.Header, len(h))
 	for i, header := range h {
 		headers[i] = header.GethType()
@@ -61,6 +64,9 @@ type headerMarshaling struct {
 }
 
 func (h *Header) GethType() *types.Header {
+	if h == nil {
+		return nil
+	}
 	return &types.Header{
 		ParentHash:       h.ParentHash,
 		UncleHash:        h.OmmerHash,

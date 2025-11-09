@@ -20,6 +20,9 @@ type BlockProposed struct {
 }
 
 func (b *BlockProposed) GethType() *ontake.TaikoL1ClientBlockProposed {
+	if b == nil {
+		return nil
+	}
 	deposits := make([]ontake.TaikoDataEthDeposit, len(b.DepositsProcessed))
 	for i, deposit := range b.DepositsProcessed {
 		deposits[i] = ontake.TaikoDataEthDeposit{

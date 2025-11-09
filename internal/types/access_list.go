@@ -8,6 +8,9 @@ import (
 type AccessList []*AccessTuple
 
 func (a AccessList) GethType() types.AccessList {
+	if a == nil {
+		return nil
+	}
 	accessList := make(types.AccessList, len(a))
 	for i, accessTuple := range a {
 		accessList[i] = types.AccessTuple(*accessTuple)

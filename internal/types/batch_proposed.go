@@ -17,6 +17,9 @@ type BatchProposed struct {
 }
 
 func (b *BatchProposed) GethType() *pacaya.TaikoInboxClientBatchProposed {
+	if b == nil {
+		return nil
+	}
 	blocks := make([]pacaya.ITaikoInboxBlockParams, len(b.Info.Blocks))
 	for i, block := range b.Info.Blocks {
 		blocks[i] = pacaya.ITaikoInboxBlockParams(*block)

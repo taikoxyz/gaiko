@@ -13,6 +13,9 @@ type batchGuestInputJSON struct {
 }
 
 func (g *batchGuestInputJSON) GethType() *BatchGuestInput {
+	if g == nil {
+		return nil
+	}
 	inputs := make([]*GuestInput, len(g.Inputs))
 	res := &BatchGuestInput{
 		Inputs: inputs,
@@ -40,6 +43,9 @@ type taikoGuestBatchInputJSON struct {
 }
 
 func (t *taikoGuestBatchInputJSON) GethType() *TaikoGuestBatchInput {
+	if t == nil {
+		return nil
+	}
 	return &TaikoGuestBatchInput{
 		BatchID:            t.BatchID,
 		L1Header:           t.L1Header.GethType(),

@@ -12,6 +12,9 @@ type Block struct {
 }
 
 func (b *Block) GethType() *types.Block {
+	if b == nil {
+		return nil
+	}
 	return types.NewBlockWithHeader(b.Header.GethType()).WithBody(types.Body{
 		Transactions: b.Body.GethType(),
 		Uncles:       b.Ommers.GethType(),

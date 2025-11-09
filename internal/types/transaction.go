@@ -15,6 +15,9 @@ import (
 type TransactionSignedList []*TransactionSigned
 
 func (t TransactionSignedList) GethType() []*types.Transaction {
+	if t == nil {
+		return nil
+	}
 	txs := make([]*types.Transaction, len(t))
 	for i, tx := range t {
 		txs[i] = tx.GethType()
@@ -33,6 +36,9 @@ type Transaction struct {
 }
 
 func (t *TransactionSigned) GethType() *types.Transaction {
+	if t == nil {
+		return nil
+	}
 	switch inner := t.Transaction.inner.(type) {
 	case *TxLegacy:
 		tx := &types.LegacyTx{
