@@ -25,7 +25,9 @@ func (g *batchGuestInputJSON) GethType() *BatchGuestInput {
 	}
 	for i, input := range g.Inputs {
 		input := input.GethType()
-		input.parent = res
+		if input != nil {
+			input.parent = res
+		}
 		inputs[i] = input
 	}
 	return res
