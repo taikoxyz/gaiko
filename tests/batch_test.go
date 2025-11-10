@@ -25,17 +25,18 @@ func TestBatch(t *testing.T) {
 	require.NoError(t, err)
 
 	for id, input := range inputs {
-		t.Run(fmt.Sprintf("task: %d", id), func(t *testing.T) {
+		t.Run(fmt.Sprintf("task:%d", id), func(t *testing.T) {
 			var output prover.ProofResponse
 			var b bytes.Buffer
 			args := &flags.Arguments{
-				SecretDir:     "",
-				ConfigDir:     "",
-				SGXType:       "debug",
-				ProofType:     witness.NativeProofType,
-				SGXInstanceID: 0,
-				WitnessReader: bytes.NewBuffer(input.Input),
-				ProofWriter:   &b,
+				SecretDir:      "",
+				ConfigDir:      "",
+				SGXType:        "debug",
+				ProofType:      witness.NativeProofType,
+				SGXInstanceID:  0,
+				SGXInstanceIDs: make(map[string]uint32),
+				WitnessReader:  bytes.NewBuffer(input.Input),
+				ProofWriter:    &b,
 			}
 			sgxProver := prover.NewSGXProver(args)
 			err = sgxProver.BatchOneshot(context.Background(), args)

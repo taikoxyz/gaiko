@@ -51,7 +51,7 @@ func (s SupportedChainSpecs) verifyChainSpec(other *ChainSpec) error {
 		if !chainSpec.Eip1559Constants.Equal(other.Eip1559Constants) {
 			return errors.New("unexpected eip_1559_constants")
 		}
-		if !cmpAddress(chainSpec.L1Contract, other.L1Contract) {
+		if !cmpL1ContractForks(chainSpec.L1Contract, other.L1Contract) {
 			return errors.New("unexpected l1_contract")
 		}
 
@@ -75,6 +75,28 @@ func cmpAddress(a, b *common.Address) bool {
 	return a.Cmp(*b) == 0
 }
 
+func cmpL1ContractForks(a, b map[SpecID]*common.Address) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return len(a) == 0 && len(b) == 0
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	for key, valA := range a {
+		valB, exists := b[key]
+		if !exists {
+			return false
+		}
+		if !cmpAddress(valA, valB) {
+			return false
+		}
+	}
+	return true
+}
+
 type (
 	SpecID    string
 	ProofType string
@@ -95,18 +117,6 @@ type HardFork struct {
 
 type HardForks []*HardFork
 
-//	{
-//		"HEKLA": {
-//			"Block": 0
-//		},
-//		"ONTAKE": {
-//			"Block": 0
-//		},
-//		"PACAYA": {
-//			"Block": 10
-//		},
-//		"CANCUN": "TBD"
-//	}
 func (h *HardForks) UnmarshalJSON(data []byte) error {
 	orderedMap := ordered.NewOrderedMap()
 	if err := json.Unmarshal(data, orderedMap); err != nil {
@@ -193,16 +203,17 @@ const (
 	PreconfDevNetwork   Network = "preconf_dev"
 	MasayaDevNetwork    Network = "masaya_dev"
 	TaikoHoodiNetwork   Network = "taiko_hoodi"
+	TaikoA7Network      Network = "taiko_a7"
 )
 
-//go:generate go run github.com/fjl/gencodec -type ChainSpec -out gen_chain_spec.go
+//go:generate go run github.com/fjl/gencodec -type ChainSpec -field-override chainSpecMarshaling -out gen_chain_spec.go
 type ChainSpec struct {
 	Name                 Network                        `json:"name"                   gencodec:"required"`
 	ChainID              uint64                         `json:"chain_id"               gencodec:"required"`
 	MaxSpecID            SpecID                         `json:"max_spec_id"            gencodec:"required"`
 	HardForks            HardForks                      `json:"hard_forks"             gencodec:"required"`
 	Eip1559Constants     *Eip1559Constants              `json:"eip_1559_constants"     gencodec:"required"`
-	L1Contract           *common.Address                `json:"l1_contract"`
+	L1Contract           map[SpecID]*common.Address     `json:"l1_contract"`
 	L2Contract           *common.Address                `json:"l2_contract"`
 	RPC                  string                         `json:"rpc"                    gencodec:"required"`
 	BeaconRPC            *string                        `json:"beacon_rpc"`
@@ -212,14 +223,17 @@ type ChainSpec struct {
 	IsTaiko              bool                           `json:"is_taiko"               gencodec:"required"`
 }
 
-var _ json.Unmarshaler = (*ChainSpec)(nil)
+type chainSpecMarshaling struct {
+	L1Contract map[string]*common.Address `json:"l1_contract"`
+}
 
 func (c *ChainSpec) getForkVerifierAddress(
 	blockNum uint64,
+	timestamp uint64,
 	proofType ProofType,
 ) common.Address {
 	for _, fork := range slices.Backward(c.HardForks) {
-		if fork.Condition.Active(blockNum, 0) {
+		if fork.Condition.Active(blockNum, timestamp) {
 			if verifierAddressFork, ok := c.VerifierAddressForks[fork.SpecID]; ok {
 				verifierAddress := verifierAddressFork[proofType]
 				if verifierAddress == nil {
@@ -232,37 +246,59 @@ func (c *ChainSpec) getForkVerifierAddress(
 	return common.Address{}
 }
 
-func (c *ChainSpec) chainConfig() (*params.ChainConfig, error) {
+func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) {
 	switch c.Name {
 	case TaikoMainnetNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoMainnetNetworkID)
 		chainConfig.ChainID = params.TaikoMainnetNetworkID
 		chainConfig.OntakeBlock = core.MainnetOntakeBlock
 		chainConfig.PacayaBlock = core.MainnetPacayaBlock
+		if activeShasta {
+			chainConfig.ShastaTime = &core.MainnetShastaTime
+		}
 		return chainConfig, nil
 	case TaikoDevNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoInternalNetworkID)
 		chainConfig.ChainID = params.TaikoInternalNetworkID
 		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
 		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
+		if activeShasta {
+			chainConfig.ShastaTime = &core.InternalShastaTime
+		}
 		return chainConfig, nil
 	case PreconfDevNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.PreconfDevnetNetworkID)
 		chainConfig.ChainID = params.PreconfDevnetNetworkID
 		chainConfig.OntakeBlock = core.PreconfDevnetOntakeBlock
 		chainConfig.PacayaBlock = core.PreconfDevnetPacayaBlock
+		if activeShasta {
+			chainConfig.ShastaTime = &core.PreconfShastaTime
+		}
 		return chainConfig, nil
 	case MasayaDevNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.MasayaDevnetNetworkID)
 		chainConfig.ChainID = params.MasayaDevnetNetworkID
 		chainConfig.OntakeBlock = core.MasayaDevnetOntakeBlock
 		chainConfig.PacayaBlock = core.MasayaDevnetPacayaBlock
+		if activeShasta {
+			chainConfig.ShastaTime = &core.MasayaShastaTime
+		}
 		return chainConfig, nil
 	case TaikoHoodiNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoHoodiNetworkID)
 		chainConfig.ChainID = params.TaikoHoodiNetworkID
 		chainConfig.OntakeBlock = core.TaikoHoodiOntakeBlock
 		chainConfig.PacayaBlock = core.TaikoHoodiPacayaBlock
+		if activeShasta {
+			chainConfig.ShastaTime = &core.HoodiShastaTime
+		}
+		return chainConfig, nil
+	case TaikoA7Network:
+		// TaikoA7 is chain ID 167009
+		chainConfig := params.NetworkIDToChainConfigOrDefault(big.NewInt(167009))
+		chainConfig.ChainID = big.NewInt(167009)
+		chainConfig.OntakeBlock = big.NewInt(840512)
+		chainConfig.PacayaBlock = big.NewInt(1299888)
 		return chainConfig, nil
 	case EthereumNetwork:
 		return params.MainnetChainConfig, nil

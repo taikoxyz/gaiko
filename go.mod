@@ -10,10 +10,10 @@ require (
 	github.com/google/go-tdx-guest v0.3.1
 	github.com/holiman/uint256 v1.3.2
 	github.com/stretchr/testify v1.10.0
-	github.com/taikoxyz/taiko-mono v0.0.0-20250919040801-b26bc33100c7
-	github.com/urfave/cli/v2 v2.27.5
+	github.com/taikoxyz/taiko-mono v0.0.0-20251106015950-6fea376c1481
+	github.com/urfave/cli/v2 v2.27.7
 	gitlab.com/c0b/go-ordered-json v0.0.0-20201030195603-febf46534d5a
-	golang.org/x/sync v0.12.0
+	golang.org/x/sync v0.17.0
 )
 
 require (
@@ -33,7 +33,7 @@ require (
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/consensys/bavard v0.1.29 // indirect
 	github.com/consensys/gnark-crypto v0.16.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -92,6 +92,6 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/ethereum/go-ethereum v1.15.5 => github.com/taikoxyz/taiko-geth v1.18.1-0.20251021025124-5ef5e12e8706
+replace github.com/ethereum/go-ethereum v1.15.5 => github.com/taikoxyz/taiko-geth v1.18.1-0.20251106044752-2aa693c4b47e
 
 replace github.com/ethereum-optimism/optimism v1.7.4 => github.com/taikoxyz/optimism v0.0.0-20250904153513-c03e7cc023f2

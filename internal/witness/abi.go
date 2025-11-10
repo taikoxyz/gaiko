@@ -119,7 +119,7 @@ function anchorV3(
 	bytes32[] calldata _signalSlots
 )
 */
-func decodeAnchorV3Args_signalSlots(input []byte) ([][32]byte, error) {
+func decodeAnchorV3ArgsSignalSlots(input []byte) ([][32]byte, error) {
 	args := map[string]any{}
 	err := anchorV3Method.Inputs.UnpackIntoMap(args, input)
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 	"github.com/taikoxyz/gaiko/pkg/mpt"
 )
 
-func (g *GuestInput) NewWitness() (*stateless.Witness, error) {
+func (g *SingleGuestInput) NewWitness() (*stateless.Witness, error) {
 	wit := new(stateless.Witness)
 	// set headers
 	wit.Headers = append([]*types.Header{g.ParentHeader}, g.AncestorHeaders...)

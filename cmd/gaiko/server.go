@@ -39,14 +39,15 @@ type Response struct {
 type ProveMode string
 
 const (
-	Unknown       ProveMode = "unknown"
-	OntakeBlock   ProveMode = "block"
-	PacayaBatch   ProveMode = "batch"
-	Aggregation   ProveMode = "aggregate"
-	Bootstrap     ProveMode = "bootstrap"
-	StatusCheck   ProveMode = "check"
-	TestHeartBeat ProveMode = "heartbeat"
-	HeklaBlock    ProveMode = "hekla" // deprecated
+	Unknown         ProveMode = "unknown"
+	OntakeBlock     ProveMode = "block"
+	PacayaBatch     ProveMode = "batch"
+	Aggregation     ProveMode = "aggregate"
+	ShastaAggregate ProveMode = "shasta-aggregate"
+	Bootstrap       ProveMode = "bootstrap"
+	StatusCheck     ProveMode = "check"
+	TestHeartBeat   ProveMode = "heartbeat"
+	HeklaBlock      ProveMode = "hekla" // deprecated
 )
 
 func recoverMiddleware(next http.Handler) http.Handler {
@@ -83,6 +84,8 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		err = batchOneshot(ctx, sgxProver, args)
 	case Aggregation:
 		err = aggregate(ctx, sgxProver, args)
+	case ShastaAggregate:
+		err = shastaAggregate(ctx, sgxProver, args)
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
 	case StatusCheck:

@@ -66,6 +66,7 @@ func genAggregateProof(
 	args *flags.Arguments,
 	provider tee.Provider,
 ) error {
+	args.UpdateSGXInstanceID(witness.PacayaHardFork)
 	prevPrivKey, err := provider.LoadPrivateKey(args)
 	if err != nil {
 		return err
@@ -126,15 +127,16 @@ func genAggregateProof(
 func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
-	input witness.WitnessInput,
+	guestInput witness.GuestInput,
 	provider tee.Provider,
 ) error {
-	err := json.NewDecoder(args.WitnessReader).Decode(input)
+	err := json.NewDecoder(args.WitnessReader).Decode(guestInput)
 	if err != nil {
 		return err
 	}
-	log.Info("Start generate proof: ", "id", input.ID())
-	err = transition.ExecuteAndVerify(ctx, args, input)
+	args.UpdateSGXInstanceID(guestInput.BlockProposed().HardFork())
+	log.Info("Start generate proof: ", "id", guestInput.ID())
+	err = transition.ExecuteAndVerify(ctx, args, guestInput)
 	if err != nil {
 		return err
 	}
@@ -147,7 +149,7 @@ func genOneshotProof(
 	if args.SGXType == "debug" {
 		newInstance = args.SGXInstance
 	}
-	pi, err := witness.NewPublicInput(input, args.ProofType, args.SGXType, newInstance)
+	pi, err := witness.NewPublicInput(guestInput, args.ProofType, args.SGXType, newInstance)
 	if err != nil {
 		return err
 	}
