@@ -15,11 +15,11 @@ var _ = (*blockProposedV2Marshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BlockProposedV2) MarshalJSON() ([]byte, error) {
 	type BlockProposedV2 struct {
-		BlockId *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
+		BlockID *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
 		Meta    *BlockMetadataV2      `json:"meta"    gencodec:"required"`
 	}
 	var enc BlockProposedV2
-	enc.BlockId = (*math.HexOrDecimal256)(b.BlockId)
+	enc.BlockID = (*math.HexOrDecimal256)(b.BlockID)
 	enc.Meta = b.Meta
 	return json.Marshal(&enc)
 }
@@ -27,17 +27,17 @@ func (b BlockProposedV2) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BlockProposedV2) UnmarshalJSON(input []byte) error {
 	type BlockProposedV2 struct {
-		BlockId *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
+		BlockID *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
 		Meta    *BlockMetadataV2      `json:"meta"    gencodec:"required"`
 	}
 	var dec BlockProposedV2
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.BlockId == nil {
+	if dec.BlockID == nil {
 		return errors.New("missing required field 'blockId' for BlockProposedV2")
 	}
-	b.BlockId = (*big.Int)(dec.BlockId)
+	b.BlockID = (*big.Int)(dec.BlockID)
 	if dec.Meta == nil {
 		return errors.New("missing required field 'meta' for BlockProposedV2")
 	}

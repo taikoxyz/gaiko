@@ -76,7 +76,7 @@ func genAggregateProof(
 	if err != nil {
 		return err
 	}
-	log.Info("receive input: ", input)
+	log.Info("receive input: ", "input", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
 	for i, proof := range input.Proofs {

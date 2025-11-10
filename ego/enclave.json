@@ -2,7 +2,7 @@
     "exe": "gaiko-ego",
     "key": "private.pem",
     "debug": false,
-    "heapSize": 8192,
+    "heapSize": 16384,
     "executableHeap": false,
     "productID": 1,
     "securityVersion": 1,
@@ -50,6 +50,10 @@
         {
             "name": "HOME",
             "value": "/root"
+        },
+        {
+            "name": "GODEBUG",
+            "value": "madvdontneed=1"
         }
     ],
     "files": []

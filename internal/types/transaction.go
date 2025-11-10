@@ -9,12 +9,17 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/holiman/uint256"
 )
 
 type TransactionSignedList []*TransactionSigned
 
 func (t TransactionSignedList) GethType() []*types.Transaction {
+	if t == nil {
+		log.Warn("missing TransactionSignedList when converting to GethType")
+		return nil
+	}
 	txs := make([]*types.Transaction, len(t))
 	for i, tx := range t {
 		txs[i] = tx.GethType()
@@ -22,6 +27,7 @@ func (t TransactionSignedList) GethType() []*types.Transaction {
 	return txs
 }
 
+//go:generate go run github.com/fjl/gencodec -type TransactionSigned -out gen_transaction_signed.go
 type TransactionSigned struct {
 	Hash        common.Hash  `json:"hash"        gencodec:"required"`
 	Signature   *Signature   `json:"signature"   gencodec:"required"`
@@ -33,6 +39,10 @@ type Transaction struct {
 }
 
 func (t *TransactionSigned) GethType() *types.Transaction {
+	if t == nil {
+		log.Warn("missing TransactionSigned when converting to GethType")
+		return nil
+	}
 	switch inner := t.Transaction.inner.(type) {
 	case *TxLegacy:
 		tx := &types.LegacyTx{

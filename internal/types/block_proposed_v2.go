@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/ontake"
 )
 
@@ -12,13 +13,17 @@ import (
 
 // BlockProposedV2 represents a BlockProposed event raised by the TaikoL1Client contract.
 type BlockProposedV2 struct {
-	BlockId *big.Int         `json:"blockId" gencodec:"required"`
+	BlockID *big.Int         `json:"blockId" gencodec:"required"`
 	Meta    *BlockMetadataV2 `json:"meta"    gencodec:"required"`
 }
 
 func (b *BlockProposedV2) GethType() *ontake.TaikoL1ClientBlockProposedV2 {
+	if b == nil {
+		log.Warn("missing BlockProposedV2 when converting to GethType")
+		return nil
+	}
 	return &ontake.TaikoL1ClientBlockProposedV2{
-		BlockId: b.BlockId,
+		BlockId: b.BlockID,
 		Meta: ontake.TaikoDataBlockMetadataV2{
 			AnchorBlockHash:  b.Meta.AnchorBlockHash,
 			Difficulty:       b.Meta.Difficulty,
@@ -51,7 +56,7 @@ func (b *BlockProposedV2) GethType() *ontake.TaikoL1ClientBlockProposedV2 {
 }
 
 type blockProposedV2Marshaling struct {
-	BlockId *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
+	BlockID *math.HexOrDecimal256 `json:"blockId" gencodec:"required"`
 }
 
 //go:generate go run github.com/fjl/gencodec -type BlockMetadataV2 -field-override blockMetadataV2Marshaling -out gen_block_metadata_v2.go
