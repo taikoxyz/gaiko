@@ -42,16 +42,7 @@ type ShastaEventData struct {
 	Proposal   ShastaProposal
 	Derivation ShastaDerivation
 	CoreState  ShastaCoreState
-}
-
-// ShastaProofProposal represents a Shasta proposal for proving (different from ShastaProposal event).
-type ShastaProofProposal struct {
-	ProposalID             uint64                   `json:"proposal_id"`
-	DesignatedProver       common.Address           `json:"designated_prover"`
-	ParentTransitionHash   common.Hash              `json:"parent_transition_hash"`
-	Checkpoint             ShastaProposalCheckpoint `json:"checkpoint"`
-	L1InclusionBlockNumber uint64                   `json:"l1_inclusion_block_number"`
-	L2BlockNumbers         []uint64                 `json:"l2_block_numbers"`
+	Proposer   common.Address
 }
 
 // ShastaProposalCheckpoint represents a checkpoint in the Shasta proof proposal.
@@ -59,11 +50,6 @@ type ShastaProposalCheckpoint struct {
 	BlockNumber uint64      `json:"blockNumber"`
 	BlockHash   common.Hash `json:"blockHash"`
 	StateRoot   common.Hash `json:"stateRoot"`
-}
-
-// ShastaAggregationGuestInput represents the input for Shasta aggregation proofs.
-type ShastaAggregationGuestInput struct {
-	Proposals []*ShastaProofProposal `json:"proposals"`
 }
 
 // ShastaCheckpoint represents a checkpoint in a Shasta transition

@@ -2,6 +2,7 @@ package prover
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/tee"
 	"github.com/taikoxyz/gaiko/internal/witness"
-	"github.com/taikoxyz/gaiko/pkg/keccak"
 )
 
 // genShastaAggregateProof generates an aggregate proof for multiple Shasta proposals.
@@ -27,43 +27,38 @@ func genShastaAggregateProof(
 	}
 
 	newInstance := crypto.PubkeyToAddress(prevPrivKey.PublicKey)
-	var input witness.ShastaAggregationGuestInput
+	var input witness.ShastaRawAggregationGuestInput
 
 	err = json.NewDecoder(args.WitnessReader).Decode(&input)
 	if err != nil {
 		return err
 	}
-
-	log.Info("Received Shasta aggregation input", "proposals", len(input.Proposals))
-
-	if len(input.Proposals) == 0 {
-		return fmt.Errorf("no proposals to aggregate")
+	log.Info("receive input: ", "input", input)
+	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
+	curInstance := oldInstance
+	transitionHashes := make([]common.Hash, 0, len(input.Proofs))
+	for i, proof := range input.Proofs {
+		pubKey, err := SigToPub(proof.Input.Bytes(), proof.Proof[24:])
+		if err != nil {
+			return err
+		}
+		if crypto.PubkeyToAddress(*pubKey) != curInstance {
+			return fmt.Errorf("invalid proof[%d]", i)
+		}
+		curInstance = common.BytesToAddress(proof.Proof[4:24])
+		transitionHashes = append(transitionHashes, proof.Input)
+	}
+	if newInstance != curInstance {
+		return fmt.Errorf("invalid instance: %#x", curInstance)
 	}
 
-	// Aggregate proposal hashes
-	combinedHashes := make([]byte, 0, len(input.Proposals)*common.HashLength)
-	for _, proposal := range input.Proposals {
-		// Hash each proposal's checkpoint
-		checkpointData := make([]byte, 0, 96)
-		checkpointData = append(checkpointData, common.BigToHash(common.Big0.SetUint64(proposal.Checkpoint.BlockNumber)).Bytes()...)
-		checkpointData = append(checkpointData, proposal.Checkpoint.BlockHash.Bytes()...)
-		checkpointData = append(checkpointData, proposal.Checkpoint.StateRoot.Bytes()...)
-
-		proposalHash := keccak.Keccak(checkpointData)
-		combinedHashes = append(combinedHashes, proposalHash.Bytes()...)
-	}
-
-	aggHash := keccak.Keccak(combinedHashes)
+	aggHash := witness.HashShastaAggregation(transitionHashes, input.ChainID, input.VerifierAddress, newInstance)
 	sign, err := Sign(aggHash.Bytes(), prevPrivKey)
 	if err != nil {
 		return err
 	}
 
-	// For Shasta aggregate, we use a similar structure to regular aggregate
-	// but with different semantics
-	oldInstance := newInstance // For Shasta, old and new instance are the same
-	proof := NewAggregateProof(args.SGXInstanceID, oldInstance, newInstance, sign)
-
+	proof := NewShastaAggregateProof(args.SGXInstanceID, newInstance, sign)
 	quote, err := provider.LoadQuote(args, newInstance)
 	if err != nil {
 		return err
@@ -77,4 +72,16 @@ func genShastaAggregateProof(
 		InstanceAddress: newInstance,
 		Input:           aggHash,
 	}).Output(args.ProofWriter)
+}
+
+func NewShastaAggregateProof(
+	instanceID uint32,
+	newInstance common.Address,
+	sign []byte,
+) []byte {
+	var proof [89]byte
+	binary.BigEndian.PutUint32(proof[:4], instanceID)
+	copy(proof[4:24], newInstance.Bytes())
+	copy(proof[24:], sign)
+	return proof[:]
 }

@@ -75,6 +75,16 @@ func hashTransitionWithMetadata(transition *ShastaTransition, metadata *ShastaTr
 	)
 }
 
+// HashShastaAggregation computes the public input hash for a Shasta aggregation
+func HashShastaAggregation(transitionHashes []common.Hash, chainID uint64, verifierAddress common.Address, sgxInstance common.Address) common.Hash {
+	return hashPublicInput(
+		hashTransitionsHashArray(transitionHashes),
+		chainID,
+		verifierAddress,
+		sgxInstance,
+	)
+}
+
 // hashTransitionsHashArray computes the hash of an array of transition hashes
 // Equivalent to Raiko's hash_transitions_hash_array_with_metadata function
 func hashTransitionsHashArray(transitionHashes []common.Hash) common.Hash {

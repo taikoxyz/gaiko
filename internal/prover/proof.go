@@ -26,16 +26,6 @@ type ProofResponse struct {
 	Input           common.Hash    `json:"input"`
 }
 
-func NewDefaultProofResponse() ProofResponse {
-	return ProofResponse{
-		Proof:           hexutil.MustDecode("0xdefac0de"),
-		Quote:           hexutil.MustDecode("0xdefac0de"),
-		PublicKey:       hexutil.MustDecode("0xdefac0de"),
-		InstanceAddress: common.Address{},
-		Input:           common.Hash{},
-	}
-}
-
 func (p *ProofResponse) Output(w io.Writer) error {
 	return json.NewEncoder(w).Encode(p)
 }
