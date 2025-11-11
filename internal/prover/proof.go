@@ -2,6 +2,7 @@ package prover
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -70,8 +71,9 @@ func genAggregateProof(
 	log.Info("receive input: ", "input", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
+	var pubKey *ecdsa.PublicKey
 	for i, proof := range input.Proofs {
-		pubKey, err := SigToPub(proof.Input.Bytes(), proof.Proof[24:])
+		pubKey, err = SigToPub(proof.Input.Bytes(), proof.Proof[24:])
 		if err != nil {
 			return err
 		}
