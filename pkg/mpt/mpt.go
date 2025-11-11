@@ -1,3 +1,4 @@
+// Package mpt implements a Merkle Patricia Trie (MPT) data structure.
 package mpt
 
 import (
