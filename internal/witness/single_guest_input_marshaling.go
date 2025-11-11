@@ -216,7 +216,6 @@ type shastaEventDataJSON struct {
 	Proposal   shastaProposalJSON   `json:"proposal"`
 	Derivation shastaDerivationJSON `json:"derivation"`
 	CoreState  shastaCoreStateJSON  `json:"core_state"`
-	Proposer   common.Address       `json:"proposer"`
 }
 
 func (s *shastaEventDataJSON) GethType() *ShastaEventData {
@@ -254,6 +253,5 @@ func (s *shastaEventDataJSON) GethType() *ShastaEventData {
 			LastFinalizedTransitionHash: s.CoreState.LastFinalizedTransitionHash,
 			BondInstructionsHash:        s.CoreState.BondInstructionsHash,
 		},
-		Proposer: s.Proposer,
 	}
 }

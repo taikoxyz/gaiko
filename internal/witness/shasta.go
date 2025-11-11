@@ -42,7 +42,6 @@ type ShastaEventData struct {
 	Proposal   ShastaProposal
 	Derivation ShastaDerivation
 	CoreState  ShastaCoreState
-	Proposer   common.Address
 }
 
 // ShastaProposalCheckpoint represents a checkpoint in the Shasta proof proposal.
