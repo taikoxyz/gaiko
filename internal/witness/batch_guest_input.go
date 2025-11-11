@@ -424,8 +424,9 @@ func (g *BatchGuestInput) BlockMetadata() (BlockMetadata, error) {
 			len(g.Taiko.BatchProposed.BlockParams()),
 		)
 	}
+	var signalSlots [][32]byte
 	for idx, input := range g.Inputs {
-		signalSlots, err := decodeAnchorV3ArgsSignalSlots(input.Taiko.AnchorTx.Data()[4:])
+		signalSlots, err = decodeAnchorV3ArgsSignalSlots(input.Taiko.AnchorTx.Data()[4:])
 		if err != nil {
 			return nil, err
 		}
