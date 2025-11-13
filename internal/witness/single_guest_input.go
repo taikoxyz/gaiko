@@ -67,8 +67,7 @@ type TaikoProverData struct {
 	ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
 	Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
 
-	DesignatedProver    common.Address `json:"-"`
-	designatedProverSet bool           `json:"-"`
+	DesignatedProver *common.Address `json:"-"`
 }
 
 func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
@@ -109,20 +108,13 @@ func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
 
 	if msg, ok := raw["designated_prover"]; ok {
 		trimmed := bytes.TrimSpace(msg)
-		if bytes.Equal(trimmed, []byte("null")) || len(trimmed) == 0 {
-			d.DesignatedProver = common.Address{}
-			d.designatedProverSet = false
-		} else {
+		if !(bytes.Equal(trimmed, []byte("null")) || len(trimmed) == 0) {
 			var addr common.Address
 			if err := json.Unmarshal(trimmed, &addr); err != nil {
 				return err
 			}
-			d.DesignatedProver = addr
-			d.designatedProverSet = true
+			d.DesignatedProver = &addr
 		}
-	} else {
-		d.DesignatedProver = common.Address{}
-		d.designatedProverSet = false
 	}
 
 	return nil

@@ -513,9 +513,8 @@ func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
 	var (
 		parentTransitionHash common.Hash
 		checkpoint           *ShastaProposalCheckpoint
-		designatedProver     common.Address
+		designatedProver     *common.Address
 		actualProver         common.Address
-		designatedProvided   bool
 	)
 
 	if g.Taiko.ProverData != nil {
@@ -524,7 +523,6 @@ func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
 		}
 		checkpoint = g.Taiko.ProverData.Checkpoint
 		designatedProver = g.Taiko.ProverData.DesignatedProver
-		designatedProvided = g.Taiko.ProverData.designatedProverSet
 		actualProver = g.Taiko.ProverData.ActualProver
 	}
 
@@ -532,11 +530,11 @@ func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
 	if parentTransitionHash == (common.Hash{}) {
 		parentTransitionHash = eventData.CoreState.LastFinalizedTransitionHash
 	}
-	if !designatedProvided {
-		designatedProver = eventData.Proposal.Proposer
+	if designatedProver == nil {
+		designatedProver = &eventData.Proposal.Proposer
 	}
 	if actualProver == (common.Address{}) {
-		actualProver = designatedProver
+		actualProver = *designatedProver
 	}
 
 	for i, input := range g.Inputs {
@@ -569,7 +567,7 @@ func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
 
 		// Create metadata
 		metadata := &ShastaTransitionMetadata{
-			DesignatedProver: designatedProver,
+			DesignatedProver: *designatedProver,
 			ActualProver:     actualProver,
 		}
 
