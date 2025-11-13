@@ -25,11 +25,6 @@ var bytesBufferPool = sync.Pool{
 	},
 }
 
-type ProveData struct {
-	ProveMode string `json:"prove_mode"` // block, batch, aggregation
-	Input     []byte `json:"input,omitempty"`
-}
-
 type Response struct {
 	Status  string          `json:"status"`
 	Message string          `json:"message"`

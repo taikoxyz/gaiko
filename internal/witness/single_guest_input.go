@@ -1,6 +1,7 @@
 package witness
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -61,11 +62,70 @@ const (
 )
 
 type TaikoProverData struct {
-	ActualProver         common.Address            `json:"actual_prover,omitempty"`
-	DesignatedProver     *common.Address           `json:"designated_prover,omitempty"`
+	ActualProver         common.Address            `json:"actual_prover"`
 	Graffiti             common.Hash               `json:"graffiti"`
-	ParentTransitionHash *common.Hash              `json:"parent_transition_hash,omitempty"`
-	Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint,omitempty"`
+	ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
+	Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
+
+	DesignatedProver    common.Address `json:"-"`
+	designatedProverSet bool           `json:"-"`
+}
+
+func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
+	type alias struct {
+		ActualProver         common.Address            `json:"actual_prover"`
+		Graffiti             common.Hash               `json:"graffiti"`
+		ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
+		Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
+	}
+
+	var base alias
+	if err := json.Unmarshal(data, &base); err != nil {
+		return err
+	}
+
+	d.ActualProver = base.ActualProver
+	d.Graffiti = base.Graffiti
+	d.ParentTransitionHash = base.ParentTransitionHash
+	d.Checkpoint = base.Checkpoint
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if d.ActualProver == (common.Address{}) {
+		if msg, ok := raw["prover"]; ok {
+			trimmed := bytes.TrimSpace(msg)
+			if len(trimmed) > 0 && !bytes.Equal(trimmed, []byte("null")) {
+				var fallback common.Address
+				if err := json.Unmarshal(trimmed, &fallback); err != nil {
+					return err
+				}
+				d.ActualProver = fallback
+			}
+		}
+	}
+
+	if msg, ok := raw["designated_prover"]; ok {
+		trimmed := bytes.TrimSpace(msg)
+		if bytes.Equal(trimmed, []byte("null")) || len(trimmed) == 0 {
+			d.DesignatedProver = common.Address{}
+			d.designatedProverSet = false
+		} else {
+			var addr common.Address
+			if err := json.Unmarshal(trimmed, &addr); err != nil {
+				return err
+			}
+			d.DesignatedProver = addr
+			d.designatedProverSet = true
+		}
+	} else {
+		d.DesignatedProver = common.Address{}
+		d.designatedProverSet = false
+	}
+
+	return nil
 }
 
 func (g *SingleGuestInput) GuestInputs() iter.Seq[*Pair] {
