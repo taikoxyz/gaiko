@@ -255,6 +255,8 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		chainConfig.PacayaBlock = core.MainnetPacayaBlock
 		if activeShasta {
 			chainConfig.ShastaTime = &core.MainnetShastaTime
+		} else {
+			chainConfig.ShastaTime = nil
 		}
 		return chainConfig, nil
 	case TaikoDevNetwork:
@@ -264,6 +266,8 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
 		if activeShasta {
 			chainConfig.ShastaTime = &core.InternalShastaTime
+		} else {
+			chainConfig.ShastaTime = nil
 		}
 		return chainConfig, nil
 	case PreconfDevNetwork:
@@ -273,6 +277,8 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		chainConfig.PacayaBlock = core.PreconfDevnetPacayaBlock
 		if activeShasta {
 			chainConfig.ShastaTime = &core.PreconfShastaTime
+		} else {
+			chainConfig.ShastaTime = nil
 		}
 		return chainConfig, nil
 	case MasayaDevNetwork:
@@ -282,6 +288,8 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		chainConfig.PacayaBlock = core.MasayaDevnetPacayaBlock
 		if activeShasta {
 			chainConfig.ShastaTime = &core.MasayaShastaTime
+		} else {
+			chainConfig.ShastaTime = nil
 		}
 		return chainConfig, nil
 	case TaikoHoodiNetwork:
@@ -291,14 +299,9 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		chainConfig.PacayaBlock = core.TaikoHoodiPacayaBlock
 		if activeShasta {
 			chainConfig.ShastaTime = &core.HoodiShastaTime
+		} else {
+			chainConfig.ShastaTime = nil
 		}
-		return chainConfig, nil
-	case TaikoA7Network:
-		// TaikoA7 is chain ID 167009
-		chainConfig := params.NetworkIDToChainConfigOrDefault(big.NewInt(167009))
-		chainConfig.ChainID = big.NewInt(167009)
-		chainConfig.OntakeBlock = big.NewInt(840512)
-		chainConfig.PacayaBlock = big.NewInt(1299888)
 		return chainConfig, nil
 	case EthereumNetwork:
 		return params.MainnetChainConfig, nil

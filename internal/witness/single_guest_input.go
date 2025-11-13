@@ -67,7 +67,8 @@ type TaikoProverData struct {
 	ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
 	Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
 
-	DesignatedProver *common.Address `json:"-"`
+	DesignatedProver    common.Address `json:"-"`
+	designatedProverSet bool           `json:"-"`
 }
 
 func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
@@ -108,16 +109,45 @@ func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
 
 	if msg, ok := raw["designated_prover"]; ok {
 		trimmed := bytes.TrimSpace(msg)
-		if !(bytes.Equal(trimmed, []byte("null")) || len(trimmed) == 0) {
+		if bytes.Equal(trimmed, []byte("null")) || len(trimmed) == 0 {
+			d.DesignatedProver = common.Address{}
+			d.designatedProverSet = false
+		} else {
 			var addr common.Address
 			if err := json.Unmarshal(trimmed, &addr); err != nil {
 				return err
 			}
-			d.DesignatedProver = &addr
+			d.DesignatedProver = addr
+			d.designatedProverSet = true
 		}
+	} else {
+		d.DesignatedProver = common.Address{}
+		d.designatedProverSet = false
 	}
 
 	return nil
+}
+
+func (d TaikoProverData) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		ActualProver         common.Address            `json:"actual_prover"`
+		DesignatedProver     *common.Address           `json:"designated_prover,omitempty"`
+		Graffiti             common.Hash               `json:"graffiti"`
+		ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
+		Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
+	}
+
+	out := alias{
+		ActualProver:         d.ActualProver,
+		Graffiti:             d.Graffiti,
+		ParentTransitionHash: d.ParentTransitionHash,
+		Checkpoint:           d.Checkpoint,
+	}
+	if d.designatedProverSet {
+		addr := d.DesignatedProver
+		out.DesignatedProver = &addr
+	}
+	return json.Marshal(out)
 }
 
 func (g *SingleGuestInput) GuestInputs() iter.Seq[*Pair] {
