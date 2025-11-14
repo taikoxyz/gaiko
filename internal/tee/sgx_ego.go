@@ -14,8 +14,7 @@ import (
 	"github.com/taikoxyz/gaiko/internal/flags"
 )
 
-type SGXEgoProvider struct {
-}
+type SGXEgoProvider struct{}
 
 var _ Provider = (*SGXEgoProvider)(nil)
 
@@ -59,7 +58,7 @@ func (p *SGXEgoProvider) SavePrivateKey(args *flags.Arguments, privKey *ecdsa.Pr
 	}
 	filename := filepath.Join(args.SecretDir, privKeyFilename)
 	log.Debug("Save private key to", filename)
-	return os.WriteFile(filename, sealedText, 0600)
+	return os.WriteFile(filename, sealedText, 0o600)
 }
 
 func (p *SGXEgoProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapData) error {

@@ -27,14 +27,14 @@ import (
 func ExecuteAndVerify(
 	ctx context.Context,
 	args *flags.Arguments,
-	input witness.WitnessInput,
+	guestInput witness.GuestInput,
 ) error {
-	chainConfig, err := input.ChainConfig()
+	chainConfig, err := guestInput.ChainConfig()
 	if err != nil {
 		return err
 	}
 	eg, ctx := errgroup.WithContext(ctx)
-	for pair := range input.GuestInputs() {
+	for pair := range guestInput.GuestInputs() {
 		pair := pair // https://go.dev/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
 			return executeWitness(ctx, pair, chainConfig)
@@ -125,7 +125,7 @@ func executeAndVerify(
 		if !ok {
 			// Account is deleted
 			key := keccak.Keccak(addr.Bytes())
-			if _, err := g.ParentStateTrie.Delete(key.Bytes()); err != nil {
+			if _, err = g.ParentStateTrie.Delete(key.Bytes()); err != nil {
 				return err
 			}
 		}
@@ -144,11 +144,11 @@ func executeAndVerify(
 		for slot, value := range acc.Storage {
 			key := keccak.Keccak(slot.Bytes())
 			if value == (common.Hash{}) {
-				if _, err := entry.Trie.Delete(key.Bytes()); err != nil {
+				if _, err = entry.Trie.Delete(key.Bytes()); err != nil {
 					return err
 				}
 			} else {
-				if err := updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
+				if err = updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
 					return err
 				}
 			}

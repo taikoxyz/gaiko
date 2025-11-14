@@ -26,17 +26,21 @@ func NewSGXProver(args *flags.Arguments) *SGXProver {
 }
 
 func (p *SGXProver) Oneshot(ctx context.Context, args *flags.Arguments) error {
-	var input witness.GuestInput
-	return genOneshotProof(ctx, args, &input, p.sgxProvider)
+	var guestInput witness.SingleGuestInput
+	return genOneshotProof(ctx, args, &guestInput, p.sgxProvider)
 }
 
 func (p *SGXProver) BatchOneshot(ctx context.Context, args *flags.Arguments) error {
-	var input witness.BatchGuestInput
-	return genOneshotProof(ctx, args, &input, p.sgxProvider)
+	var guestInput witness.BatchGuestInput
+	return genOneshotProof(ctx, args, &guestInput, p.sgxProvider)
 }
 
 func (p *SGXProver) Aggregate(ctx context.Context, args *flags.Arguments) error {
 	return genAggregateProof(ctx, args, p.sgxProvider)
+}
+
+func (p *SGXProver) ShastaAggregate(ctx context.Context, args *flags.Arguments) error {
+	return genShastaAggregateProof(ctx, args, p.sgxProvider)
 }
 
 func (p *SGXProver) Bootstrap(ctx context.Context, args *flags.Arguments) error {

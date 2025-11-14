@@ -10,3 +10,9 @@ type RawProof struct {
 type RawAggregationGuestInput struct {
 	Proofs []*RawProof `json:"proofs"`
 }
+
+type ShastaRawAggregationGuestInput struct {
+	Proofs          []*RawProof    `json:"proofs"`
+	ChainID         uint64         `json:"chain_id"`
+	VerifierAddress common.Address `json:"verifier_address"`
+}
