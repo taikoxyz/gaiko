@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -166,6 +167,7 @@ func (args *Arguments) UpdateSGXInstanceID(hardFork string) {
 	if args.SGXInstanceID != 0 {
 		return
 	}
+	hardFork = strings.ToUpper(hardFork)
 	args.SGXInstanceID = args.SGXInstanceIDs[hardFork]
 }
 
