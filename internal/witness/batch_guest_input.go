@@ -481,7 +481,7 @@ func (g *BatchGuestInput) BlockMetadata() (BlockMetadata, error) {
 func (g *BatchGuestInput) Transition() any {
 	// Shasta uses a different transition structure
 	if g.Taiko.BatchProposed.IsShasta() {
-		return g.buildShastaTransitions()
+		return g.buildShastaTransition()
 	}
 
 	firstBlock := g.Inputs[0].Block
@@ -493,24 +493,22 @@ func (g *BatchGuestInput) Transition() any {
 	}
 }
 
-func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
+func (g *BatchGuestInput) buildShastaTransition() common.Hash {
 	shastaBlock, ok := g.Taiko.BatchProposed.(*ShastaBlockProposed)
 	if !ok {
-		return nil
+		return common.Hash{}
 	}
 	eventData := shastaBlock.EventData()
 	if eventData == nil {
-		return nil
+		return common.Hash{}
 	}
 
-	// Compute proposal hash once
-	proposalHash := hashProposal(&eventData.Proposal)
+	if len(g.Inputs) == 0 {
+		return common.Hash{}
+	}
 
-	// Build transitions for each block
-	transitionHashes := make([]common.Hash, 0, len(g.Inputs))
-
-	// Get parent transition hash and checkpoint from prover_data if available
 	var (
+		proposalHash         = hashProposal(&eventData.Proposal)
 		parentTransitionHash common.Hash
 		checkpoint           *ShastaProposalCheckpoint
 		designatedProver     common.Address
@@ -528,6 +526,16 @@ func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
 		actualProver = g.Taiko.ProverData.ActualProver
 	}
 
+	if checkpoint == nil {
+		// If no checkpoint in prover_data, use the first block as checkpoint
+		lastBlock := g.Inputs[len(g.Inputs)-1].Block
+		checkpoint = &ShastaProposalCheckpoint{
+			BlockNumber: lastBlock.NumberU64(),
+			BlockHash:   lastBlock.Hash(),
+			StateRoot:   lastBlock.Root(),
+		}
+	}
+
 	// If no prover data, fall back to core state and proposer
 	if parentTransitionHash == (common.Hash{}) {
 		parentTransitionHash = eventData.CoreState.LastFinalizedTransitionHash
@@ -539,49 +547,26 @@ func (g *BatchGuestInput) buildShastaTransitions() []common.Hash {
 		actualProver = designatedProver
 	}
 
-	for i, input := range g.Inputs {
-		block := input.Block
-
-		// Use checkpoint from prover_data if available, otherwise construct from block
-		var shastaCheckpoint ShastaCheckpoint
-		if checkpoint != nil && i == len(g.Inputs)-1 {
-			// Use prover_data checkpoint for the last block
-			shastaCheckpoint = ShastaCheckpoint{
-				BlockNumber: checkpoint.BlockNumber,
-				BlockHash:   checkpoint.BlockHash,
-				StateRoot:   checkpoint.StateRoot,
-			}
-		} else {
-			// Construct from block data
-			shastaCheckpoint = ShastaCheckpoint{
-				BlockNumber: block.NumberU64(),
-				BlockHash:   block.Hash(),
-				StateRoot:   block.Root(),
-			}
-		}
-
-		// Create transition
-		transition := &ShastaTransition{
-			ProposalHash:         proposalHash,
-			ParentTransitionHash: parentTransitionHash,
-			Checkpoint:           shastaCheckpoint,
-		}
-
-		// Create metadata
-		metadata := &ShastaTransitionMetadata{
-			DesignatedProver: designatedProver,
-			ActualProver:     actualProver,
-		}
-
-		// Compute transition hash
-		transitionHash := hashTransitionWithMetadata(transition, metadata)
-		transitionHashes = append(transitionHashes, transitionHash)
-
-		// Update parent for next iteration
-		parentTransitionHash = transitionHash
+	// Create transition
+	transition := &ShastaTransition{
+		ProposalHash:         proposalHash,
+		ParentTransitionHash: parentTransitionHash,
+		Checkpoint: ShastaCheckpoint{
+			BlockNumber: checkpoint.BlockNumber,
+			BlockHash:   checkpoint.BlockHash,
+			StateRoot:   checkpoint.StateRoot,
+		},
 	}
 
-	return transitionHashes
+	// Create metadata
+	metadata := &ShastaTransitionMetadata{
+		DesignatedProver: designatedProver,
+		ActualProver:     actualProver,
+	}
+
+	// Compute transition hash
+	transitionHash := hashTransitionWithMetadata(transition, metadata)
+	return transitionHash
 }
 
 func (g *BatchGuestInput) ForkVerifierAddress(proofType ProofType) common.Address {

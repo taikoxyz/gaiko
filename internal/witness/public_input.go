@@ -23,17 +23,11 @@ type PublicInput struct {
 func (p *PublicInput) Hash() (common.Hash, error) {
 	// Shasta uses a different hash calculation
 	if p.blockProposed.IsShasta() {
-		transitionHashes, ok := p.transition.([]common.Hash)
+		transitionHash, ok := p.transition.(common.Hash)
 		if !ok {
 			return common.Hash{}, fmt.Errorf("shasta transition must be []common.Hash, got %T", p.transition)
 		}
-		// For single-block Shasta proposals, the public input hash is just the transition hash
-		if len(transitionHashes) == 1 {
-			return transitionHashes[0], nil
-		}
-		// For multi-block aggregations, use the full hashing process
-		aggregatedProvingHash := hashTransitionsHashArray(transitionHashes)
-		return hashPublicInput(aggregatedProvingHash, p.chainID, p.verifier, p.sgxInstance), nil
+		return transitionHash, nil
 	}
 
 	var (
