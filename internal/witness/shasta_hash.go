@@ -126,7 +126,7 @@ func hashTransitionsHashArray(transitionHashes []common.Hash) common.Hash {
 	return keccak.Keccak(buffer)
 }
 
-var verifyProofB256 = common.HexToHash("0x" + "5645524946595f50524f4f46000000000000000000000000000000000000000000") // "VERIFY_PROOF" in hex
+var verifyProofB256 = common.HexToHash("5645524946595f50524f4f460000000000000000000000000000000000000000") // "VERIFY_PROOF" in hex
 
 // hashFourValues computes keccak256(abi.encode(v0, v1, v2, v3))
 func hashFourValues(v0, v1, v2, v3 common.Hash) common.Hash {
