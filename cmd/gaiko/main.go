@@ -11,9 +11,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+type GaikoActionFunc func(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error
+
 func withSGX(
-	action func(ctx context.Context, sgxProver prover.Prover, args *flags.Arguments) error,
-) func(*cli.Context) error {
+	action GaikoActionFunc,
+) cli.ActionFunc {
 	return func(cli *cli.Context) error {
 		args := flags.NewArguments(cli)
 		sgxProver := prover.NewSGXProver(args)
@@ -25,42 +27,35 @@ var oneshotCommand = &cli.Command{
 	Name:   "one-shot",
 	Usage:  "Run state transition once",
 	Action: withSGX(oneshot),
-	Flags: []cli.Flag{
-		flags.SGXInstanceIDFlag,
-		flags.WitnessFlag,
-		flags.ProofFlag,
-	},
+	Flags:  flags.ProofFlags,
 }
 
 var batchOneshotCommand = &cli.Command{
 	Name:   "one-batch-shot",
 	Usage:  "Run multi states transition once",
 	Action: withSGX(batchOneshot),
-	Flags: []cli.Flag{
-		flags.SGXInstanceIDFlag,
-		flags.WitnessFlag,
-		flags.ProofFlag,
-	},
+	Flags:  flags.ProofFlags,
 }
 
 var bootstrapCommand = &cli.Command{
 	Name:   "bootstrap",
 	Usage:  "Run the bootstrap process",
 	Action: withSGX(bootstrap),
-	Flags: []cli.Flag{
-		flags.BootstrapFlag,
-	},
+	Flags:  flags.BootstrapFlags,
 }
 
 var aggregateCommand = &cli.Command{
 	Name:   "aggregate",
 	Usage:  "Run the aggregate process",
 	Action: withSGX(aggregate),
-	Flags: []cli.Flag{
-		flags.SGXInstanceIDFlag,
-		flags.WitnessFlag,
-		flags.ProofFlag,
-	},
+	Flags:  flags.ProofFlags,
+}
+
+var shastaAggregateCommand = &cli.Command{
+	Name:   "shasta-aggregate",
+	Usage:  "Run Shasta aggregate proof",
+	Action: withSGX(shastaAggregate),
+	Flags:  flags.ProofFlags,
 }
 
 var checkCommand = &cli.Command{
@@ -73,16 +68,8 @@ var serverCommand = &cli.Command{
 	Name:    "server",
 	Aliases: []string{"serve", "s"},
 	Usage:   "Start Gaiko HTTP Server",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "port",
-			Aliases: []string{"p"},
-			Value:   "8080",
-			Usage:   "Listening on port",
-		},
-		flags.SGXInstanceIDFlag,
-	},
-	Action: runServer,
+	Flags:   flags.ServerFlags,
+	Action:  runServer,
 }
 
 // newApp creates an app with sane defaults.
@@ -104,6 +91,7 @@ func init() {
 		oneshotCommand,
 		batchOneshotCommand,
 		aggregateCommand,
+		shastaAggregateCommand,
 		bootstrapCommand,
 		checkCommand,
 		serverCommand,

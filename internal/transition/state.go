@@ -40,14 +40,14 @@ type preState struct {
 // *Note*:
 // This StateDB is only used for execution without trust its root.
 // Deprecated: use Witness instead
-func newPreState(g *witness.GuestInput) (*preState, error) {
-	parentRoot, err := g.ParentStateTrie.Hash()
+func newPreState(guestInput *witness.SingleGuestInput) (*preState, error) {
+	parentRoot, err := guestInput.ParentStateTrie.Hash()
 	if err != nil {
 		return nil, err
 	}
-	if g.ParentHeader.Root != parentRoot {
+	if guestInput.ParentHeader.Root != parentRoot {
 		return nil, fmt.Errorf("parent state root mismatch: expected %#x, got %#x",
-			g.ParentHeader.Root, parentRoot)
+			guestInput.ParentHeader.Root, parentRoot)
 	}
 	mdb := rawdb.NewMemoryDatabase()
 	tdb := triedb.NewDatabase(mdb, triedb.HashDefaults)
@@ -56,14 +56,14 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 	if err != nil {
 		return nil, err
 	}
-	contracts := make(map[common.Hash][]byte, len(g.Contracts))
-	for _, contract := range g.Contracts {
+	contracts := make(map[common.Hash][]byte, len(guestInput.Contracts))
+	for _, contract := range guestInput.Contracts {
 		codeHash := keccak.Keccak(contract)
 		contracts[codeHash] = contract
 	}
-	accounts := make(map[common.Address]*types.StateAccount, len(g.ParentStorage))
-	for addr, storage := range g.ParentStorage {
-		acc, err := getAccount(g.ParentStateTrie, addr)
+	accounts := make(map[common.Address]*types.StateAccount, len(guestInput.ParentStorage))
+	for addr, storage := range guestInput.ParentStorage {
+		acc, err := getAccount(guestInput.ParentStateTrie, addr)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) {
 				acc = types.NewEmptyStateAccount()
@@ -109,10 +109,10 @@ func newPreState(g *witness.GuestInput) (*preState, error) {
 		return nil, err
 	}
 
-	historyHashes := make(map[uint64]common.Hash, len(g.AncestorHeaders)+1)
-	historyHashes[g.ParentHeader.Number.Uint64()] = g.ParentHeader.Hash()
-	prev := g.ParentHeader
-	for header := range slices.Values(g.AncestorHeaders) {
+	historyHashes := make(map[uint64]common.Hash, len(guestInput.AncestorHeaders)+1)
+	historyHashes[guestInput.ParentHeader.Number.Uint64()] = guestInput.ParentHeader.Hash()
+	prev := guestInput.ParentHeader
+	for header := range slices.Values(guestInput.AncestorHeaders) {
 		if prev.ParentHash != header.Hash() {
 			return nil, fmt.Errorf(
 				"parent hash mismatch: expected %#x, got %#x",

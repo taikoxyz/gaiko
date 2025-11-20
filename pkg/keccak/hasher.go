@@ -1,3 +1,4 @@
+// Package keccak provides utilities for computing Keccak256 hashes
 package keccak
 
 import (
