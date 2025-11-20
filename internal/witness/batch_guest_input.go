@@ -170,6 +170,11 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		)
 	}
 
+	if err := g.validateShastaBlockTimestamp(); err != nil {
+		log.Warn("shasta block timestamp validation failed", "err", err)
+		return
+	}
+
 	var allBlockTxs []types.Transactions
 	for idx, dataSource := range g.Taiko.DataSources {
 		if idx >= len(eventData.Derivation.Sources) {
@@ -328,12 +333,6 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	// 1. verify chain spec
 	for input := range slices.Values(g.Inputs) {
 		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
-			return err
-		}
-	}
-
-	if g.Taiko.BatchProposed.IsShasta() {
-		if err := g.validateShastaBlockTimestamp(); err != nil {
 			return err
 		}
 	}
