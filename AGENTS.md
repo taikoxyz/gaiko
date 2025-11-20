@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -306,21 +306,25 @@ GAIKO=1 go test -v -count=1 ./tests
 ### Common Issues
 
 **Commands fail or behave unexpectedly:**
+
 - Solution: Always set `GAIKO=1` environment variable for ALL gaiko operations (tests and runtime)
 - Example for tests: `GAIKO=1 go test ./...`
 - Example for runtime: `GAIKO=1 ./gaiko one-shot --sgx-type dev --witness input.json`
 
 **Build fails with SGX errors:**
+
 - Ensure you're using the correct build command for your target
 - For development without TEE: `go build -tags dev -o gaiko ./cmd/gaiko`
 - For production SGX: Use `ego-go build` commands
 
 **Witness validation errors:**
+
 - Verify the witness file matches the expected hard fork (Hekla, Ontake, Pacaya, Shasta)
 - Check that parent state root is correct
 - Ensure block continuity for batch inputs
 
 **State root mismatch:**
+
 - Verify all MPT nodes are included in the witness
 - Check transaction execution order matches expected sequence
 - Validate chain spec parameters match the network
