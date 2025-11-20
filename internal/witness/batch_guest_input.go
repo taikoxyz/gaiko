@@ -47,6 +47,7 @@ type TaikoGuestDataSource struct {
 	BlobCommitments    *[][commitmentSize]byte
 	BlobProofs         *[][proofSize]byte
 	BlobProofType      BlobProofType
+	IsForcedInclusion  bool
 }
 
 func (t *TaikoGuestBatchInput) primaryDataSource() *TaikoGuestDataSource {
@@ -175,49 +176,96 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			log.Warn("extra data source without derivation metadata", "index", idx)
 			break
 		}
+
+		if idx == len(g.Taiko.DataSources)-1 {
+			if dataSource.IsForcedInclusion {
+				log.Warn("last source should be normal source", "index", idx)
+				return
+			}
+		} else {
+			if !dataSource.IsForcedInclusion {
+				log.Warn("begin sources should be force inclusion source", "index", idx)
+				return
+			}
+		}
+
 		combined, err := combineBlobData(dataSource.TxDataFromBlob)
 		if err != nil {
 			log.Error("failed to combine shasta blob data", "index", idx, "err", err)
 			return
 		}
 
-		if len(combined) == 0 {
-			log.Warn("shasta data source empty blob payload", "index", idx)
-			continue
-		}
+		decoded := func() []byte {
+			if len(combined) == 0 {
+				return nil
+			}
+			offset := int(eventData.Derivation.Sources[idx].BlobSlice.Offset)
+			if offset+64 > len(combined) {
+				return nil
+			}
+			version := combined[offset : offset+32]
+			if version[31] != 1 {
+				log.Warn("unexpected shasta manifest version", "index", idx, "version", version[31])
+			}
+			sizeBytes := combined[offset+32 : offset+64]
+			size := binary.BigEndian.Uint64(sizeBytes[24:])
+			end := offset + 64 + int(size)
+			if end > len(combined) {
+				return nil
+			}
+			payload := combined[offset+64 : end]
+			d, err := utils.Decompress(payload)
+			if err != nil {
+				return nil
+			}
+			return d
+		}()
 
-		offset := int(eventData.Derivation.Sources[idx].BlobSlice.Offset)
-		if offset+64 > len(combined) {
-			log.Warn("shasta data source offset out of range", "index", idx, "offset", offset, "length", len(combined))
-			return
-		}
+		var source manifest.DerivationSourceManifest
+		decodeErr := rlp.DecodeBytes(decoded, &source)
 
-		version := combined[offset : offset+32]
-		if version[31] != 1 {
-			log.Warn("unexpected shasta manifest version", "index", idx, "version", version[31])
-		}
+		var validManifest *manifest.DerivationSourceManifest
 
-		sizeBytes := combined[offset+32 : offset+64]
-		size := binary.BigEndian.Uint64(sizeBytes[24:])
-		end := offset + 64 + int(size)
-		if end > len(combined) {
-			log.Warn("shasta data source size out of range", "index", idx, "size", size, "length", len(combined))
-			return
-		}
-		payload := combined[offset+64 : end]
-		decoded, err := utils.Decompress(payload)
-		if err != nil {
-			log.Error("failed to decompress shasta manifest payload", "index", idx, "err", err)
-			return
+		if idx == len(g.Taiko.DataSources)-1 {
+			// Normal source
+			if decodeErr == nil && validateNormalProposalManifest(&source, g.Taiko.ProverData.LastAnchorBlockNumber) {
+				validManifest = &source
+			} else {
+				// Fallback
+				timestamp := g.Taiko.L1Header.Time
+				coinbase := g.Taiko.BatchProposed.Proposer()
+				anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
+				lastInput := g.Inputs[len(g.Inputs)-1]
+				gasLimit := lastInput.ParentHeader.GasLimit
+
+				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, gasLimit)
+			}
+		} else {
+			// Force inclusion source
+			if decodeErr == nil && validateForceIncProposalManifest(&source) {
+				validManifest = &source
+			} else {
+				// Fallback
+				timestamp := g.Taiko.L1Header.Time
+				coinbase := g.Taiko.BatchProposed.Proposer()
+				anchorBlockNumber := uint64(0)
+				gasLimit := uint64(0)
+
+				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, gasLimit)
+			}
 		}
 
 		var blockTxs []types.Transactions
-		var source manifest.DerivationSourceManifest
-		if err := rlp.DecodeBytes(decoded, &source); err != nil {
-			log.Error("failed to decode shasta derivation source manifest", "index", idx, "err", err)
-			return
-		}
-		for _, block := range source.Blocks {
+		for i, block := range validManifest.Blocks {
+			inputIdx := idx + i
+			if inputIdx >= len(g.Inputs) {
+				log.Warn("input index out of range", "index", inputIdx)
+				break
+			}
+			if !validateInputBlockParam(block, g.Inputs[inputIdx].Block) {
+				log.Warn("input block param validation failed", "index", inputIdx)
+				return
+			}
 			blockTxs = append(blockTxs, block.Transactions)
 		}
 		allBlockTxs = append(allBlockTxs, blockTxs...)
@@ -280,6 +328,12 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 	// 1. verify chain spec
 	for input := range slices.Values(g.Inputs) {
 		if err := defaultSupportedChainSpecs.verifyChainSpec(input.ChainSpec); err != nil {
+			return err
+		}
+	}
+
+	if g.Taiko.BatchProposed.IsShasta() {
+		if err := g.validateShastaBlockTimestamp(); err != nil {
 			return err
 		}
 	}
@@ -605,4 +659,103 @@ func (g *BatchGuestInput) ChainConfig() (*params.ChainConfig, error) {
 	// Only activate Shasta fork if the block proposed data is actually using Shasta
 	activeShasta := g.Taiko.BatchProposed.IsShasta()
 	return g.Taiko.ChainSpec.chainConfig(activeShasta)
+}
+
+const (
+	timestampMaxOffset = 12 * 32
+	proposalMaxBlocks  = 384
+)
+
+func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
+	for _, input := range g.Inputs {
+		blockTimestamp := input.Block.Time()
+		proposalTimestamp := g.Taiko.BatchProposed.ProposedAt()
+
+		if blockTimestamp > proposalTimestamp {
+			return fmt.Errorf("block timestamp %d exceeds proposal timestamp %d", blockTimestamp, proposalTimestamp)
+		}
+
+		parentTimestamp := input.ParentHeader.Time
+		lowerBound := parentTimestamp + 1
+		if proposalTimestamp > timestampMaxOffset {
+			altLowerBound := proposalTimestamp - timestampMaxOffset
+			if altLowerBound > lowerBound {
+				lowerBound = altLowerBound
+			}
+		}
+
+		if blockTimestamp < lowerBound {
+			return fmt.Errorf("block timestamp %d is less than calculated lower bound %d", blockTimestamp, lowerBound)
+		}
+	}
+	return nil
+}
+
+func validAnchorInNormalProposal(blocks []*manifest.BlockManifest, lastAnchorBlockNumber uint64) bool {
+	for _, block := range blocks {
+		if block.AnchorBlockNumber > lastAnchorBlockNumber {
+			return true
+		}
+	}
+	return false
+}
+
+func validateNormalProposalManifest(m *manifest.DerivationSourceManifest, lastAnchorBlockNumber uint64) bool {
+	if len(m.Blocks) > proposalMaxBlocks {
+		log.Error("manifest block number exceeds limit", "count", len(m.Blocks), "limit", proposalMaxBlocks)
+		return false
+	}
+	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber) {
+		log.Error("valid_anchor_in_proposal failed", "lastAnchorBlockNumber", lastAnchorBlockNumber)
+		return false
+	}
+	return true
+}
+
+func validateForceIncProposalManifest(m *manifest.DerivationSourceManifest) bool {
+	if len(m.Blocks) != 1 {
+		log.Error("force inclusion manifest must have exactly 1 block", "count", len(m.Blocks))
+		return false
+	}
+	block := m.Blocks[0]
+	if block.Timestamp != 0 || block.Coinbase != (common.Address{}) || block.AnchorBlockNumber != 0 || block.GasLimit != 0 {
+		log.Error("invalid force inclusion block manifest", "block", block)
+		return false
+	}
+	return true
+}
+
+func validateInputBlockParam(manifestBlock *manifest.BlockManifest, inputBlock *types.Block) bool {
+	if manifestBlock.Timestamp != inputBlock.Time() {
+		log.Error("timestamp mismatch", "manifest", manifestBlock.Timestamp, "input", inputBlock.Time())
+		return false
+	}
+	if manifestBlock.Coinbase != inputBlock.Coinbase() {
+		log.Error("coinbase mismatch", "manifest", manifestBlock.Coinbase, "input", inputBlock.Coinbase())
+		return false
+	}
+	if manifestBlock.GasLimit != inputBlock.GasLimit() {
+		log.Error("gas limit mismatch", "manifest", manifestBlock.GasLimit, "input", inputBlock.GasLimit())
+		return false
+	}
+	return true
+}
+
+func (g *BatchGuestInput) createDefaultManifest(
+	timestamp uint64,
+	coinbase common.Address,
+	anchorBlockNumber uint64,
+	gasLimit uint64,
+) *manifest.DerivationSourceManifest {
+	return &manifest.DerivationSourceManifest{
+		Blocks: []*manifest.BlockManifest{
+			{
+				Timestamp:         timestamp,
+				Coinbase:          coinbase,
+				AnchorBlockNumber: anchorBlockNumber,
+				GasLimit:          gasLimit,
+				Transactions:      types.Transactions{},
+			},
+		},
+	}
 }

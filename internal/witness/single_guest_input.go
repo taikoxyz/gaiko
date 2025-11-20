@@ -62,10 +62,11 @@ const (
 )
 
 type TaikoProverData struct {
-	ActualProver         common.Address            `json:"actual_prover"`
-	Graffiti             common.Hash               `json:"graffiti"`
-	ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
-	Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
+	ActualProver          common.Address            `json:"actual_prover"`
+	Graffiti              common.Hash               `json:"graffiti"`
+	ParentTransitionHash  *common.Hash              `json:"parent_transition_hash"`
+	Checkpoint            *ShastaProposalCheckpoint `json:"checkpoint"`
+	LastAnchorBlockNumber uint64                    `json:"last_anchor_block_number"`
 
 	DesignatedProver    common.Address `json:"-"`
 	designatedProverSet bool           `json:"-"`
@@ -73,10 +74,11 @@ type TaikoProverData struct {
 
 func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
 	type alias struct {
-		ActualProver         common.Address            `json:"actual_prover"`
-		Graffiti             common.Hash               `json:"graffiti"`
-		ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
-		Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
+		ActualProver          common.Address            `json:"actual_prover"`
+		Graffiti              common.Hash               `json:"graffiti"`
+		ParentTransitionHash  *common.Hash              `json:"parent_transition_hash"`
+		Checkpoint            *ShastaProposalCheckpoint `json:"checkpoint"`
+		LastAnchorBlockNumber uint64                    `json:"last_anchor_block_number"`
 	}
 
 	var base alias
@@ -88,6 +90,7 @@ func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
 	d.Graffiti = base.Graffiti
 	d.ParentTransitionHash = base.ParentTransitionHash
 	d.Checkpoint = base.Checkpoint
+	d.LastAnchorBlockNumber = base.LastAnchorBlockNumber
 
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -130,18 +133,20 @@ func (d *TaikoProverData) UnmarshalJSON(data []byte) error {
 
 func (d TaikoProverData) MarshalJSON() ([]byte, error) {
 	type alias struct {
-		ActualProver         common.Address            `json:"actual_prover"`
-		DesignatedProver     *common.Address           `json:"designated_prover,omitempty"`
-		Graffiti             common.Hash               `json:"graffiti"`
-		ParentTransitionHash *common.Hash              `json:"parent_transition_hash"`
-		Checkpoint           *ShastaProposalCheckpoint `json:"checkpoint"`
+		ActualProver          common.Address            `json:"actual_prover"`
+		DesignatedProver      *common.Address           `json:"designated_prover,omitempty"`
+		Graffiti              common.Hash               `json:"graffiti"`
+		ParentTransitionHash  *common.Hash              `json:"parent_transition_hash"`
+		Checkpoint            *ShastaProposalCheckpoint `json:"checkpoint"`
+		LastAnchorBlockNumber uint64                    `json:"last_anchor_block_number"`
 	}
 
 	out := alias{
-		ActualProver:         d.ActualProver,
-		Graffiti:             d.Graffiti,
-		ParentTransitionHash: d.ParentTransitionHash,
-		Checkpoint:           d.Checkpoint,
+		ActualProver:          d.ActualProver,
+		Graffiti:              d.Graffiti,
+		ParentTransitionHash:  d.ParentTransitionHash,
+		Checkpoint:            d.Checkpoint,
+		LastAnchorBlockNumber: d.LastAnchorBlockNumber,
 	}
 	if d.designatedProverSet {
 		addr := d.DesignatedProver

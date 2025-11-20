@@ -39,6 +39,7 @@ type taikoGuestDataSourceJSON struct {
 	BlobCommitments    *[][commitmentSize]byte `json:"blob_commitments"`
 	BlobProofs         *[][proofSize]byte      `json:"blob_proofs"`
 	BlobProofType      BlobProofType           `json:"blob_proof_type"`
+	IsForcedInclusion  bool                    `json:"is_forced_inclusion"`
 }
 
 func (t *taikoGuestDataSourceJSON) GethType() *TaikoGuestDataSource {
@@ -52,6 +53,7 @@ func (t *taikoGuestDataSourceJSON) GethType() *TaikoGuestDataSource {
 		BlobCommitments:    t.BlobCommitments,
 		BlobProofs:         t.BlobProofs,
 		BlobProofType:      t.BlobProofType,
+		IsForcedInclusion:  t.IsForcedInclusion,
 	}
 }
 
