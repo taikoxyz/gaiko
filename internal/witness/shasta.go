@@ -25,7 +25,6 @@ type ShastaProposal struct {
 	Timestamp                      uint64
 	EndOfSubmissionWindowTimestamp uint64
 	Proposer                       common.Address
-	CoreStateHash                  common.Hash
 	DerivationHash                 common.Hash
 }
 

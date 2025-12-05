@@ -590,8 +590,13 @@ func (g *BatchGuestInput) buildShastaTransition() common.Hash {
 	}
 
 	// If no prover data, fall back to core state and proposer
+	// Note: CoreState was removed in raiko c0fa596, parent_transition_hash should be in prover_data
 	if parentTransitionHash == (common.Hash{}) {
-		parentTransitionHash = eventData.CoreState.LastFinalizedTransitionHash
+		// Fallback for backwards compatibility - this path should rarely be used
+		if eventData.CoreState.LastFinalizedTransitionHash != (common.Hash{}) {
+			log.Warn("using deprecated CoreState.LastFinalizedTransitionHash as fallback for parentTransitionHash")
+			parentTransitionHash = eventData.CoreState.LastFinalizedTransitionHash
+		}
 	}
 	if !designatedProverSet {
 		designatedProver = eventData.Proposal.Proposer

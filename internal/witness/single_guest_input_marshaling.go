@@ -236,7 +236,6 @@ func (s *shastaEventDataJSON) GethType() *ShastaEventData {
 			Timestamp:                      s.Proposal.Timestamp,
 			EndOfSubmissionWindowTimestamp: s.Proposal.EndOfSubmissionWindowTimestamp,
 			Proposer:                       s.Proposal.Proposer,
-			CoreStateHash:                  s.Proposal.CoreStateHash,
 			DerivationHash:                 s.Proposal.DerivationHash,
 		},
 		Derivation: ShastaDerivation{

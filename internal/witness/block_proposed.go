@@ -424,7 +424,11 @@ func (b *ShastaBlockProposed) ABIEncode() ([]byte, error) {
 }
 
 func (b *ShastaBlockProposed) BlockNumber() uint64 {
-	return 0
+	if b.eventData == nil {
+		return 0
+	}
+	// Per raiko c0fa596: proposal_block_number = derivation.originBlockNumber + 1
+	return b.eventData.Derivation.OriginBlockNumber + 1
 }
 
 func (b *ShastaBlockProposed) BlockTimestamp() uint64 {

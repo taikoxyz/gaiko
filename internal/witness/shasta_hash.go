@@ -139,7 +139,7 @@ func hashFourValues(v0, v1, v2, v3 common.Hash) common.Hash {
 }
 
 // hashProposal computes the hash of a Shasta proposal
-// Follows Raiko's implementation: pack 3 fields into one U256, then hash 4 values
+// Follows Raiko's implementation: pack 3 fields into one U256, then hash 3 values
 func hashProposal(proposal *ShastaProposal) common.Hash {
 	// Pack id, timestamp, and endOfSubmissionWindowTimestamp into one U256
 	// packed = (id << 208) | (timestamp << 160) | (endOfSubmissionWindowTimestamp << 112)
@@ -161,11 +161,10 @@ func hashProposal(proposal *ShastaProposal) common.Hash {
 	packedBytes := make([]byte, 32)
 	packed.FillBytes(packedBytes)
 
-	// Hash 4 values: packed, proposer, coreStateHash, derivationHash
-	return hashFourValues(
+	// Hash 3 values: packed, proposer, derivationHash
+	return hashThreeValues(
 		common.BytesToHash(packedBytes),
 		addressToB256(proposal.Proposer),
-		proposal.CoreStateHash,
 		proposal.DerivationHash,
 	)
 }

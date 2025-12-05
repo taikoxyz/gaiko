@@ -8,18 +8,17 @@ import (
 )
 
 func TestHashProposal(t *testing.T) {
-	// Test case from Raiko's test_hash_proposal
+	// Test case: 3 values (packed, proposer, derivationHash) - no coreStateHash after PR #642
 	proposal := &ShastaProposal{
 		ID:                             3549,
 		Timestamp:                      1761830468,
 		EndOfSubmissionWindowTimestamp: 0,
 		Proposer:                       common.HexToAddress("0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"),
-		CoreStateHash:                  common.HexToHash("0x6c3667ff590cbfedc61442117832ab6c43e4ae803e434df81573d4850d9f9522"),
 		DerivationHash:                 common.HexToHash("0x85422bfec85e2cb6d5ca9f52858a74b680865c0134c0e29af710d8e01d58898a"),
 	}
 
 	proposalHash := hashProposal(proposal)
-	expected := common.HexToHash("0x84d250afffb408d35c42978f6563a32c494ec3a4dc01c5e87e7f3a77c413eaeb")
+	expected := common.HexToHash("0x0fd2106121ee59690d5c49dcbd1603e9eedff34da6dd6afe5de01d30188d770d")
 
 	assert.Equal(t, expected, proposalHash, "proposal hash mismatch")
 }

@@ -10,7 +10,7 @@ require (
 	github.com/google/go-tdx-guest v0.3.1
 	github.com/holiman/uint256 v1.3.2
 	github.com/stretchr/testify v1.11.1
-	github.com/taikoxyz/taiko-mono v0.0.0-20251120042050-4f31233fed5e
+	github.com/taikoxyz/taiko-mono v0.0.0-20251202013330-afe940690b8e
 	github.com/urfave/cli/v2 v2.27.7
 	gitlab.com/c0b/go-ordered-json v0.0.0-20201030195603-febf46534d5a
 	golang.org/x/sync v0.18.0
@@ -55,7 +55,6 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
