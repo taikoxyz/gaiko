@@ -9,6 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+var _ = (*chainSpecMarshaling)(nil)
+
 // MarshalJSON marshals as JSON.
 func (c ChainSpec) MarshalJSON() ([]byte, error) {
 	type ChainSpec struct {
@@ -17,7 +19,7 @@ func (c ChainSpec) MarshalJSON() ([]byte, error) {
 		MaxSpecID            SpecID                         `json:"max_spec_id"            gencodec:"required"`
 		HardForks            HardForks                      `json:"hard_forks"             gencodec:"required"`
 		Eip1559Constants     *Eip1559Constants              `json:"eip_1559_constants"     gencodec:"required"`
-		L1Contract           *common.Address                `json:"l1_contract"`
+		L1Contract           map[string]*common.Address     `json:"l1_contract"`
 		L2Contract           *common.Address                `json:"l2_contract"`
 		RPC                  string                         `json:"rpc"                    gencodec:"required"`
 		BeaconRPC            *string                        `json:"beacon_rpc"`
@@ -32,7 +34,12 @@ func (c ChainSpec) MarshalJSON() ([]byte, error) {
 	enc.MaxSpecID = c.MaxSpecID
 	enc.HardForks = c.HardForks
 	enc.Eip1559Constants = c.Eip1559Constants
-	enc.L1Contract = c.L1Contract
+	if c.L1Contract != nil {
+		enc.L1Contract = make(map[string]*common.Address, len(c.L1Contract))
+		for k, v := range c.L1Contract {
+			enc.L1Contract[string(k)] = v
+		}
+	}
 	enc.L2Contract = c.L2Contract
 	enc.RPC = c.RPC
 	enc.BeaconRPC = c.BeaconRPC
@@ -45,13 +52,31 @@ func (c ChainSpec) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshals from JSON.
 func (c *ChainSpec) UnmarshalJSON(input []byte) error {
+	// Handle backward compatibility for l1_contract field
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(input, &raw); err != nil {
+		return err
+	}
+
+	// Check if l1_contract is a string (old format)
+	if l1ContractRaw, exists := raw["l1_contract"]; exists && len(l1ContractRaw) > 0 {
+		var testAddr common.Address
+		if err := json.Unmarshal(l1ContractRaw, &testAddr); err == nil {
+			// Convert single address to map format (default to PACAYA for backward compatibility)
+			mapData := map[string]string{"PACAYA": testAddr.Hex()}
+			newRaw, _ := json.Marshal(mapData)
+			raw["l1_contract"] = newRaw
+			input, _ = json.Marshal(raw)
+		}
+	}
+
 	type ChainSpec struct {
 		Name                 *Network                       `json:"name"                   gencodec:"required"`
 		ChainID              *uint64                        `json:"chain_id"               gencodec:"required"`
 		MaxSpecID            *SpecID                        `json:"max_spec_id"            gencodec:"required"`
 		HardForks            *HardForks                     `json:"hard_forks"             gencodec:"required"`
 		Eip1559Constants     *Eip1559Constants              `json:"eip_1559_constants"     gencodec:"required"`
-		L1Contract           *common.Address                `json:"l1_contract"`
+		L1Contract           map[string]*common.Address     `json:"l1_contract"`
 		L2Contract           *common.Address                `json:"l2_contract"`
 		RPC                  *string                        `json:"rpc"                    gencodec:"required"`
 		BeaconRPC            *string                        `json:"beacon_rpc"`
@@ -85,7 +110,10 @@ func (c *ChainSpec) UnmarshalJSON(input []byte) error {
 	}
 	c.Eip1559Constants = dec.Eip1559Constants
 	if dec.L1Contract != nil {
-		c.L1Contract = dec.L1Contract
+		c.L1Contract = make(map[SpecID]*common.Address, len(dec.L1Contract))
+		for k, v := range dec.L1Contract {
+			c.L1Contract[SpecID(k)] = v
+		}
 	}
 	if dec.L2Contract != nil {
 		c.L2Contract = dec.L2Contract

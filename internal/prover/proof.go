@@ -2,6 +2,7 @@ package prover
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -24,16 +25,6 @@ type ProofResponse struct {
 	PublicKey       hexutil.Bytes  `json:"public_key"`
 	InstanceAddress common.Address `json:"instance_address"`
 	Input           common.Hash    `json:"input"`
-}
-
-func NewDefaultProofResponse() ProofResponse {
-	return ProofResponse{
-		Proof:           hexutil.MustDecode("0xdefac0de"),
-		Quote:           hexutil.MustDecode("0xdefac0de"),
-		PublicKey:       hexutil.MustDecode("0xdefac0de"),
-		InstanceAddress: common.Address{},
-		Input:           common.Hash{},
-	}
 }
 
 func (p *ProofResponse) Output(w io.Writer) error {
@@ -66,6 +57,7 @@ func genAggregateProof(
 	args *flags.Arguments,
 	provider tee.Provider,
 ) error {
+	args.UpdateSGXInstanceID(witness.PacayaHardFork)
 	prevPrivKey, err := provider.LoadPrivateKey(args)
 	if err != nil {
 		return err
@@ -79,8 +71,9 @@ func genAggregateProof(
 	log.Info("receive input: ", "input", input)
 	oldInstance := common.BytesToAddress(input.Proofs[0].Proof[4:24])
 	curInstance := oldInstance
+	var pubKey *ecdsa.PublicKey
 	for i, proof := range input.Proofs {
-		pubKey, err := SigToPub(proof.Input.Bytes(), proof.Proof[24:])
+		pubKey, err = SigToPub(proof.Input.Bytes(), proof.Proof[24:])
 		if err != nil {
 			return err
 		}
@@ -126,15 +119,16 @@ func genAggregateProof(
 func genOneshotProof(
 	ctx context.Context,
 	args *flags.Arguments,
-	input witness.WitnessInput,
+	guestInput witness.GuestInput,
 	provider tee.Provider,
 ) error {
-	err := json.NewDecoder(args.WitnessReader).Decode(input)
+	err := json.NewDecoder(args.WitnessReader).Decode(guestInput)
 	if err != nil {
 		return err
 	}
-	log.Info("Start generate proof: ", "id", input.ID())
-	err = transition.ExecuteAndVerify(ctx, args, input)
+	args.UpdateSGXInstanceID(guestInput.BlockProposed().HardFork())
+	log.Info("Start generate proof: ", "id", guestInput.ID())
+	err = transition.ExecuteAndVerify(ctx, args, guestInput)
 	if err != nil {
 		return err
 	}
@@ -147,7 +141,7 @@ func genOneshotProof(
 	if args.SGXType == "debug" {
 		newInstance = args.SGXInstance
 	}
-	pi, err := witness.NewPublicInput(input, args.ProofType, args.SGXType, newInstance)
+	pi, err := witness.NewPublicInput(guestInput, args.ProofType, args.SGXType, newInstance)
 	if err != nil {
 		return err
 	}
