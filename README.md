@@ -87,5 +87,5 @@ GLOBAL OPTIONS:
 
 
 COPYRIGHT:
-   Copyright 2025-2025 The Gaiko Authors
+   Copyright 2025 The Gaiko Authors
 ```
