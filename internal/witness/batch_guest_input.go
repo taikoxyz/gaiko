@@ -12,6 +12,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus/taiko"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
@@ -738,7 +739,7 @@ func validateInputBlockParam(manifestBlock *manifest.BlockManifest, inputBlock *
 		log.Error("coinbase mismatch", "manifest", manifestBlock.Coinbase, "input", inputBlock.Coinbase())
 		return false
 	}
-	if manifestBlock.GasLimit != inputBlock.GasLimit() {
+	if manifestBlock.GasLimit+taiko.AnchorV3V4GasLimit != inputBlock.GasLimit() {
 		log.Error("gas limit mismatch", "manifest", manifestBlock.GasLimit, "input", inputBlock.GasLimit())
 		return false
 	}
