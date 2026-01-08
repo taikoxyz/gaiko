@@ -20,11 +20,12 @@ import (
 )
 
 type ProofResponse struct {
-	Proof           hexutil.Bytes  `json:"proof"`
-	Quote           hexutil.Bytes  `json:"quote"`
-	PublicKey       hexutil.Bytes  `json:"public_key"`
-	InstanceAddress common.Address `json:"instance_address"`
-	Input           common.Hash    `json:"input"`
+	Proof           hexutil.Bytes           `json:"proof"`
+	Quote           hexutil.Bytes           `json:"quote"`
+	PublicKey       hexutil.Bytes           `json:"public_key"`
+	InstanceAddress common.Address          `json:"instance_address"`
+	Input           common.Hash             `json:"input"`
+	ExtraData       *witness.ProofCarryData `json:"extra_data,omitempty"`
 }
 
 func (p *ProofResponse) Output(w io.Writer) error {
@@ -150,6 +151,23 @@ func genOneshotProof(
 		return err
 	}
 
+	var extraData *witness.ProofCarryData
+	if guestInput.BlockProposed().IsShasta() {
+		transitionInput, ok := guestInput.Transition().(witness.TransitionInputData)
+		if !ok {
+			if ptr, ok := guestInput.Transition().(*witness.TransitionInputData); ok && ptr != nil {
+				transitionInput = *ptr
+			} else {
+				return fmt.Errorf("invalid shasta transition type: %T", guestInput.Transition())
+			}
+		}
+		extraData = &witness.ProofCarryData{
+			ChainID:         guestInput.ChainID(),
+			Verifier:        guestInput.ForkVerifierAddress(args.ProofType),
+			TransitionInput: transitionInput,
+		}
+	}
+
 	sign, err := Sign(piHash.Bytes(), prevPrivKey)
 	if err != nil {
 		return err
@@ -167,5 +185,6 @@ func genOneshotProof(
 		PublicKey:       crypto.FromECDSAPub(&prevPrivKey.PublicKey),
 		InstanceAddress: newInstance,
 		Input:           piHash,
+		ExtraData:       extraData,
 	}).Output(args.ProofWriter)
 }

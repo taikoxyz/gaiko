@@ -442,12 +442,15 @@ func (b *ShastaBlockProposed) BlobTxSliceParam() *Slice {
 }
 
 func (b *ShastaBlockProposed) BlobUsed() bool {
+	if b.eventData == nil || len(b.eventData.Proposal.Sources) == 0 {
+		return false
+	}
 	for _, source := range b.eventData.Proposal.Sources {
-		if len(source.BlobSlice.BlobHashes) > 0 {
-			return true
+		if len(source.BlobSlice.BlobHashes) == 0 {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func (b *ShastaBlockProposed) HardFork() string {
@@ -538,7 +541,7 @@ func (b *ShastaBlockProposed) BlockMetadata() BlockMetadata {
 	if b.eventData == nil {
 		return &NothingBlockMetadata{}
 	}
-	return NewShastaBlockMetadata(hashProposal(&b.eventData.Proposal))
+	return NewShastaBlockMetadata(&b.eventData.Proposal)
 }
 
 func (b *ShastaBlockProposed) EventData() *ShastaEventData {

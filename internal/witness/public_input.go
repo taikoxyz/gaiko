@@ -23,11 +23,23 @@ type PublicInput struct {
 func (p *PublicInput) Hash() (common.Hash, error) {
 	// Shasta uses a different hash calculation
 	if p.blockProposed.IsShasta() {
-		transitionHash, ok := p.transition.(common.Hash)
-		if !ok {
-			return common.Hash{}, fmt.Errorf("shasta transition must be []common.Hash, got %T", p.transition)
+		var transitionInput TransitionInputData
+		switch value := p.transition.(type) {
+		case TransitionInputData:
+			transitionInput = value
+		case *TransitionInputData:
+			if value == nil {
+				return common.Hash{}, fmt.Errorf("shasta transition is nil")
+			}
+			transitionInput = *value
+		default:
+			return common.Hash{}, fmt.Errorf("shasta transition must be TransitionInputData, got %T", p.transition)
 		}
-		return transitionHash, nil
+		return HashShastaSubproofInput(&ProofCarryData{
+			ChainID:         p.chainID,
+			Verifier:        p.verifier,
+			TransitionInput: transitionInput,
+		}), nil
 	}
 
 	var (

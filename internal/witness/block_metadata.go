@@ -74,17 +74,17 @@ func (m *PacayaBlockMetadata) Hash() common.Hash {
 }
 
 type ShastaBlockMetadata struct {
-	derivationHash common.Hash
+	proposal *ShastaProposal
 }
 
-func NewShastaBlockMetadata(derivationHash common.Hash) *ShastaBlockMetadata {
-	return &ShastaBlockMetadata{derivationHash: derivationHash}
+func NewShastaBlockMetadata(proposal *ShastaProposal) *ShastaBlockMetadata {
+	return &ShastaBlockMetadata{proposal: proposal}
 }
 
 func (m *ShastaBlockMetadata) ABIEncode() ([]byte, error) {
-	return m.derivationHash.Bytes(), nil
+	return encodeShastaProposal(m.proposal)
 }
 
 func (m *ShastaBlockMetadata) Hash() common.Hash {
-	return m.derivationHash
+	return hashProposal(m.proposal)
 }

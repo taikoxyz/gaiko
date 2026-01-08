@@ -12,7 +12,6 @@ type RawAggregationGuestInput struct {
 }
 
 type ShastaRawAggregationGuestInput struct {
-	Proofs          []*RawProof    `json:"proofs"`
-	ChainID         uint64         `json:"chain_id"`
-	VerifierAddress common.Address `json:"verifier_address"`
+	Proofs            []*RawProof      `json:"proofs"`
+	ProofCarryDataVec []ProofCarryData `json:"proof_carry_data_vec"`
 }
