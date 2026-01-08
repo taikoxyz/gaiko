@@ -67,3 +67,12 @@ func TestHashCommitment(t *testing.T) {
 	expected := common.HexToHash("0x079961e990a2be01ebe286ee2fdd382fde2349730971fe32a821da9dec67559e")
 	assert.Equal(t, expected, commitmentHash, "commitment hash mismatch")
 }
+
+func TestHashPublicInput(t *testing.T) {
+	proveInputHash := common.HexToHash("0xb836ee1f972e8bcd4766bede4a9fa5267d8b6ec7cd6088562aca0b07b15f57bc")
+	chainID := uint64(167001)
+	verifier := common.HexToAddress("0x00f9f60C79e38c08b785eE4F1a849900693C6630")
+	got := hashPublicInput(proveInputHash, chainID, verifier, common.Address{})
+	expected := common.HexToHash("0x6d0ea3eb338aa3e2d85b21394d3ea426574ab7764726376a5364dee132fcd3d7")
+	assert.Equal(t, expected, got, "public input hash mismatch")
+}
