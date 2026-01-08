@@ -8,51 +8,93 @@ import (
 )
 
 func TestHashProposal(t *testing.T) {
-	// Test case: 3 values (packed, proposer, derivationHash) - no coreStateHash after PR #642
 	proposal := &ShastaProposal{
-		ID:                             3549,
-		Timestamp:                      1761830468,
-		EndOfSubmissionWindowTimestamp: 0,
-		Proposer:                       common.HexToAddress("0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"),
-		DerivationHash:                 common.HexToHash("0x85422bfec85e2cb6d5ca9f52858a74b680865c0134c0e29af710d8e01d58898a"),
-	}
-
-	proposalHash := hashProposal(proposal)
-	expected := common.HexToHash("0x0fd2106121ee59690d5c49dcbd1603e9eedff34da6dd6afe5de01d30188d770d")
-
-	assert.Equal(t, expected, proposalHash, "proposal hash mismatch")
-}
-
-func TestHashCheckpoint(t *testing.T) {
-	checkpoint := &ShastaCheckpoint{
-		BlockNumber: 1512,
-		BlockHash:   common.HexToHash("0x83cf1bb221b330d372ce0fbca82cb060fa028d3f6bfd62a74197789e25ac2b5f"),
-		StateRoot:   common.HexToHash("0x63651766d70b5aaf0320fc63421f4d1fdf6fe828514e21e05615e9c2f93c9c7d"),
-	}
-
-	checkpointHash := hashCheckpoint(checkpoint)
-	t.Logf("Checkpoint hash: %s", checkpointHash.Hex())
-	// We don't have expected value from Raiko for checkpoint alone, but log it for debugging
-}
-
-func TestHashTransitionWithMetadata(t *testing.T) {
-	// Test case from Raiko's test_shasta_transition_hash
-	transition := &ShastaTransition{
-		ProposalHash:         common.HexToHash("0xd469fc0c500db1c87cd4fcf0650628cf4be84b03feb29dbca9ce1daee2750274"),
-		ParentTransitionHash: common.HexToHash("0x66aa40046aa64a8e0a7ecdbbc70fb2c63ebdcb2351e7d0b626ed3cb4f55fb388"),
-		Checkpoint: ShastaCheckpoint{
-			BlockNumber: 1512,
-			BlockHash:   common.HexToHash("0x83cf1bb221b330d372ce0fbca82cb060fa028d3f6bfd62a74197789e25ac2b5f"),
-			StateRoot:   common.HexToHash("0x63651766d70b5aaf0320fc63421f4d1fdf6fe828514e21e05615e9c2f93c9c7d"),
+		ID:                             12345,
+		Timestamp:                      193_828_690,
+		EndOfSubmissionWindowTimestamp: 193_829_690,
+		Proposer:                       common.HexToAddress("0x1234567890AbcdEF1234567890aBcdef12345678"),
+		ParentProposalHash:             common.HexToHash("0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"),
+		OriginBlockNumber:              73_826,
+		OriginBlockHash:                common.HexToHash("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+		BasefeeSharingPctg:             42,
+		Sources: []ShastaDerivationSource{
+			{
+				IsForcedInclusion: true,
+				BlobSlice: ShastaBlobSlice{
+					BlobHashes: []common.Hash{
+						common.HexToHash("0x67890abcdef1234567890abcdef123451234567890abcdef1234567890abcdef"),
+					},
+					Offset:    0,
+					Timestamp: 100,
+				},
+			},
+			{
+				IsForcedInclusion: false,
+				BlobSlice: ShastaBlobSlice{
+					BlobHashes: []common.Hash{
+						common.HexToHash("0x567890abcdef123451234567890abcdef123456767890abcdef1234890abcdef"),
+					},
+					Offset:    100,
+					Timestamp: 200,
+				},
+			},
 		},
 	}
 
-	metadata := &ShastaTransitionMetadata{
-		DesignatedProver: common.HexToAddress("0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"),
-		ActualProver:     common.HexToAddress("0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"),
+	proposalHash := hashProposal(proposal)
+	expected := common.HexToHash("0x13af2d05799894db3462512e3ecf5ae8877b80b1e2db3963654ac70f6dd49f88")
+	assert.Equal(t, expected, proposalHash, "proposal hash mismatch")
+}
+
+func TestHashCommitment(t *testing.T) {
+	commitment := &ShastaCommitment{
+		FirstProposalID:              42,
+		FirstProposalParentBlockHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000999"),
+		LastProposalHash:             common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000123456"),
+		ActualProver:                 common.HexToAddress("0x0000000000000000000000000000000000012345"),
+		EndBlockNumber:               1000,
+		EndStateRoot:                 common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000abcdef"),
+		Transitions: []ShastaTransition{
+			{
+				Proposer:  common.HexToAddress("0x0000000000000000000000000000000000001111"),
+				Timestamp: 123_456_789,
+				BlockHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000003333"),
+			},
+		},
 	}
 
-	transitionHash := hashTransitionWithMetadata(transition, metadata)
-	t.Logf("Transition hash: %s", transitionHash.Hex())
-	// Expected value from Raiko test (continuation of test in Raiko source)
+	commitmentHash := hashCommitment(commitment)
+	expected := common.HexToHash("0x079961e990a2be01ebe286ee2fdd382fde2349730971fe32a821da9dec67559e")
+	assert.Equal(t, expected, commitmentHash, "commitment hash mismatch")
+}
+
+func TestHashPublicInput(t *testing.T) {
+	proveInputHash := common.HexToHash("0xb836ee1f972e8bcd4766bede4a9fa5267d8b6ec7cd6088562aca0b07b15f57bc")
+	chainID := uint64(167001)
+	verifier := common.HexToAddress("0x00f9f60C79e38c08b785eE4F1a849900693C6630")
+	got := hashPublicInput(proveInputHash, chainID, verifier, common.Address{})
+	expected := common.HexToHash("0x6d0ea3eb338aa3e2d85b21394d3ea426574ab7764726376a5364dee132fcd3d7")
+	assert.Equal(t, expected, got, "public input hash mismatch")
+}
+
+// TestShastaAggregationOutput tests the shasta aggregation output hash matching Rust test.
+func TestShastaAggregationOutput(t *testing.T) {
+	commitment := &ShastaCommitment{
+		FirstProposalID:              12345,
+		FirstProposalParentBlockHash: common.Hash{},
+		LastProposalHash:             common.Hash{},
+		ActualProver:                 common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		EndBlockNumber:               1,
+		EndStateRoot:                 common.Hash{},
+		Transitions:                  []ShastaTransition{},
+	}
+	chainID := uint64(167001)
+	verifier := common.HexToAddress("0x00f9f60C79e38c08b785eE4F1a849900693C6630")
+	sgxInstance := common.HexToAddress("0xdc95623058E847fA38e56a0Fa466Bf52C48eFA32")
+
+	commitmentHash := hashCommitment(commitment)
+	finalHash := hashPublicInput(commitmentHash, chainID, verifier, sgxInstance)
+
+	expected := common.HexToHash("0x5ffd635c42c7e6f7a5aa6c83be7db37dd1c24f1b474606ef0901b9b32beffaae")
+	assert.Equal(t, expected, finalHash, "shasta aggregation output hash mismatch")
 }

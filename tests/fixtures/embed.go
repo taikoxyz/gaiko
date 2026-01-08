@@ -43,6 +43,11 @@ func GetShastaInputs() (map[uint64]*Pair, error) {
 	return getInputs(shastaInputs, "shasta")
 }
 
+// ReadShastaFixture reads a raw Shasta fixture by filename from the embedded FS.
+func ReadShastaFixture(name string) ([]byte, error) {
+	return fs.ReadFile(shastaInputs, filepath.Join("shasta", name))
+}
+
 func getInputs(fsys fs.FS, root string) (map[uint64]*Pair, error) {
 	inputs := make(map[uint64]*Pair)
 	return inputs, fs.WalkDir(

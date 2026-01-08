@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	gaikoTypes "github.com/taikoxyz/gaiko/internal/types"
 )
@@ -58,26 +59,35 @@ func (t *taikoGuestDataSourceJSON) GethType() *TaikoGuestDataSource {
 }
 
 type taikoGuestBatchInputJSON struct {
-	BatchID       uint64                      `json:"batch_id"`
-	L1Header      *gaikoTypes.Header          `json:"l1_header"`
-	BatchProposed *blockProposedJSON          `json:"batch_proposed"`
-	ChainSpec     *ChainSpec                  `json:"chain_spec"`
-	ProverData    *TaikoProverData            `json:"prover_data"`
-	DataSources   []*taikoGuestDataSourceJSON `json:"data_sources"`
+	BatchID           uint64                      `json:"batch_id"`
+	L1Header          *gaikoTypes.Header          `json:"l1_header"`
+	L1AncestorHeaders []*gaikoTypes.Header        `json:"l1_ancestor_headers"`
+	BatchProposed     *blockProposedJSON          `json:"batch_proposed"`
+	ChainSpec         *ChainSpec                  `json:"chain_spec"`
+	ProverData        *TaikoProverData            `json:"prover_data"`
+	DataSources       []*taikoGuestDataSourceJSON `json:"data_sources"`
 }
 
 func (t *taikoGuestBatchInputJSON) GethType() *TaikoGuestBatchInput {
+	var ancestorHeaders []*types.Header
+	if len(t.L1AncestorHeaders) != 0 {
+		ancestorHeaders = make([]*types.Header, len(t.L1AncestorHeaders))
+		for i, header := range t.L1AncestorHeaders {
+			ancestorHeaders[i] = header.GethType()
+		}
+	}
 	dataSources := make([]*TaikoGuestDataSource, 0, len(t.DataSources))
 	for _, ds := range t.DataSources {
 		dataSources = append(dataSources, ds.GethType())
 	}
 	return &TaikoGuestBatchInput{
-		BatchID:       t.BatchID,
-		L1Header:      t.L1Header.GethType(),
-		BatchProposed: t.BatchProposed.GethType(),
-		ChainSpec:     t.ChainSpec,
-		ProverData:    t.ProverData,
-		DataSources:   dataSources,
+		BatchID:           t.BatchID,
+		L1Header:          t.L1Header.GethType(),
+		L1AncestorHeaders: ancestorHeaders,
+		BatchProposed:     t.BatchProposed.GethType(),
+		ChainSpec:         t.ChainSpec,
+		ProverData:        t.ProverData,
+		DataSources:       dataSources,
 	}
 }
 

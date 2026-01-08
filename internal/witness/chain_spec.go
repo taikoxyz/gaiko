@@ -246,6 +246,15 @@ func (c *ChainSpec) getForkVerifierAddress(
 	return common.Address{}
 }
 
+func (c *ChainSpec) activeFork(blockNum uint64, timestamp uint64) SpecID {
+	for _, fork := range slices.Backward(c.HardForks) {
+		if fork.Condition.Active(blockNum, timestamp) {
+			return fork.SpecID
+		}
+	}
+	return SpecID(NothingHardFork)
+}
+
 func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) {
 	switch c.Name {
 	case TaikoMainnetNetwork:

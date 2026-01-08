@@ -426,7 +426,7 @@ func (b *ShastaBlockProposed) BlockNumber() uint64 {
 	// In raiko, block_number() is unimplemented for Shasta since a proposal can contain
 	// multiple blocks. We use proposal_block_number semantics here for fork activation.
 	// Per raiko c0fa596: proposal_block_number = derivation.originBlockNumber + 1
-	return b.eventData.Derivation.OriginBlockNumber + 1
+	return b.eventData.Proposal.OriginBlockNumber + 1
 }
 
 func (b *ShastaBlockProposed) BlockTimestamp() uint64 {
@@ -442,12 +442,15 @@ func (b *ShastaBlockProposed) BlobTxSliceParam() *Slice {
 }
 
 func (b *ShastaBlockProposed) BlobUsed() bool {
-	for _, source := range b.eventData.Derivation.Sources {
-		if len(source.BlobSlice.BlobHashes) > 0 {
-			return true
+	if b.eventData == nil || len(b.eventData.Proposal.Sources) == 0 {
+		return false
+	}
+	for _, source := range b.eventData.Proposal.Sources {
+		if len(source.BlobSlice.BlobHashes) == 0 {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func (b *ShastaBlockProposed) HardFork() string {
@@ -511,10 +514,10 @@ func (b *ShastaBlockProposed) Coinbase() common.Address {
 }
 
 func (b *ShastaBlockProposed) BlobHashes() [][32]byte {
-	if b.eventData == nil || len(b.eventData.Derivation.Sources) == 0 {
+	if b.eventData == nil || len(b.eventData.Proposal.Sources) == 0 {
 		return nil
 	}
-	hashes := b.eventData.Derivation.Sources[0].BlobSlice.BlobHashes
+	hashes := b.eventData.Proposal.Sources[0].BlobSlice.BlobHashes
 	out := make([][32]byte, len(hashes))
 	for i, hash := range hashes {
 		out[i] = hash
@@ -538,7 +541,7 @@ func (b *ShastaBlockProposed) BlockMetadata() BlockMetadata {
 	if b.eventData == nil {
 		return &NothingBlockMetadata{}
 	}
-	return NewShastaBlockMetadata(b.eventData.Proposal.DerivationHash)
+	return NewShastaBlockMetadata(&b.eventData.Proposal)
 }
 
 func (b *ShastaBlockProposed) EventData() *ShastaEventData {

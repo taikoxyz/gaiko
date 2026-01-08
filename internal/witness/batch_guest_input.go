@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/taiko"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -34,12 +35,13 @@ type BatchGuestInput struct {
 }
 
 type TaikoGuestBatchInput struct {
-	BatchID       uint64
-	L1Header      *types.Header
-	BatchProposed BlockProposed
-	ChainSpec     *ChainSpec
-	ProverData    *TaikoProverData
-	DataSources   []*TaikoGuestDataSource
+	BatchID           uint64
+	L1Header          *types.Header
+	L1AncestorHeaders []*types.Header
+	BatchProposed     BlockProposed
+	ChainSpec         *ChainSpec
+	ProverData        *TaikoProverData
+	DataSources       []*TaikoGuestDataSource
 }
 
 type TaikoGuestDataSource struct {
@@ -163,10 +165,14 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		log.Warn("missing shasta data sources")
 		return
 	}
-	if len(eventData.Derivation.Sources) != len(g.Taiko.DataSources) {
+	if g.Taiko.ProverData == nil {
+		log.Warn("missing shasta prover data")
+		return
+	}
+	if len(eventData.Proposal.Sources) != len(g.Taiko.DataSources) {
 		log.Warn(
 			"shasta derivation sources and data sources mismatch",
-			"derivationSources", len(eventData.Derivation.Sources),
+			"derivationSources", len(eventData.Proposal.Sources),
 			"dataSources", len(g.Taiko.DataSources),
 		)
 	}
@@ -176,9 +182,22 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		return
 	}
 
+	if len(g.Inputs) == 0 {
+		log.Warn("missing shasta inputs")
+		return
+	}
+
+	lastParentBlockTimestamp := g.Inputs[0].ParentHeader.Time
+	lastParentBlockGasLimit := g.Inputs[0].ParentHeader.GasLimit
+	proposalTimestamp := eventData.Proposal.Timestamp
+	isFirstShastaProposal := g.Taiko.ChainSpec.activeFork(
+		g.Inputs[0].ParentHeader.Number.Uint64(),
+		g.Inputs[0].ParentHeader.Time,
+	) == SpecID(PacayaHardFork)
+
 	var allBlockTxs []types.Transactions
 	for idx, dataSource := range g.Taiko.DataSources {
-		if idx >= len(eventData.Derivation.Sources) {
+		if idx >= len(eventData.Proposal.Sources) {
 			log.Warn("extra data source without derivation metadata", "index", idx)
 			break
 		}
@@ -205,7 +224,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			if len(combined) == 0 {
 				return nil
 			}
-			offset := int(eventData.Derivation.Sources[idx].BlobSlice.Offset)
+			offset := int(eventData.Proposal.Sources[idx].BlobSlice.Offset)
 			if offset+64 > len(combined) {
 				return nil
 			}
@@ -234,30 +253,40 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 
 		if idx == len(g.Taiko.DataSources)-1 {
 			// Normal source
-			if decodeErr == nil && validateNormalProposalManifest(&source, g.Taiko.ProverData.LastAnchorBlockNumber) {
-				validManifest = &source
+			if decodeErr == nil && validateNormalProposalManifest(g, &source, g.Taiko.ProverData.LastAnchorBlockNumber) {
+				if !validateShastaBlockBaseFee(g.Inputs, isFirstShastaProposal) {
+					log.Warn("shasta block base fee is invalid, use default manifest")
+					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
+					coinbase := g.Taiko.BatchProposed.Proposer()
+					anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
+					validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
+				} else {
+					validManifest = &source
+				}
 			} else {
 				// Fallback
-				timestamp := g.Taiko.L1Header.Time
+				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
 				coinbase := g.Taiko.BatchProposed.Proposer()
 				anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
-				lastInput := g.Inputs[len(g.Inputs)-1]
-				gasLimit := lastInput.ParentHeader.GasLimit
-
-				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, gasLimit)
+				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
 			}
 		} else {
 			// Force inclusion source
 			if decodeErr == nil && validateForceIncProposalManifest(&source) {
 				validManifest = &source
+				if len(source.Blocks) > 0 {
+					lastParentBlockTimestamp = source.Blocks[0].Timestamp
+					lastParentBlockGasLimit = source.Blocks[0].GasLimit
+				}
 			} else {
 				// Fallback
-				timestamp := g.Taiko.L1Header.Time
+				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
 				coinbase := g.Taiko.BatchProposed.Proposer()
 				anchorBlockNumber := uint64(0)
-				gasLimit := uint64(0)
-
-				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, gasLimit)
+				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
+				if len(validManifest.Blocks) > 0 {
+					lastParentBlockTimestamp = validManifest.Blocks[0].Timestamp
+				}
 			}
 		}
 
@@ -345,8 +374,64 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 		return errors.New("missing taiko batch data sources")
 	}
 
-	// 2. validate blob commitments/proofs per data source
+	// 2. resolve expected blob hashes per data source
+	expectedBlobHashesPerSource := make([][]common.Hash, 0, len(g.Taiko.DataSources))
+	if g.Taiko.BatchProposed.IsShasta() {
+		shastaBlock, ok := g.Taiko.BatchProposed.(*ShastaBlockProposed)
+		if !ok {
+			return fmt.Errorf("expected ShastaBlockProposed, got %T", g.Taiko.BatchProposed)
+		}
+		eventData := shastaBlock.EventData()
+		if eventData == nil {
+			return errors.New("missing shasta event data")
+		}
+		if len(eventData.Proposal.Sources) != len(g.Taiko.DataSources) {
+			return fmt.Errorf(
+				"shasta derivation sources and data sources mismatch: expected %d, got %d",
+				len(eventData.Proposal.Sources),
+				len(g.Taiko.DataSources),
+			)
+		}
+		for _, source := range eventData.Proposal.Sources {
+			expectedBlobHashesPerSource = append(expectedBlobHashesPerSource, source.BlobSlice.BlobHashes)
+		}
+	} else {
+		blobHashes := g.Taiko.BatchProposed.BlobHashes()
+		hashes := make([]common.Hash, len(blobHashes))
+		for i, hash := range blobHashes {
+			hashes[i] = common.Hash(hash)
+		}
+		for range g.Taiko.DataSources {
+			expectedBlobHashesPerSource = append(expectedBlobHashesPerSource, hashes)
+		}
+	}
+	if len(expectedBlobHashesPerSource) != len(g.Taiko.DataSources) {
+		return fmt.Errorf(
+			"data sources length mismatch: expected %d, got %d",
+			len(expectedBlobHashesPerSource),
+			len(g.Taiko.DataSources),
+		)
+	}
+
+	// 3. validate blob commitments/proofs per data source
 	for idx, dataSource := range g.Taiko.DataSources {
+		// check txlist comes from either calldata or blob, but not both exist
+		calldataNotEmpty := len(dataSource.TxDataFromCalldata) != 0
+		blobNotEmpty := len(dataSource.TxDataFromBlob) != 0
+		if calldataNotEmpty && blobNotEmpty {
+			return fmt.Errorf("data source %d txlist comes from either calldata or blob, but not both", idx)
+		}
+
+		expectedBlobHashes := expectedBlobHashesPerSource[idx]
+		if len(expectedBlobHashes) != len(dataSource.TxDataFromBlob) {
+			return fmt.Errorf(
+				"source %d blob hashes length mismatch, expected: %d, got: %d",
+				idx,
+				len(expectedBlobHashes),
+				len(dataSource.TxDataFromBlob),
+			)
+		}
+
 		blobProofType := getBlobProofType(proofType, dataSource.BlobProofType)
 		switch blobProofType {
 		case KzgVersionedHash:
@@ -364,6 +449,24 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 					}(),
 				)
 			}
+			if len(dataSource.TxDataFromBlob) == 0 {
+				break
+			}
+			commitments := dataSource.BlobCommitments
+			if commitments == nil {
+				return fmt.Errorf("missing blob commitments in data source %d", idx)
+			}
+			for i, blobData := range dataSource.TxDataFromBlob {
+				commitment := kzg4844.Commitment((*commitments)[i])
+				expectedHash := expectedBlobHashes[i]
+				if eth.KZGToVersionedHash(commitment) != expectedHash {
+					return fmt.Errorf("versioned hash mismatch in data source %d, index %d", idx, i)
+				}
+				blob := eth.Blob(blobData)
+				if err := verifyBlob(blobProofType, &blob, commitment, nil); err != nil {
+					return err
+				}
+			}
 		case ProofOfEquivalence:
 			if len(dataSource.TxDataFromBlob) != 0 &&
 				(dataSource.BlobProofs == nil || len(dataSource.TxDataFromBlob) != len(*dataSource.BlobProofs)) {
@@ -379,13 +482,29 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 					}(),
 				)
 			}
-		}
-
-		// 3. check txlist comes from either calldata or blob, but not both exist
-		calldataNotEmpty := len(dataSource.TxDataFromCalldata) != 0
-		blobNotEmpty := len(dataSource.TxDataFromBlob) != 0
-		if calldataNotEmpty && blobNotEmpty {
-			return fmt.Errorf("data source %d txlist comes from either calldata or blob, but not both", idx)
+			if len(dataSource.TxDataFromBlob) == 0 {
+				break
+			}
+			commitments := dataSource.BlobCommitments
+			proofs := dataSource.BlobProofs
+			if commitments == nil {
+				return fmt.Errorf("missing blob commitments in data source %d", idx)
+			}
+			if proofs == nil {
+				return fmt.Errorf("missing blob proofs in data source %d", idx)
+			}
+			for i, blobData := range dataSource.TxDataFromBlob {
+				commitment := kzg4844.Commitment((*commitments)[i])
+				proof := kzg4844.Proof((*proofs)[i])
+				expectedHash := expectedBlobHashes[i]
+				if eth.KZGToVersionedHash(commitment) != expectedHash {
+					return fmt.Errorf("versioned hash mismatch in data source %d, index %d", idx, i)
+				}
+				blob := eth.Blob(blobData)
+				if err := verifyBlob(blobProofType, &blob, commitment, &proof); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -410,6 +529,54 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 			maxBlocksPerBatch,
 			len(g.Inputs),
 		)
+	}
+
+	// 5. Shasta-specific anchor linkage and origin checks
+	if g.Taiko.BatchProposed.IsShasta() {
+		shastaBlock, ok := g.Taiko.BatchProposed.(*ShastaBlockProposed)
+		if !ok {
+			return fmt.Errorf("expected ShastaBlockProposed, got %T", g.Taiko.BatchProposed)
+		}
+		eventData := shastaBlock.EventData()
+		if eventData == nil {
+			return errors.New("missing shasta event data")
+		}
+		if g.Taiko.L1Header == nil {
+			return errors.New("missing l1 header for shasta batch input")
+		}
+		if eventData.Proposal.OriginBlockNumber != g.Taiko.L1Header.Number.Uint64() {
+			return fmt.Errorf(
+				"l1 origin block number mismatch, expected %d, got %d",
+				eventData.Proposal.OriginBlockNumber,
+				g.Taiko.L1Header.Number.Uint64(),
+			)
+		}
+		if eventData.Proposal.OriginBlockHash != g.Taiko.L1Header.Hash() {
+			return fmt.Errorf(
+				"l1 origin block hash mismatch, expected %#x, got %#x",
+				eventData.Proposal.OriginBlockHash,
+				g.Taiko.L1Header.Hash(),
+			)
+		}
+		if _, err := encodeShastaProposal(&eventData.Proposal); err != nil {
+			return err
+		}
+		if err := verifyShastaAnchorLinkage(g.Inputs, g.Taiko.L1AncestorHeaders, eventData.Proposal.OriginBlockHash); err != nil {
+			return err
+		}
+		if g.Taiko.ProverData != nil && g.Taiko.ProverData.Checkpoint != nil && len(g.Inputs) > 0 {
+			lastBlock := g.Inputs[len(g.Inputs)-1].Block
+			expectedCheckpoint := ShastaCheckpoint{
+				BlockNumber: lastBlock.NumberU64(),
+				BlockHash:   lastBlock.Hash(),
+				StateRoot:   lastBlock.Root(),
+			}
+			if expectedCheckpoint.BlockNumber != g.Taiko.ProverData.Checkpoint.BlockNumber ||
+				expectedCheckpoint.BlockHash != g.Taiko.ProverData.Checkpoint.BlockHash ||
+				expectedCheckpoint.StateRoot != g.Taiko.ProverData.Checkpoint.StateRoot {
+				return fmt.Errorf("shasta checkpoint mismatch, expected %+v, got %+v", expectedCheckpoint, g.Taiko.ProverData.Checkpoint)
+			}
+		}
 	}
 
 	// 5. verify the continuity of the blocks
@@ -455,7 +622,7 @@ func (g *BatchGuestInput) BlockMetadata() (BlockMetadata, error) {
 		if eventData == nil {
 			return nil, errors.New("missing shasta event data")
 		}
-		return NewShastaBlockMetadata(eventData.Proposal.DerivationHash), nil
+		return NewShastaBlockMetadata(&eventData.Proposal), nil
 	}
 
 	dataSource := g.Taiko.primaryDataSource()
@@ -547,85 +714,39 @@ func (g *BatchGuestInput) Transition() any {
 	}
 }
 
-func (g *BatchGuestInput) buildShastaTransition() common.Hash {
+func (g *BatchGuestInput) buildShastaTransition() TransitionInputData {
 	shastaBlock, ok := g.Taiko.BatchProposed.(*ShastaBlockProposed)
-	if !ok {
-		return common.Hash{}
+	if !ok || shastaBlock.EventData() == nil || len(g.Inputs) == 0 {
+		return TransitionInputData{}
 	}
 	eventData := shastaBlock.EventData()
-	if eventData == nil {
-		return common.Hash{}
+
+	lastBlock := g.Inputs[len(g.Inputs)-1].Block
+	checkpoint := ShastaCheckpoint{
+		BlockNumber: lastBlock.NumberU64(),
+		BlockHash:   lastBlock.Hash(),
+		StateRoot:   lastBlock.Root(),
 	}
 
-	if len(g.Inputs) == 0 {
-		return common.Hash{}
-	}
-
-	var (
-		proposalHash         = hashProposal(&eventData.Proposal)
-		parentTransitionHash common.Hash
-		checkpoint           *ShastaProposalCheckpoint
-		designatedProver     common.Address
-		designatedProverSet  bool
-		actualProver         common.Address
-	)
-
+	proposalHash := hashProposal(&eventData.Proposal)
+	parentBlockHash := g.Inputs[0].ParentHeader.Hash()
+	actualProver := common.Address{}
 	if g.Taiko.ProverData != nil {
-		if g.Taiko.ProverData.ParentTransitionHash != nil {
-			parentTransitionHash = *g.Taiko.ProverData.ParentTransitionHash
-		}
-		checkpoint = g.Taiko.ProverData.Checkpoint
-		designatedProver = g.Taiko.ProverData.DesignatedProver
-		designatedProverSet = g.Taiko.ProverData.designatedProverSet
 		actualProver = g.Taiko.ProverData.ActualProver
 	}
 
-	if checkpoint == nil {
-		// If no checkpoint in prover_data, use the first block as checkpoint
-		lastBlock := g.Inputs[len(g.Inputs)-1].Block
-		checkpoint = &ShastaProposalCheckpoint{
-			BlockNumber: lastBlock.NumberU64(),
-			BlockHash:   lastBlock.Hash(),
-			StateRoot:   lastBlock.Root(),
-		}
-	}
-
-	// If no prover data, fall back to core state and proposer
-	// Note: CoreState was removed in raiko c0fa596, parent_transition_hash should be in prover_data
-	if parentTransitionHash == (common.Hash{}) {
-		// Fallback for backwards compatibility - this path should rarely be used
-		if eventData.CoreState.LastFinalizedTransitionHash != (common.Hash{}) {
-			log.Warn("using deprecated CoreState.LastFinalizedTransitionHash as fallback for parentTransitionHash")
-			parentTransitionHash = eventData.CoreState.LastFinalizedTransitionHash
-		}
-	}
-	if !designatedProverSet {
-		designatedProver = eventData.Proposal.Proposer
-	}
-	if actualProver == (common.Address{}) {
-		actualProver = designatedProver
-	}
-
-	// Create transition
-	transition := &ShastaTransition{
-		ProposalHash:         proposalHash,
-		ParentTransitionHash: parentTransitionHash,
-		Checkpoint: ShastaCheckpoint{
-			BlockNumber: checkpoint.BlockNumber,
-			BlockHash:   checkpoint.BlockHash,
-			StateRoot:   checkpoint.StateRoot,
+	return TransitionInputData{
+		ProposalID:         eventData.Proposal.ID,
+		ProposalHash:       proposalHash,
+		ParentProposalHash: eventData.Proposal.ParentProposalHash,
+		ParentBlockHash:    parentBlockHash,
+		ActualProver:       actualProver,
+		Transition: ShastaTransitionInput{
+			Proposer:  eventData.Proposal.Proposer,
+			Timestamp: eventData.Proposal.Timestamp,
 		},
+		Checkpoint: checkpoint,
 	}
-
-	// Create metadata
-	metadata := &ShastaTransitionMetadata{
-		DesignatedProver: designatedProver,
-		ActualProver:     actualProver,
-	}
-
-	// Compute transition hash
-	transitionHash := hashTransitionWithMetadata(transition, metadata)
-	return transitionHash
 }
 
 func (g *BatchGuestInput) ForkVerifierAddress(proofType ProofType) common.Address {
@@ -667,8 +788,17 @@ func (g *BatchGuestInput) ChainConfig() (*params.ChainConfig, error) {
 }
 
 const (
-	timestampMaxOffset = 12 * 32
-	proposalMaxBlocks  = 384
+	shastaBlockGasLimitMaxChange = 200
+	shastaGasLimitDenominator    = 1_000_000
+	shastaMaxBlockGasLimitBase   = 45_000_000
+	shastaMinBlockGasLimitBase   = 10_000_000
+
+	shastaBlockTimeTarget             = 2
+	shastaMaxGasTargetTargetPercent   = 95
+	shastaMinBaseFee                  = 5_000_000
+	shastaMaxBaseFee                  = 1_000_000_000
+	shastaDefaultBaseFeeDenominator   = 8
+	shastaDefaultElasticityMultiplier = 2
 )
 
 func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
@@ -681,13 +811,7 @@ func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
 		}
 
 		parentTimestamp := input.ParentHeader.Time
-		lowerBound := parentTimestamp + 1
-		if proposalTimestamp > timestampMaxOffset {
-			altLowerBound := proposalTimestamp - timestampMaxOffset
-			if altLowerBound > lowerBound {
-				lowerBound = altLowerBound
-			}
-		}
+		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp)
 
 		if blockTimestamp < lowerBound {
 			return fmt.Errorf("block timestamp %d is less than calculated lower bound %d", blockTimestamp, lowerBound)
@@ -696,22 +820,74 @@ func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
 	return nil
 }
 
-func validAnchorInNormalProposal(blocks []*manifest.BlockManifest, lastAnchorBlockNumber uint64) bool {
+func validAnchorInNormalProposal(
+	blocks []*manifest.BlockManifest,
+	lastAnchorBlockNumber uint64,
+	proposalBlockNumber uint64,
+) bool {
+	minAnchor := uint64(0)
+	if proposalBlockNumber > manifest.AnchorMaxOffset {
+		minAnchor = proposalBlockNumber - manifest.AnchorMaxOffset
+	}
+	maxAnchor := uint64(0)
+	if proposalBlockNumber > manifest.AnchorMinOffset {
+		maxAnchor = proposalBlockNumber - manifest.AnchorMinOffset
+	}
+
+	hasAnchorGrow := false
+	var prevAnchor uint64
+	prevAnchorSet := false
 	for _, block := range blocks {
-		if block.AnchorBlockNumber > lastAnchorBlockNumber {
-			return true
+		anchor := block.AnchorBlockNumber
+		if anchor > lastAnchorBlockNumber {
+			hasAnchorGrow = true
+		}
+		if prevAnchorSet && anchor < prevAnchor {
+			log.Error("anchor is not in order", "blocks", blocks)
+			return false
+		}
+		prevAnchor = anchor
+		prevAnchorSet = true
+		if anchor < minAnchor || anchor > maxAnchor {
+			log.Error(
+				"anchor out of range",
+				"anchor", anchor,
+				"min", minAnchor,
+				"max", maxAnchor,
+			)
+			return false
 		}
 	}
-	return false
+
+	if !hasAnchorGrow {
+		log.Error("anchor is not growing", "lastAnchorBlockNumber", lastAnchorBlockNumber)
+	}
+	return hasAnchorGrow
 }
 
-func validateNormalProposalManifest(m *manifest.DerivationSourceManifest, lastAnchorBlockNumber uint64) bool {
-	if len(m.Blocks) > proposalMaxBlocks {
-		log.Error("manifest block number exceeds limit", "count", len(m.Blocks), "limit", proposalMaxBlocks)
+func validateNormalProposalManifest(
+	input *BatchGuestInput,
+	m *manifest.DerivationSourceManifest,
+	lastAnchorBlockNumber uint64,
+) bool {
+	if len(m.Blocks) > manifest.ProposalMaxBlocks {
+		log.Error(
+			"manifest block number exceeds limit",
+			"count", len(m.Blocks),
+			"limit", manifest.ProposalMaxBlocks,
+		)
 		return false
 	}
-	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber) {
+	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber, input.Taiko.BatchProposed.BlockNumber()) {
 		log.Error("valid_anchor_in_proposal failed", "lastAnchorBlockNumber", lastAnchorBlockNumber)
+		return false
+	}
+	if !validateShastaBlockGasLimit(m.Blocks, input.Inputs) {
+		log.Error("validate_shasta_block_gas_limit failed")
+		return false
+	}
+	if !validateShastaManifestBlockTimestamp(m.Blocks, input) {
+		log.Error("validate_shasta_block_timesatmp failed")
 		return false
 	}
 	return true
@@ -746,12 +922,284 @@ func validateInputBlockParam(manifestBlock *manifest.BlockManifest, inputBlock *
 	return true
 }
 
+func validateShastaBlockGasLimit(
+	manifestBlocks []*manifest.BlockManifest,
+	blockGuestInputs []*SingleGuestInput,
+) bool {
+	if len(blockGuestInputs) == 0 {
+		return false
+	}
+	parentGasLimit := blockGuestInputs[0].ParentHeader.GasLimit
+	maxBlockGasLimit := shastaMaxBlockGasLimitBase + taiko.AnchorV3V4GasLimit
+	minBlockGasLimit := shastaMinBlockGasLimitBase + taiko.AnchorV3V4GasLimit
+	for _, manifestBlock := range manifestBlocks {
+		blockGasLimit := manifestBlock.GasLimit + taiko.AnchorV3V4GasLimit
+		upperLimit := min(
+			maxBlockGasLimit,
+			parentGasLimit*(shastaGasLimitDenominator+shastaBlockGasLimitMaxChange)/shastaGasLimitDenominator,
+		)
+		lowerLimit := min(
+			max(
+				minBlockGasLimit,
+				parentGasLimit*(shastaGasLimitDenominator-shastaBlockGasLimitMaxChange)/shastaGasLimitDenominator,
+			),
+			upperLimit,
+		)
+		if blockGasLimit < lowerLimit || blockGasLimit > upperLimit {
+			log.Error(
+				"block gas limit out of bounds",
+				"blockGasLimit", blockGasLimit,
+				"lowerLimit", lowerLimit,
+				"upperLimit", upperLimit,
+			)
+			return false
+		}
+		parentGasLimit = blockGasLimit
+	}
+	return true
+}
+
+func validateShastaManifestBlockTimestamp(
+	blocks []*manifest.BlockManifest,
+	batchInput *BatchGuestInput,
+) bool {
+	if len(batchInput.Inputs) == 0 {
+		return false
+	}
+	proposalTimestamp := batchInput.Taiko.BatchProposed.ProposedAt()
+	parentTimestamp := batchInput.Inputs[0].ParentHeader.Time
+	for _, block := range blocks {
+		blockTimestamp := block.Timestamp
+		if blockTimestamp > proposalTimestamp {
+			log.Error(
+				"block timestamp exceeds proposal timestamp",
+				"blockTimestamp", blockTimestamp,
+				"proposalTimestamp", proposalTimestamp,
+			)
+			return false
+		}
+		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp)
+		if blockTimestamp < lowerBound {
+			log.Error(
+				"block timestamp below lower bound",
+				"blockTimestamp", blockTimestamp,
+				"lowerBound", lowerBound,
+			)
+			return false
+		}
+		parentTimestamp = blockTimestamp
+	}
+	return true
+}
+
+func clampTimestampLowerBound(parentTimestamp uint64, proposalTimestamp uint64) uint64 {
+	lowerBound := parentTimestamp + 1
+	if proposalTimestamp > manifest.TimestampMaxOffset {
+		altLowerBound := proposalTimestamp - manifest.TimestampMaxOffset
+		if altLowerBound > lowerBound {
+			lowerBound = altLowerBound
+		}
+	}
+	return lowerBound
+}
+
+func clampShastaBaseFee(baseFee uint64) uint64 {
+	if baseFee < shastaMinBaseFee {
+		return shastaMinBaseFee
+	}
+	if baseFee > shastaMaxBaseFee {
+		return shastaMaxBaseFee
+	}
+	return baseFee
+}
+
+func calcNextShastaBaseFee(
+	parentGasLimit uint64,
+	parentGasUsed uint64,
+	parentBaseFee uint64,
+	parentBlockTime uint64,
+	elasticityMultiplier uint64,
+	baseFeeChangeDenominator uint64,
+) uint64 {
+	if elasticityMultiplier == 0 {
+		return clampShastaBaseFee(parentBaseFee)
+	}
+	parentGasTarget := parentGasLimit / elasticityMultiplier
+	if parentGasTarget == 0 {
+		return clampShastaBaseFee(parentBaseFee)
+	}
+
+	adjustedTarget1 := parentGasTarget * parentBlockTime / shastaBlockTimeTarget
+	adjustedTarget2 := parentGasLimit * shastaMaxGasTargetTargetPercent / 100
+	parentAdjustedGasTarget := min(adjustedTarget1, adjustedTarget2)
+
+	if parentGasUsed == parentAdjustedGasTarget {
+		return clampShastaBaseFee(parentBaseFee)
+	}
+
+	if parentGasUsed > parentAdjustedGasTarget {
+		gasUsedDelta := parentGasUsed - parentAdjustedGasTarget
+		adjustment := parentBaseFee * gasUsedDelta / parentGasTarget / baseFeeChangeDenominator
+		if adjustment < 1 {
+			return clampShastaBaseFee(parentBaseFee + 1)
+		}
+		return clampShastaBaseFee(parentBaseFee + adjustment)
+	}
+
+	gasUsedDelta := parentAdjustedGasTarget - parentGasUsed
+	adjustment := parentBaseFee * gasUsedDelta / parentGasTarget / baseFeeChangeDenominator
+	if adjustment > parentBaseFee {
+		return clampShastaBaseFee(0)
+	}
+	return clampShastaBaseFee(parentBaseFee - adjustment)
+}
+
+func validateShastaBlockBaseFee(
+	blockGuestInputs []*SingleGuestInput,
+	isFirstShastaProposal bool,
+) bool {
+	if len(blockGuestInputs) == 0 {
+		return false
+	}
+	firstBaseFee := blockGuestInputs[0].Block.BaseFee()
+	if firstBaseFee == nil {
+		return false
+	}
+	if isFirstShastaProposal {
+		if firstBaseFee.Uint64() != params.ShastaInitialBaseFee {
+			return false
+		}
+	} else {
+		parentBlockTime := blockGuestInputs[0].Block.Time() - blockGuestInputs[0].ParentHeader.Time
+		expectedBaseFee := calcNextShastaBaseFee(
+			blockGuestInputs[0].ParentHeader.GasLimit,
+			blockGuestInputs[0].ParentHeader.GasUsed,
+			firstBaseFee.Uint64(),
+			parentBlockTime,
+			shastaDefaultElasticityMultiplier,
+			shastaDefaultBaseFeeDenominator,
+		)
+		if expectedBaseFee != firstBaseFee.Uint64() {
+			return false
+		}
+	}
+
+	for i := 1; i < len(blockGuestInputs); i++ {
+		block := blockGuestInputs[i].Block
+		actualBaseFee := block.BaseFee()
+		if actualBaseFee == nil {
+			return false
+		}
+		prevBaseFee := blockGuestInputs[i-1].Block.BaseFee()
+		if prevBaseFee == nil {
+			return false
+		}
+		if i+1 < len(blockGuestInputs) {
+			nextBlock := blockGuestInputs[i+1].Block
+			parentBlockTime := nextBlock.Time() - block.Time()
+			expectedBaseFee := calcNextShastaBaseFee(
+				block.GasLimit(),
+				block.GasUsed(),
+				prevBaseFee.Uint64(),
+				parentBlockTime,
+				shastaDefaultElasticityMultiplier,
+				shastaDefaultBaseFeeDenominator,
+			)
+			if expectedBaseFee != actualBaseFee.Uint64() {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+type shastaAnchorParam struct {
+	blockNumber uint64
+	blockHash   common.Hash
+	stateRoot   common.Hash
+}
+
+func verifyShastaAnchorLinkage(
+	inputs []*SingleGuestInput,
+	l1AncestorHeaders []*types.Header,
+	expectedParentHash common.Hash,
+) error {
+	if len(inputs) == 0 {
+		return errors.New("missing shasta inputs")
+	}
+	anchorParamSet := make(map[shastaAnchorParam]struct{})
+	for _, input := range inputs {
+		if input.Taiko.AnchorTx == nil {
+			return errors.New("missing shasta anchor tx")
+		}
+		data := input.Taiko.AnchorTx.Data()
+		if len(data) < 4 {
+			return errors.New("invalid shasta anchor tx data")
+		}
+		checkpoint, err := decodeShastaAnchorCheckpoint(data[4:])
+		if err != nil {
+			return err
+		}
+		anchorParamSet[shastaAnchorParam{
+			blockNumber: checkpoint.BlockNumber,
+			blockHash:   checkpoint.BlockHash,
+			stateRoot:   checkpoint.StateRoot,
+		}] = struct{}{}
+	}
+
+	if len(l1AncestorHeaders) == 0 {
+		return errors.New("l1 ancestor headers is empty")
+	}
+
+	l1AncestorSet := make(map[shastaAnchorParam]struct{})
+	lastParentHash := l1AncestorHeaders[0].Hash()
+	l1AncestorSet[shastaAnchorParam{
+		blockNumber: l1AncestorHeaders[0].Number.Uint64(),
+		blockHash:   lastParentHash,
+		stateRoot:   l1AncestorHeaders[0].Root,
+	}] = struct{}{}
+	for _, header := range l1AncestorHeaders[1:] {
+		if header.ParentHash != lastParentHash {
+			return fmt.Errorf(
+				"l1 ancestor header parent hash mismatch, expected: %#x, got: %#x",
+				lastParentHash,
+				header.ParentHash,
+			)
+		}
+		currHash := header.Hash()
+		l1AncestorSet[shastaAnchorParam{
+			blockNumber: header.Number.Uint64(),
+			blockHash:   currHash,
+			stateRoot:   header.Root,
+		}] = struct{}{}
+		lastParentHash = currHash
+	}
+
+	for anchorParam := range anchorParamSet {
+		if _, ok := l1AncestorSet[anchorParam]; !ok {
+			return fmt.Errorf("anchor param not found in l1 ancestor hash set: %+v", anchorParam)
+		}
+	}
+
+	if lastParentHash != expectedParentHash {
+		return fmt.Errorf(
+			"l1 ancestor hash mismatch, expected: %#x, got: %#x",
+			expectedParentHash,
+			lastParentHash,
+		)
+	}
+	return nil
+}
+
 func (g *BatchGuestInput) createDefaultManifest(
 	timestamp uint64,
 	coinbase common.Address,
 	anchorBlockNumber uint64,
 	gasLimit uint64,
 ) *manifest.DerivationSourceManifest {
+	if gasLimit >= taiko.AnchorV3V4GasLimit {
+		gasLimit -= taiko.AnchorV3V4GasLimit
+	}
 	return &manifest.DerivationSourceManifest{
 		Blocks: []*manifest.BlockManifest{
 			{
