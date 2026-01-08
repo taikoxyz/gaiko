@@ -36,6 +36,7 @@ type BatchGuestInput struct {
 type TaikoGuestBatchInput struct {
 	BatchID       uint64
 	L1Header      *types.Header
+	L1AncestorHeaders []*types.Header
 	BatchProposed BlockProposed
 	ChainSpec     *ChainSpec
 	ProverData    *TaikoProverData
@@ -163,10 +164,10 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		log.Warn("missing shasta data sources")
 		return
 	}
-	if len(eventData.Derivation.Sources) != len(g.Taiko.DataSources) {
+	if len(eventData.Proposal.Sources) != len(g.Taiko.DataSources) {
 		log.Warn(
 			"shasta derivation sources and data sources mismatch",
-			"derivationSources", len(eventData.Derivation.Sources),
+			"derivationSources", len(eventData.Proposal.Sources),
 			"dataSources", len(g.Taiko.DataSources),
 		)
 	}
@@ -178,7 +179,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 
 	var allBlockTxs []types.Transactions
 	for idx, dataSource := range g.Taiko.DataSources {
-		if idx >= len(eventData.Derivation.Sources) {
+		if idx >= len(eventData.Proposal.Sources) {
 			log.Warn("extra data source without derivation metadata", "index", idx)
 			break
 		}
@@ -205,7 +206,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			if len(combined) == 0 {
 				return nil
 			}
-			offset := int(eventData.Derivation.Sources[idx].BlobSlice.Offset)
+			offset := int(eventData.Proposal.Sources[idx].BlobSlice.Offset)
 			if offset+64 > len(combined) {
 				return nil
 			}
@@ -590,15 +591,7 @@ func (g *BatchGuestInput) buildShastaTransition() common.Hash {
 		}
 	}
 
-	// If no prover data, fall back to core state and proposer
-	// Note: CoreState was removed in raiko c0fa596, parent_transition_hash should be in prover_data
-	if parentTransitionHash == (common.Hash{}) {
-		// Fallback for backwards compatibility - this path should rarely be used
-		if eventData.CoreState.LastFinalizedTransitionHash != (common.Hash{}) {
-			log.Warn("using deprecated CoreState.LastFinalizedTransitionHash as fallback for parentTransitionHash")
-			parentTransitionHash = eventData.CoreState.LastFinalizedTransitionHash
-		}
-	}
+	// If no prover data, parentTransitionHash remains zero.
 	if !designatedProverSet {
 		designatedProver = eventData.Proposal.Proposer
 	}

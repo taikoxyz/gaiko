@@ -13,34 +13,20 @@ type ShastaDerivationSource struct {
 	BlobSlice         ShastaBlobSlice
 }
 
-type ShastaDerivation struct {
-	OriginBlockNumber  uint64
-	OriginBlockHash    common.Hash
-	BasefeeSharingPctg uint8
-	Sources            []ShastaDerivationSource
-}
-
 type ShastaProposal struct {
 	ID                             uint64
 	Timestamp                      uint64
 	EndOfSubmissionWindowTimestamp uint64
 	Proposer                       common.Address
-	DerivationHash                 common.Hash
-}
-
-type ShastaCoreState struct {
-	NextProposalID              uint64
-	LastProposalBlockID         uint64
-	LastFinalizedProposalID     uint64
-	LastCheckpointTimestamp     uint64
-	LastFinalizedTransitionHash common.Hash
-	BondInstructionsHash        common.Hash
+	ParentProposalHash           common.Hash
+	OriginBlockNumber            uint64
+	OriginBlockHash              common.Hash
+	BasefeeSharingPctg           uint8
+	Sources                       []ShastaDerivationSource
 }
 
 type ShastaEventData struct {
-	Proposal   ShastaProposal
-	Derivation ShastaDerivation
-	CoreState  ShastaCoreState
+	Proposal ShastaProposal
 }
 
 // ShastaProposalCheckpoint represents a checkpoint in the Shasta proof proposal.

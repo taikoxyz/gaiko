@@ -199,8 +199,15 @@ type shastaProposalJSON struct {
 	Timestamp                      uint64         `json:"timestamp"`
 	EndOfSubmissionWindowTimestamp uint64         `json:"endOfSubmissionWindowTimestamp"`
 	Proposer                       common.Address `json:"proposer"`
-	CoreStateHash                  common.Hash    `json:"coreStateHash"`
-	DerivationHash                 common.Hash    `json:"derivationHash"`
+	ParentProposalHash             common.Hash    `json:"parentProposalHash"`
+	OriginBlockNumber              uint64         `json:"originBlockNumber"`
+	OriginBlockHash                common.Hash    `json:"originBlockHash"`
+	BasefeeSharingPctg             uint8          `json:"basefeeSharingPctg"`
+	Sources                        []shastaDerivationSourceJSON `json:"sources"`
+
+	// Legacy fields (deprecated in newer Shasta format)
+	CoreStateHash  common.Hash `json:"coreStateHash"`
+	DerivationHash common.Hash `json:"derivationHash"`
 }
 
 type shastaCoreStateJSON struct {
@@ -219,8 +226,8 @@ type shastaEventDataJSON struct {
 }
 
 func (s *shastaEventDataJSON) GethType() *ShastaEventData {
-	sources := make([]ShastaDerivationSource, 0, len(s.Derivation.Sources))
-	for _, source := range s.Derivation.Sources {
+	sources := make([]ShastaDerivationSource, 0, len(s.Proposal.Sources))
+	for _, source := range s.Proposal.Sources {
 		sources = append(sources, ShastaDerivationSource{
 			IsForcedInclusion: source.IsForcedInclusion,
 			BlobSlice: ShastaBlobSlice{
@@ -230,27 +237,48 @@ func (s *shastaEventDataJSON) GethType() *ShastaEventData {
 			},
 		})
 	}
+
+	// Backward compatibility: if proposal sources are empty, fall back to derivation sources.
+	if len(sources) == 0 && len(s.Derivation.Sources) != 0 {
+		sources = make([]ShastaDerivationSource, 0, len(s.Derivation.Sources))
+		for _, source := range s.Derivation.Sources {
+			sources = append(sources, ShastaDerivationSource{
+				IsForcedInclusion: source.IsForcedInclusion,
+				BlobSlice: ShastaBlobSlice{
+					BlobHashes: source.BlobSlice.BlobHashes,
+					Offset:     source.BlobSlice.Offset,
+					Timestamp:  source.BlobSlice.Timestamp,
+				},
+			})
+		}
+	}
+
+	originBlockNumber := s.Proposal.OriginBlockNumber
+	originBlockHash := s.Proposal.OriginBlockHash
+	basefeeSharing := s.Proposal.BasefeeSharingPctg
+	if originBlockNumber == 0 && originBlockHash == (common.Hash{}) && basefeeSharing == 0 {
+		// Legacy format uses derivation for these fields.
+		if s.Derivation.OriginBlockNumber != 0 {
+			originBlockNumber = s.Derivation.OriginBlockNumber
+		}
+		if s.Derivation.OriginBlockHash != (common.Hash{}) {
+			originBlockHash = s.Derivation.OriginBlockHash
+		}
+		if s.Derivation.BasefeeSharingPctg != 0 {
+			basefeeSharing = s.Derivation.BasefeeSharingPctg
+		}
+	}
 	return &ShastaEventData{
 		Proposal: ShastaProposal{
 			ID:                             s.Proposal.ID,
 			Timestamp:                      s.Proposal.Timestamp,
 			EndOfSubmissionWindowTimestamp: s.Proposal.EndOfSubmissionWindowTimestamp,
 			Proposer:                       s.Proposal.Proposer,
-			DerivationHash:                 s.Proposal.DerivationHash,
-		},
-		Derivation: ShastaDerivation{
-			OriginBlockNumber:  s.Derivation.OriginBlockNumber,
-			OriginBlockHash:    s.Derivation.OriginBlockHash,
-			BasefeeSharingPctg: s.Derivation.BasefeeSharingPctg,
-			Sources:            sources,
-		},
-		CoreState: ShastaCoreState{
-			NextProposalID:              s.CoreState.NextProposalID,
-			LastProposalBlockID:         s.CoreState.LastProposalBlockID,
-			LastFinalizedProposalID:     s.CoreState.LastFinalizedProposalID,
-			LastCheckpointTimestamp:     s.CoreState.LastCheckpointTimestamp,
-			LastFinalizedTransitionHash: s.CoreState.LastFinalizedTransitionHash,
-			BondInstructionsHash:        s.CoreState.BondInstructionsHash,
+			ParentProposalHash:           s.Proposal.ParentProposalHash,
+			OriginBlockNumber:            originBlockNumber,
+			OriginBlockHash:              originBlockHash,
+			BasefeeSharingPctg:           basefeeSharing,
+			Sources:                       sources,
 		},
 	}
 }
