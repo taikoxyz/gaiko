@@ -246,14 +246,13 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			return d
 		}()
 
-		var source manifest.DerivationSourceManifest
-		decodeErr := rlp.DecodeBytes(decoded, &source)
+		source, decodeErr := decodeShastaDerivationSourceManifest(decoded)
 
 		var validManifest *manifest.DerivationSourceManifest
 
 		if idx == len(g.Taiko.DataSources)-1 {
 			// Normal source
-			if decodeErr == nil && validateNormalProposalManifest(g, &source, g.Taiko.ProverData.LastAnchorBlockNumber) {
+			if decodeErr == nil && validateNormalProposalManifest(g, source, g.Taiko.ProverData.LastAnchorBlockNumber) {
 				if !validateShastaBlockBaseFee(g.Inputs, isFirstShastaProposal) {
 					log.Warn("shasta block base fee is invalid, use default manifest")
 					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
@@ -261,7 +260,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 					anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
 					validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
 				} else {
-					validManifest = &source
+					validManifest = source
 				}
 			} else {
 				// Fallback
@@ -272,8 +271,8 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			}
 		} else {
 			// Force inclusion source
-			if decodeErr == nil && validateForceIncProposalManifest(&source) {
-				validManifest = &source
+			if decodeErr == nil && validateForceIncProposalManifest(source) {
+				validManifest = source
 				if len(source.Blocks) > 0 {
 					lastParentBlockTimestamp = source.Blocks[0].Timestamp
 					lastParentBlockGasLimit = source.Blocks[0].GasLimit
@@ -342,6 +341,29 @@ func combineBlobData(blobs [][eth.BlobSize]byte) ([]byte, error) {
 		combined = append(combined, data...)
 	}
 	return combined, nil
+}
+
+type legacyDerivationSourceManifest struct {
+	Blocks []*manifest.BlockManifest
+}
+
+func decodeShastaDerivationSourceManifest(data []byte) (*manifest.DerivationSourceManifest, error) {
+	// New format: `DerivationSourceManifest` is encoded as `[proverAuthBytes, blocks]`.
+	var decoded manifest.DerivationSourceManifest
+	if err := rlp.DecodeBytes(data, &decoded); err == nil {
+		return &decoded, nil
+	}
+
+	// Legacy format (used by current fixtures and raiko): `DerivationSourceManifest` is encoded as
+	// `[blocks]`, without `proverAuthBytes`.
+	var legacy legacyDerivationSourceManifest
+	if err := rlp.DecodeBytes(data, &legacy); err != nil {
+		return nil, err
+	}
+	return &manifest.DerivationSourceManifest{
+		ProverAuthBytes: nil,
+		Blocks:          legacy.Blocks,
+	}, nil
 }
 
 func (g *BatchGuestInput) BlockProposed() BlockProposed {
@@ -825,13 +847,17 @@ func validAnchorInNormalProposal(
 	lastAnchorBlockNumber uint64,
 	proposalBlockNumber uint64,
 ) bool {
+	// NOTE: align with raiko's Shasta rule: the maximum anchor can be `proposalBlockNumber - 1`.
+	// See raiko `valid_anchor_in_normal_proposal` (ANCHOR_MIN_OFFSET = 1).
+	const shastaAnchorMinOffset uint64 = 1
+
 	minAnchor := uint64(0)
 	if proposalBlockNumber > manifest.AnchorMaxOffset {
 		minAnchor = proposalBlockNumber - manifest.AnchorMaxOffset
 	}
 	maxAnchor := uint64(0)
-	if proposalBlockNumber > manifest.AnchorMinOffset {
-		maxAnchor = proposalBlockNumber - manifest.AnchorMinOffset
+	if proposalBlockNumber > shastaAnchorMinOffset {
+		maxAnchor = proposalBlockNumber - shastaAnchorMinOffset
 	}
 
 	hasAnchorGrow := false

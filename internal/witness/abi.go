@@ -2,6 +2,7 @@ package witness
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"reflect"
 	"strings"
@@ -145,6 +146,21 @@ func decodeAnchorV3ArgsSignalSlots(input []byte) ([][32]byte, error) {
 }
 
 func decodeShastaAnchorCheckpoint(input []byte) (*ShastaCheckpoint, error) {
+	// L2 Shasta anchor transaction (Anchor.anchorV4) encodes a single checkpoint struct:
+	// (uint48 blockNumber, bytes32 blockHash, bytes32 stateRoot) -> 3 static 32-byte words.
+	// This path avoids relying on the L1 ShastaAnchor ABI which includes dynamic fields.
+	if len(input) == 96 {
+		blockNumber := new(big.Int).SetBytes(input[:32])
+		if blockNumber.BitLen() > 48 {
+			return nil, fmt.Errorf("invalid shasta checkpoint block number: %#x", blockNumber)
+		}
+		return &ShastaCheckpoint{
+			BlockNumber: blockNumber.Uint64(),
+			BlockHash:   common.BytesToHash(input[32:64]),
+			StateRoot:   common.BytesToHash(input[64:96]),
+		}, nil
+	}
+
 	if shastaAnchorV4Method.Name == "" {
 		return nil, errors.New("shasta anchor ABI not initialized")
 	}
