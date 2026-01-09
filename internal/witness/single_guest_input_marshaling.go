@@ -187,13 +187,6 @@ type shastaDerivationSourceJSON struct {
 	BlobSlice         shastaBlobSliceJSON `json:"blobSlice"`
 }
 
-type shastaDerivationJSON struct {
-	OriginBlockNumber  uint64                       `json:"originBlockNumber"`
-	OriginBlockHash    common.Hash                  `json:"originBlockHash"`
-	BasefeeSharingPctg uint8                        `json:"basefeeSharingPctg"`
-	Sources            []shastaDerivationSourceJSON `json:"sources"`
-}
-
 type shastaProposalJSON struct {
 	ID                             uint64                       `json:"id"`
 	Timestamp                      uint64                       `json:"timestamp"`
@@ -204,25 +197,10 @@ type shastaProposalJSON struct {
 	OriginBlockHash                common.Hash                  `json:"originBlockHash"`
 	BasefeeSharingPctg             uint8                        `json:"basefeeSharingPctg"`
 	Sources                        []shastaDerivationSourceJSON `json:"sources"`
-
-	// Legacy fields (deprecated in newer Shasta format)
-	CoreStateHash  common.Hash `json:"coreStateHash"`
-	DerivationHash common.Hash `json:"derivationHash"`
-}
-
-type shastaCoreStateJSON struct {
-	NextProposalID              uint64      `json:"nextProposalId"`
-	LastProposalBlockID         uint64      `json:"lastProposalBlockId"`
-	LastFinalizedProposalID     uint64      `json:"lastFinalizedProposalId"`
-	LastCheckpointTimestamp     uint64      `json:"lastCheckpointTimestamp"`
-	LastFinalizedTransitionHash common.Hash `json:"lastFinalizedTransitionHash"`
-	BondInstructionsHash        common.Hash `json:"bondInstructionsHash"`
 }
 
 type shastaEventDataJSON struct {
-	Proposal   shastaProposalJSON   `json:"proposal"`
-	Derivation shastaDerivationJSON `json:"derivation"`
-	CoreState  shastaCoreStateJSON  `json:"core_state"`
+	Proposal shastaProposalJSON `json:"proposal"`
 }
 
 func (s *shastaEventDataJSON) GethType() *ShastaEventData {
@@ -238,36 +216,6 @@ func (s *shastaEventDataJSON) GethType() *ShastaEventData {
 		})
 	}
 
-	// Backward compatibility: if proposal sources are empty, fall back to derivation sources.
-	if len(sources) == 0 && len(s.Derivation.Sources) != 0 {
-		sources = make([]ShastaDerivationSource, 0, len(s.Derivation.Sources))
-		for _, source := range s.Derivation.Sources {
-			sources = append(sources, ShastaDerivationSource{
-				IsForcedInclusion: source.IsForcedInclusion,
-				BlobSlice: ShastaBlobSlice{
-					BlobHashes: source.BlobSlice.BlobHashes,
-					Offset:     source.BlobSlice.Offset,
-					Timestamp:  source.BlobSlice.Timestamp,
-				},
-			})
-		}
-	}
-
-	originBlockNumber := s.Proposal.OriginBlockNumber
-	originBlockHash := s.Proposal.OriginBlockHash
-	basefeeSharing := s.Proposal.BasefeeSharingPctg
-	if originBlockNumber == 0 && originBlockHash == (common.Hash{}) && basefeeSharing == 0 {
-		// Legacy format uses derivation for these fields.
-		if s.Derivation.OriginBlockNumber != 0 {
-			originBlockNumber = s.Derivation.OriginBlockNumber
-		}
-		if s.Derivation.OriginBlockHash != (common.Hash{}) {
-			originBlockHash = s.Derivation.OriginBlockHash
-		}
-		if s.Derivation.BasefeeSharingPctg != 0 {
-			basefeeSharing = s.Derivation.BasefeeSharingPctg
-		}
-	}
 	return &ShastaEventData{
 		Proposal: ShastaProposal{
 			ID:                             s.Proposal.ID,
@@ -275,9 +223,9 @@ func (s *shastaEventDataJSON) GethType() *ShastaEventData {
 			EndOfSubmissionWindowTimestamp: s.Proposal.EndOfSubmissionWindowTimestamp,
 			Proposer:                       s.Proposal.Proposer,
 			ParentProposalHash:             s.Proposal.ParentProposalHash,
-			OriginBlockNumber:              originBlockNumber,
-			OriginBlockHash:                originBlockHash,
-			BasefeeSharingPctg:             basefeeSharing,
+			OriginBlockNumber:              s.Proposal.OriginBlockNumber,
+			OriginBlockHash:                s.Proposal.OriginBlockHash,
+			BasefeeSharingPctg:             s.Proposal.BasefeeSharingPctg,
 			Sources:                        sources,
 		},
 	}
