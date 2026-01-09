@@ -810,10 +810,14 @@ func (g *BatchGuestInput) ChainConfig() (*params.ChainConfig, error) {
 }
 
 const (
-	shastaBlockGasLimitMaxChange = 200
+	// Gas limit constants aligned with taiko-mono manifest package
+	// See: github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/manifest
+	// MaxBlockGasLimitChangePermyriad is 10 (0.1% = 10/10000), we convert to permillion for backward compatibility
+	shastaBlockGasLimitMaxChange = manifest.MaxBlockGasLimitChangePermyriad * 100 // 10 * 100 = 1000 per million (0.1%)
 	shastaGasLimitDenominator    = 1_000_000
-	shastaMaxBlockGasLimitBase   = 45_000_000
-	shastaMinBlockGasLimitBase   = 10_000_000
+	// Use manifest constants for min/max block gas limit
+	shastaMaxBlockGasLimitBase = manifest.MaxBlockGasLimit // 100_000_000
+	shastaMinBlockGasLimitBase = manifest.MinBlockGasLimit // 10_000_000
 
 	shastaBlockTimeTarget             = 2
 	shastaMaxGasTargetTargetPercent   = 95
