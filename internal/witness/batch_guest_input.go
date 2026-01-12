@@ -35,13 +35,14 @@ type BatchGuestInput struct {
 }
 
 type TaikoGuestBatchInput struct {
-	BatchID           uint64
-	L1Header          *types.Header
-	L1AncestorHeaders []*types.Header
-	BatchProposed     BlockProposed
-	ChainSpec         *ChainSpec
-	ProverData        *TaikoProverData
-	DataSources       []*TaikoGuestDataSource
+	BatchID             uint64
+	L1Header            *types.Header
+	L1AncestorHeaders   []*types.Header
+	L2GrandparentHeader *types.Header
+	BatchProposed       BlockProposed
+	ChainSpec           *ChainSpec
+	ProverData          *TaikoProverData
+	DataSources         []*TaikoGuestDataSource
 }
 
 type TaikoGuestDataSource struct {
