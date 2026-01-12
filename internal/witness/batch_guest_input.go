@@ -1051,6 +1051,13 @@ func saturatingMul(a uint64, b uint64) uint64 {
 	return a * b
 }
 
+func saturatingAdd(a uint64, b uint64) uint64 {
+	if a > math.MaxUint64-b {
+		return math.MaxUint64
+	}
+	return a + b
+}
+
 func clampShastaBaseFee(baseFee uint64) uint64 {
 	if baseFee < shastaMinBaseFee {
 		return shastaMinBaseFee
@@ -1089,9 +1096,9 @@ func calcNextShastaBaseFee(
 		gasUsedDelta := parentGasUsed - parentAdjustedGasTarget
 		adjustment := saturatingMul(parentBaseFee, gasUsedDelta) / parentGasTarget / baseFeeChangeDenominator
 		if adjustment < 1 {
-			return clampShastaBaseFee(parentBaseFee + 1)
+			return clampShastaBaseFee(saturatingAdd(parentBaseFee, 1))
 		}
-		return clampShastaBaseFee(parentBaseFee + adjustment)
+		return clampShastaBaseFee(saturatingAdd(parentBaseFee, adjustment))
 	}
 
 	gasUsedDelta := parentAdjustedGasTarget - parentGasUsed

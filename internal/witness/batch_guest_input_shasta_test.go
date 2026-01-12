@@ -3,6 +3,7 @@ package witness
 import (
 	"encoding/binary"
 	"encoding/json"
+	"math"
 	"math/big"
 	"testing"
 
@@ -125,4 +126,16 @@ func TestCalcNextShastaBaseFee_SaturatingMul(t *testing.T) {
 		shastaDefaultBaseFeeDenominator,
 	)
 	require.Equal(t, uint64(15_468_160), result)
+}
+
+func TestCalcNextShastaBaseFee_SaturatingAdd(t *testing.T) {
+	result := calcNextShastaBaseFee(
+		math.MaxUint64,
+		math.MaxUint64/2+1,
+		math.MaxUint64,
+		2,
+		shastaDefaultElasticityMultiplier,
+		shastaDefaultBaseFeeDenominator,
+	)
+	require.Equal(t, uint64(1_000_000_000), result)
 }
