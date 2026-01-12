@@ -114,3 +114,15 @@ func TestCalcNextShastaBaseFee_RaikoVector(t *testing.T) {
 	)
 	require.Equal(t, uint64(5_059_102), result)
 }
+
+func TestCalcNextShastaBaseFee_SaturatingMul(t *testing.T) {
+	result := calcNextShastaBaseFee(
+		12_431_977_784_026_273_569,
+		183_807_743_286_270_785,
+		15_468_160,
+		12_597_304_404_566_764_638,
+		shastaDefaultElasticityMultiplier,
+		shastaDefaultBaseFeeDenominator,
+	)
+	require.Equal(t, uint64(15_468_160), result)
+}
