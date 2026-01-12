@@ -15,10 +15,11 @@ Gaiko is a Golang port of Raiko, a state transition prover for Taiko blockchain 
 go build -tags dev -o gaiko ./cmd/gaiko
 
 # Run tests with required environment variable
-GAIKO=1 go test ./...
+# Use dev tag to avoid priv.gaiko.key dependency
+GAIKO=1 go test -tags dev ./...
 
 # Run specific test suite
-cd tests && GAIKO=1 go test -v -run TestSingle
+cd tests && GAIKO=1 go test -tags dev -v -run TestSingle
 ```
 
 ### Common Workflows
@@ -27,18 +28,21 @@ cd tests && GAIKO=1 go test -v -run TestSingle
 
 ```bash
 GAIKO=1 ./gaiko one-shot --sgx-type dev --witness input.json --proof output.json
+# 或者：GAIKO=1 go run -tags dev ./cmd/gaiko -- one-shot --sgx-type dev --witness input.json --proof output.json
 ```
 
 **Running batch block proofs:**
 
 ```bash
 GAIKO=1 ./gaiko one-batch-shot --sgx-type dev --witness batch-input.json --proof batch-output.json
+# 或者：GAIKO=1 go run -tags dev ./cmd/gaiko -- one-batch-shot --sgx-type dev --witness batch-input.json --proof batch-output.json
 ```
 
 **Starting the API server:**
 
 ```bash
 GAIKO=1 ./gaiko server --sgx-type dev --port 8080
+# 或者：GAIKO=1 go run -tags dev ./cmd/gaiko -- server --sgx-type dev --port 8080
 ```
 
 ## Build Commands
@@ -75,9 +79,16 @@ go build -tags dev -o gaiko ./cmd/gaiko
 
 ## Testing
 
-**IMPORTANT**: All tests require the `GAIKO=1` environment variable to be set.
+**IMPORTANT**: All tests require the `GAIKO=1` environment variable to be set. In environments without `priv.gaiko.key`, run tests with the dev tag to avoid TEE key access.
 
-### Run All Tests
+### Run All Tests (dev)
+
+```bash
+GAIKO=1 go test -tags dev ./...
+# 或者：GAIKO=1 GOFLAGS=-tags=dev go test ./...
+```
+
+### Run All Tests (default)
 
 ```bash
 GAIKO=1 go test ./...
@@ -87,35 +98,36 @@ GAIKO=1 go test ./...
 
 ```bash
 cd tests
-GAIKO=1 go test -v -run TestSingle    # Test single block transitions
-GAIKO=1 go test -v -run TestBatch     # Test batch block transitions
-GAIKO=1 go test -v -run TestAggregate # Test aggregate proofs
+GAIKO=1 go test -tags dev -v -run TestSingle    # Test single block transitions
+GAIKO=1 go test -tags dev -v -run TestBatch     # Test batch block transitions
+GAIKO=1 go test -tags dev -v -run TestAggregate # Test aggregate proofs
 ```
 
 ### Run Tests in Specific Packages
 
 ```bash
-GAIKO=1 go test -v ./internal/prover/...
-GAIKO=1 go test -v ./internal/transition/...
-GAIKO=1 go test -v ./pkg/mpt/...
+GAIKO=1 go test -tags dev -v ./internal/prover/...
+GAIKO=1 go test -tags dev -v ./internal/transition/...
+GAIKO=1 go test -tags dev -v ./pkg/mpt/...
 ```
 
 ### Run Tests with Race Detection
 
 ```bash
-GAIKO=1 go test -race ./...
+GAIKO=1 go test -tags dev -race ./...
 ```
 
 ### Run Tests with Coverage
 
 ```bash
-GAIKO=1 go test -coverprofile=coverage.out ./...
+GAIKO=1 go test -tags dev -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out
 ```
 
 ## Environment Variables
 
 - `GAIKO=1` - **Required** for all tests and runtime execution. Must be set when running gaiko commands.
+- `GOFLAGS=-tags=dev` - Use dev TEE provider to avoid `priv.gaiko.key` dependency in local tests.
 - `PORT` - Override default server port (8080)
 - `LOG_LEVEL` - Control logging verbosity (debug, info, warn, error)
 
@@ -298,7 +310,7 @@ go mod verify
 go mod tidy
 
 # View test output with verbose logging
-GAIKO=1 go test -v -count=1 ./tests
+GAIKO=1 go test -tags dev -v -count=1 ./tests
 ```
 
 ## Troubleshooting
@@ -308,8 +320,8 @@ GAIKO=1 go test -v -count=1 ./tests
 **Commands fail or behave unexpectedly:**
 
 - Solution: Always set `GAIKO=1` environment variable for ALL gaiko operations (tests and runtime)
-- Example for tests: `GAIKO=1 go test ./...`
-- Example for runtime: `GAIKO=1 ./gaiko one-shot --sgx-type dev --witness input.json`
+- Example for tests: `GAIKO=1 go test -tags dev ./...`
+- Example for runtime: `GAIKO=1 go run -tags dev ./cmd/gaiko -- one-shot --sgx-type dev --witness input.json`
 
 **Build fails with SGX errors:**
 
