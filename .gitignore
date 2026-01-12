@@ -35,6 +35,8 @@ go.work.sum
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
+.worktrees/
+
 # Local History for Visual Studio Code
 .history/
 
