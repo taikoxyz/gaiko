@@ -59,13 +59,14 @@ func (t *taikoGuestDataSourceJSON) GethType() *TaikoGuestDataSource {
 }
 
 type taikoGuestBatchInputJSON struct {
-	BatchID           uint64                      `json:"batch_id"`
-	L1Header          *gaikoTypes.Header          `json:"l1_header"`
-	L1AncestorHeaders []*gaikoTypes.Header        `json:"l1_ancestor_headers"`
-	BatchProposed     *blockProposedJSON          `json:"batch_proposed"`
-	ChainSpec         *ChainSpec                  `json:"chain_spec"`
-	ProverData        *TaikoProverData            `json:"prover_data"`
-	DataSources       []*taikoGuestDataSourceJSON `json:"data_sources"`
+	BatchID             uint64                      `json:"batch_id"`
+	L1Header            *gaikoTypes.Header          `json:"l1_header"`
+	L1AncestorHeaders   []*gaikoTypes.Header        `json:"l1_ancestor_headers"`
+	L2GrandparentHeader *gaikoTypes.Header          `json:"l2_grandparent_header"`
+	BatchProposed       *blockProposedJSON          `json:"batch_proposed"`
+	ChainSpec           *ChainSpec                  `json:"chain_spec"`
+	ProverData          *TaikoProverData            `json:"prover_data"`
+	DataSources         []*taikoGuestDataSourceJSON `json:"data_sources"`
 }
 
 func (t *taikoGuestBatchInputJSON) GethType() *TaikoGuestBatchInput {
@@ -76,18 +77,23 @@ func (t *taikoGuestBatchInputJSON) GethType() *TaikoGuestBatchInput {
 			ancestorHeaders[i] = header.GethType()
 		}
 	}
+	var l2GrandparentHeader *types.Header
+	if t.L2GrandparentHeader != nil {
+		l2GrandparentHeader = t.L2GrandparentHeader.GethType()
+	}
 	dataSources := make([]*TaikoGuestDataSource, 0, len(t.DataSources))
 	for _, ds := range t.DataSources {
 		dataSources = append(dataSources, ds.GethType())
 	}
 	return &TaikoGuestBatchInput{
-		BatchID:           t.BatchID,
-		L1Header:          t.L1Header.GethType(),
-		L1AncestorHeaders: ancestorHeaders,
-		BatchProposed:     t.BatchProposed.GethType(),
-		ChainSpec:         t.ChainSpec,
-		ProverData:        t.ProverData,
-		DataSources:       dataSources,
+		BatchID:             t.BatchID,
+		L1Header:            t.L1Header.GethType(),
+		L1AncestorHeaders:   ancestorHeaders,
+		L2GrandparentHeader: l2GrandparentHeader,
+		BatchProposed:       t.BatchProposed.GethType(),
+		ChainSpec:           t.ChainSpec,
+		ProverData:          t.ProverData,
+		DataSources:         dataSources,
 	}
 }
 
