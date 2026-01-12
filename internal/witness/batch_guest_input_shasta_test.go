@@ -3,8 +3,10 @@ package witness
 import (
 	"encoding/binary"
 	"encoding/json"
+	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 	"github.com/taikoxyz/gaiko/tests/fixtures"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/utils"
@@ -79,4 +81,36 @@ func TestShastaAnchorLinkageDecodesCheckpoint(t *testing.T) {
 		input.Taiko.L1AncestorHeaders,
 		eventData.Proposal.OriginBlockHash,
 	))
+}
+
+func TestValidateShastaBlockBaseFee_UsesGrandparent(t *testing.T) {
+	parentHeader := &types.Header{
+		GasLimit: 16_000_000,
+		GasUsed:  15_956_512,
+		BaseFee:  big.NewInt(5_000_000),
+		Time:     240,
+	}
+	blockHeader := &types.Header{
+		GasLimit: 16_000_000,
+		GasUsed:  15_956_512,
+		BaseFee:  big.NewInt(5_059_102),
+		Time:     241,
+	}
+	block := types.NewBlockWithHeader(blockHeader)
+	input := &SingleGuestInput{Block: block, ParentHeader: parentHeader}
+	grandparent := &types.Header{Time: 0}
+
+	require.True(t, validateShastaBlockBaseFee([]*SingleGuestInput{input}, false, grandparent))
+}
+
+func TestCalcNextShastaBaseFee_RaikoVector(t *testing.T) {
+	result := calcNextShastaBaseFee(
+		16_000_000,
+		15_956_512,
+		5_000_000,
+		240,
+		shastaDefaultElasticityMultiplier,
+		shastaDefaultBaseFeeDenominator,
+	)
+	require.Equal(t, uint64(5_059_102), result)
 }
