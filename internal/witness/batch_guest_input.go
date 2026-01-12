@@ -254,7 +254,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		if idx == len(g.Taiko.DataSources)-1 {
 			// Normal source
 			if decodeErr == nil && validateNormalProposalManifest(g, source, g.Taiko.ProverData.LastAnchorBlockNumber) {
-				if !validateShastaBlockBaseFee(g.Inputs, isFirstShastaProposal) {
+				if !validateShastaBlockBaseFee(g.Inputs, isFirstShastaProposal, g.Taiko.L2GrandparentHeader) {
 					log.Warn("shasta block base fee is invalid, use default manifest")
 					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
 					coinbase := g.Taiko.BatchProposed.Proposer()
@@ -1034,6 +1034,13 @@ func clampTimestampLowerBound(parentTimestamp uint64, proposalTimestamp uint64) 
 	return lowerBound
 }
 
+func saturatingSub(a uint64, b uint64) uint64 {
+	if a <= b {
+		return 0
+	}
+	return a - b
+}
+
 func clampShastaBaseFee(baseFee uint64) uint64 {
 	if baseFee < shastaMinBaseFee {
 		return shastaMinBaseFee
@@ -1088,6 +1095,7 @@ func calcNextShastaBaseFee(
 func validateShastaBlockBaseFee(
 	blockGuestInputs []*SingleGuestInput,
 	isFirstShastaProposal bool,
+	l2GrandparentHeader *types.Header,
 ) bool {
 	if len(blockGuestInputs) == 0 {
 		return false
@@ -1101,11 +1109,18 @@ func validateShastaBlockBaseFee(
 			return false
 		}
 	} else {
-		parentBlockTime := blockGuestInputs[0].Block.Time() - blockGuestInputs[0].ParentHeader.Time
+		parentBaseFee := blockGuestInputs[0].ParentHeader.BaseFee
+		if parentBaseFee == nil {
+			return false
+		}
+		parentBlockTime := uint64(shastaBlockTimeTarget)
+		if l2GrandparentHeader != nil {
+			parentBlockTime = saturatingSub(blockGuestInputs[0].ParentHeader.Time, l2GrandparentHeader.Time)
+		}
 		expectedBaseFee := calcNextShastaBaseFee(
 			blockGuestInputs[0].ParentHeader.GasLimit,
 			blockGuestInputs[0].ParentHeader.GasUsed,
-			firstBaseFee.Uint64(),
+			parentBaseFee.Uint64(),
 			parentBlockTime,
 			shastaDefaultElasticityMultiplier,
 			shastaDefaultBaseFeeDenominator,
@@ -1121,24 +1136,22 @@ func validateShastaBlockBaseFee(
 		if actualBaseFee == nil {
 			return false
 		}
-		prevBaseFee := blockGuestInputs[i-1].Block.BaseFee()
+		prevBlock := blockGuestInputs[i-1].Block
+		prevBaseFee := prevBlock.BaseFee()
 		if prevBaseFee == nil {
 			return false
 		}
-		if i+1 < len(blockGuestInputs) {
-			nextBlock := blockGuestInputs[i+1].Block
-			parentBlockTime := nextBlock.Time() - block.Time()
-			expectedBaseFee := calcNextShastaBaseFee(
-				block.GasLimit(),
-				block.GasUsed(),
-				prevBaseFee.Uint64(),
-				parentBlockTime,
-				shastaDefaultElasticityMultiplier,
-				shastaDefaultBaseFeeDenominator,
-			)
-			if expectedBaseFee != actualBaseFee.Uint64() {
-				return false
-			}
+		parentBlockTime := saturatingSub(prevBlock.Time(), blockGuestInputs[i-1].ParentHeader.Time)
+		expectedBaseFee := calcNextShastaBaseFee(
+			prevBlock.GasLimit(),
+			prevBlock.GasUsed(),
+			prevBaseFee.Uint64(),
+			parentBlockTime,
+			shastaDefaultElasticityMultiplier,
+			shastaDefaultBaseFeeDenominator,
+		)
+		if expectedBaseFee != actualBaseFee.Uint64() {
+			return false
 		}
 	}
 	return true
