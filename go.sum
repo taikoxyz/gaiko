@@ -446,6 +446,8 @@ github.com/taikoxyz/taiko-mono v0.0.0-20251202013330-afe940690b8e h1:4+4/0ed0j3M
 github.com/taikoxyz/taiko-mono v0.0.0-20251202013330-afe940690b8e/go.mod h1:P7U5xAuAMRG9uSFbn80oiCBGJrwoxHR994ihPkfh8vs=
 github.com/taikoxyz/taiko-mono v0.0.0-20260107010329-f4fff8f77873 h1:5Di//4zyDofReFqjCMSEJuX/Re5MAizmhLbFF0X/6L4=
 github.com/taikoxyz/taiko-mono v0.0.0-20260107010329-f4fff8f77873/go.mod h1:P7U5xAuAMRG9uSFbn80oiCBGJrwoxHR994ihPkfh8vs=
+github.com/taikoxyz/taiko-mono v0.0.0-20260112084207-11697c974aa5 h1:xsoFf/dMGTHgXSWnAN8Uye0f15Cl65XumiC/A9toNr8=
+github.com/taikoxyz/taiko-mono v0.0.0-20260112084207-11697c974aa5/go.mod h1:P7U5xAuAMRG9uSFbn80oiCBGJrwoxHR994ihPkfh8vs=
 github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e h1:cR8/SYRgyQCt5cNCMniB/ZScMkhI9nk8U5C7SbISXjo=
 github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e/go.mod h1:Tu4lItkATkonrYuvtVjG0/rhy15qrNGNTjPdaphtZ/8=
 github.com/tklauser/go-sysconf v0.3.14 h1:g5vzr9iPFFz24v2KZXs/pvpvh8/V9Fw6vQK5ZZb78yU=

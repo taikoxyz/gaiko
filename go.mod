@@ -10,7 +10,7 @@ require (
 	github.com/google/go-tdx-guest v0.3.1
 	github.com/holiman/uint256 v1.3.2
 	github.com/stretchr/testify v1.11.1
-	github.com/taikoxyz/taiko-mono v0.0.0-20260107010329-f4fff8f77873
+	github.com/taikoxyz/taiko-mono v0.0.0-20260112084207-11697c974aa5
 	github.com/urfave/cli/v2 v2.27.7
 	gitlab.com/c0b/go-ordered-json v0.0.0-20201030195603-febf46534d5a
 	golang.org/x/sync v0.18.0
