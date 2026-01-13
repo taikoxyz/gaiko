@@ -279,17 +279,6 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 			chainConfig.ShastaTime = nil
 		}
 		return chainConfig, nil
-	case PreconfDevNetwork:
-		chainConfig := params.NetworkIDToChainConfigOrDefault(params.PreconfDevnetNetworkID)
-		chainConfig.ChainID = params.PreconfDevnetNetworkID
-		chainConfig.OntakeBlock = core.PreconfDevnetOntakeBlock
-		chainConfig.PacayaBlock = core.PreconfDevnetPacayaBlock
-		if activeShasta {
-			chainConfig.ShastaTime = &core.PreconfShastaTime
-		} else {
-			chainConfig.ShastaTime = nil
-		}
-		return chainConfig, nil
 	case MasayaDevNetwork:
 		chainConfig := params.NetworkIDToChainConfigOrDefault(params.MasayaDevnetNetworkID)
 		chainConfig.ChainID = params.MasayaDevnetNetworkID
