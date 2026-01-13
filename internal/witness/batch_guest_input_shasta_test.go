@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 	"github.com/taikoxyz/gaiko/tests/fixtures"
@@ -64,6 +66,75 @@ func TestShastaGuestInputsDoesNotFallbackToDefaultManifest(t *testing.T) {
 	require.Equal(t, len(input.Inputs), count)
 }
 
+func TestShastaDefaultManifest_ForceInclusionUsesLastAnchor(t *testing.T) {
+	var observedAnchor uint64
+	shastaDefaultManifestObserver = func(anchorBlockNumber uint64, isForceInclusion bool) {
+		if isForceInclusion {
+			observedAnchor = anchorBlockNumber
+		}
+	}
+	defer func() {
+		shastaDefaultManifestObserver = nil
+	}()
+
+	input := BatchGuestInput{
+		Inputs: []*SingleGuestInput{makeShastaGuestInputWithAnchorTx(20, 21, 200, 30_000_000, false)},
+		Taiko: &TaikoGuestBatchInput{
+			BatchID: 1,
+			BatchProposed: NewShastaBlockProposed(&ShastaEventData{
+				Proposal: ShastaProposal{
+					Timestamp:         200,
+					Proposer:          common.Address{0x11},
+					OriginBlockNumber: 99,
+					OriginBlockHash:   common.Hash{0x22},
+					ParentProposalHash: common.Hash{0x33},
+					Sources: []ShastaDerivationSource{
+						{
+							IsForcedInclusion: true,
+							BlobSlice: ShastaBlobSlice{
+								Offset: 0,
+							},
+						},
+						{
+							IsForcedInclusion: false,
+							BlobSlice: ShastaBlobSlice{
+								Offset: 0,
+							},
+						},
+					},
+				},
+			}),
+			ChainSpec: &ChainSpec{
+				Name:            TaikoDevNetwork,
+				ChainID:         1,
+				MaxSpecID:       SpecID(ShastaHardFork),
+				HardForks:       HardForks{{SpecID: SpecID(ShastaHardFork), Condition: BlockNumber(0)}},
+				Eip1559Constants: &Eip1559Constants{
+					BaseFeeChangeDenominator:      big.NewInt(8),
+					BaseFeeMaxIncreaseDenominator: big.NewInt(8),
+					BaseFeeMaxDecreaseDenominator: big.NewInt(8),
+					ElasticityMultiplier:          big.NewInt(2),
+				},
+				L1Contract:           map[SpecID]*common.Address{},
+				VerifierAddressForks: map[SpecID]VerifierAddressFork{},
+				GenesisTime:          0,
+				SecondsPerSlot:       12,
+				IsTaiko:              true,
+			},
+			ProverData: &TaikoProverData{
+				LastAnchorBlockNumber: 42,
+			},
+			DataSources: []*TaikoGuestDataSource{
+				{IsForcedInclusion: true, TxDataFromBlob: emptyManifestBlob()},
+				{IsForcedInclusion: false, TxDataFromBlob: emptyManifestBlob()},
+			},
+		},
+	}
+
+	collectGuestInputs(&input)
+	require.Equal(t, uint64(42), observedAnchor)
+}
+
 func TestShastaAnchorLinkageDecodesCheckpoint(t *testing.T) {
 	payload, err := fixtures.ReadShastaFixture("input-52.json")
 	require.NoError(t, err)
@@ -82,6 +153,90 @@ func TestShastaAnchorLinkageDecodesCheckpoint(t *testing.T) {
 		input.Taiko.L1AncestorHeaders,
 		eventData.Proposal.OriginBlockHash,
 	))
+}
+
+func makeShastaGuestInput(parentNumber uint64, blockNumber uint64, timestamp uint64, gasLimit uint64) *SingleGuestInput {
+	return makeShastaGuestInputWithAnchorTx(parentNumber, blockNumber, timestamp, gasLimit, true)
+}
+
+func makeShastaGuestInputWithAnchorTx(
+	parentNumber uint64,
+	blockNumber uint64,
+	timestamp uint64,
+	gasLimit uint64,
+	withAnchorTx bool,
+) *SingleGuestInput {
+	parentHeader := &types.Header{
+		Number:   new(big.Int).SetUint64(parentNumber),
+		Time:     timestamp - 1,
+		GasLimit: gasLimit,
+		GasUsed:  gasLimit - 1,
+		BaseFee:  big.NewInt(5_000_000),
+	}
+	blockHeader := &types.Header{
+		Number:     new(big.Int).SetUint64(blockNumber),
+		ParentHash: parentHeader.Hash(),
+		Time:       timestamp,
+		GasLimit:   gasLimit,
+		GasUsed:    gasLimit - 2,
+		BaseFee:    big.NewInt(5_000_000),
+	}
+	block := types.NewBlockWithHeader(blockHeader)
+
+	var anchorTx *types.Transaction
+	if withAnchorTx {
+		anchorTx = types.NewTx(&types.LegacyTx{Data: make([]byte, 4)})
+	}
+
+	return &SingleGuestInput{
+		Block:        block,
+		ParentHeader: parentHeader,
+		ChainSpec: &ChainSpec{
+			Name:            TaikoDevNetwork,
+			ChainID:         1,
+			MaxSpecID:       SpecID(ShastaHardFork),
+			HardForks:       HardForks{{SpecID: SpecID(ShastaHardFork), Condition: BlockNumber(0)}},
+			Eip1559Constants: &Eip1559Constants{
+				BaseFeeChangeDenominator:      big.NewInt(8),
+				BaseFeeMaxIncreaseDenominator: big.NewInt(8),
+				BaseFeeMaxDecreaseDenominator: big.NewInt(8),
+				ElasticityMultiplier:          big.NewInt(2),
+			},
+			L1Contract:           map[SpecID]*common.Address{},
+			VerifierAddressForks: map[SpecID]VerifierAddressFork{},
+			GenesisTime:          0,
+			SecondsPerSlot:       12,
+			IsTaiko:              true,
+		},
+		Taiko: &TaikoGuestInput{
+			AnchorTx: anchorTx,
+		},
+	}
+}
+
+func emptyManifestBlob() [][eth.BlobSize]byte {
+	var blob [eth.BlobSize]byte
+	return [][eth.BlobSize]byte{blob}
+}
+
+func collectGuestInputs(input *BatchGuestInput) []struct {
+	input *SingleGuestInput
+	txs   types.Transactions
+} {
+	pairs := make([]struct {
+		input *SingleGuestInput
+		txs   types.Transactions
+	}, 0)
+	for pair := range input.GuestInputs() {
+		pairs = append(pairs, struct {
+			input *SingleGuestInput
+			txs   types.Transactions
+		}{
+			input: pair.Input,
+			txs:   pair.Txs,
+		})
+	}
+	return pairs
 }
 
 func TestValidateShastaBlockBaseFee_UsesGrandparent(t *testing.T) {
