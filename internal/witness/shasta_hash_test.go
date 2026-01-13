@@ -98,3 +98,61 @@ func TestShastaAggregationOutput(t *testing.T) {
 	expected := common.HexToHash("0x5ffd635c42c7e6f7a5aa6c83be7db37dd1c24f1b474606ef0901b9b32beffaae")
 	assert.Equal(t, expected, finalHash, "shasta aggregation output hash mismatch")
 }
+
+func TestPCDOrderMatters(t *testing.T) {
+	chainID := uint64(167001)
+	verifier := common.HexToAddress("0x00f9f60C79e38c08b785eE4F1a849900693C6630")
+	actualProver := common.HexToAddress("0x0000000000000000000000000000000000001111")
+	proposer := common.HexToAddress("0x0000000000000000000000000000000000002222")
+
+	pcd1 := ProofCarryData{
+		ChainID:  chainID,
+		Verifier: verifier,
+		TransitionInput: TransitionInputData{
+			ProposalID:         1,
+			ProposalHash:       common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000101"),
+			ParentProposalHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+			ParentBlockHash:    common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000000aa"),
+			ActualProver:       actualProver,
+			Transition: ShastaTransitionInput{
+				Proposer:  proposer,
+				Timestamp: 100,
+			},
+			Checkpoint: ShastaCheckpoint{
+				BlockNumber: 10,
+				BlockHash:   common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000000bb"),
+				StateRoot:   common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000000cc"),
+			},
+		},
+	}
+
+	pcd2 := ProofCarryData{
+		ChainID:  chainID,
+		Verifier: verifier,
+		TransitionInput: TransitionInputData{
+			ProposalID:         2,
+			ProposalHash:       common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000202"),
+			ParentProposalHash: pcd1.TransitionInput.ProposalHash,
+			ParentBlockHash:    pcd1.TransitionInput.Checkpoint.BlockHash,
+			ActualProver:       actualProver,
+			Transition: ShastaTransitionInput{
+				Proposer:  proposer,
+				Timestamp: 200,
+			},
+			Checkpoint: ShastaCheckpoint{
+				BlockNumber: 11,
+				BlockHash:   common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000000ee"),
+				StateRoot:   common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000000ff"),
+			},
+		},
+	}
+
+	ordered := []ProofCarryData{pcd1, pcd2}
+	assert.True(t, ValidateShastaProofCarryDataVec(ordered), "ordered proof carry data should validate")
+
+	unordered := []ProofCarryData{pcd2, pcd1}
+	assert.False(t, ValidateShastaProofCarryDataVec(unordered), "unordered proof carry data should fail validation")
+
+	_, err := ShastaPCDAggregationHash(unordered, common.Address{})
+	assert.Error(t, err, "unordered proof carry data should return error")
+}
