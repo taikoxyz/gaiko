@@ -29,6 +29,8 @@ var (
 	_ json.Unmarshaler = (*BatchGuestInput)(nil)
 )
 
+var shastaDefaultManifestObserver func(anchorBlockNumber uint64, isForceInclusion bool)
+
 type BatchGuestInput struct {
 	Inputs []*SingleGuestInput
 	Taiko  *TaikoGuestBatchInput
@@ -282,7 +284,10 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 				// Fallback
 				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
 				coinbase := g.Taiko.BatchProposed.Proposer()
-				anchorBlockNumber := uint64(0)
+				anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
+				if shastaDefaultManifestObserver != nil {
+					shastaDefaultManifestObserver(anchorBlockNumber, true)
+				}
 				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
 				if len(validManifest.Blocks) > 0 {
 					lastParentBlockTimestamp = validManifest.Blocks[0].Timestamp
