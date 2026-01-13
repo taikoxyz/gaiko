@@ -83,10 +83,10 @@ func TestShastaDefaultManifest_ForceInclusionUsesLastAnchor(t *testing.T) {
 			BatchID: 1,
 			BatchProposed: NewShastaBlockProposed(&ShastaEventData{
 				Proposal: ShastaProposal{
-					Timestamp:         200,
-					Proposer:          common.Address{0x11},
-					OriginBlockNumber: 99,
-					OriginBlockHash:   common.Hash{0x22},
+					Timestamp:          200,
+					Proposer:           common.Address{0x11},
+					OriginBlockNumber:  99,
+					OriginBlockHash:    common.Hash{0x22},
 					ParentProposalHash: common.Hash{0x33},
 					Sources: []ShastaDerivationSource{
 						{
@@ -105,10 +105,10 @@ func TestShastaDefaultManifest_ForceInclusionUsesLastAnchor(t *testing.T) {
 				},
 			}),
 			ChainSpec: &ChainSpec{
-				Name:            TaikoDevNetwork,
-				ChainID:         1,
-				MaxSpecID:       SpecID(ShastaHardFork),
-				HardForks:       HardForks{{SpecID: SpecID(ShastaHardFork), Condition: BlockNumber(0)}},
+				Name:      TaikoDevNetwork,
+				ChainID:   1,
+				MaxSpecID: SpecID(ShastaHardFork),
+				HardForks: HardForks{{SpecID: SpecID(ShastaHardFork), Condition: BlockNumber(0)}},
 				Eip1559Constants: &Eip1559Constants{
 					BaseFeeChangeDenominator:      big.NewInt(8),
 					BaseFeeMaxIncreaseDenominator: big.NewInt(8),
@@ -192,10 +192,10 @@ func makeShastaGuestInputWithAnchorTx(
 		Block:        block,
 		ParentHeader: parentHeader,
 		ChainSpec: &ChainSpec{
-			Name:            TaikoDevNetwork,
-			ChainID:         1,
-			MaxSpecID:       SpecID(ShastaHardFork),
-			HardForks:       HardForks{{SpecID: SpecID(ShastaHardFork), Condition: BlockNumber(0)}},
+			Name:      TaikoDevNetwork,
+			ChainID:   1,
+			MaxSpecID: SpecID(ShastaHardFork),
+			HardForks: HardForks{{SpecID: SpecID(ShastaHardFork), Condition: BlockNumber(0)}},
 			Eip1559Constants: &Eip1559Constants{
 				BaseFeeChangeDenominator:      big.NewInt(8),
 				BaseFeeMaxIncreaseDenominator: big.NewInt(8),
