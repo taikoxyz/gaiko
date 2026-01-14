@@ -15,8 +15,10 @@ import (
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/utils"
 )
 
+const shastaFixtureName = "input-3.json"
+
 func TestShastaManifestMatchesInputBlockParams(t *testing.T) {
-	payload, err := fixtures.ReadShastaFixture("input-52.json")
+	payload, err := fixtures.ReadShastaFixture(shastaFixtureName)
 	require.NoError(t, err)
 
 	var input BatchGuestInput
@@ -52,7 +54,7 @@ func TestShastaManifestMatchesInputBlockParams(t *testing.T) {
 }
 
 func TestShastaGuestInputsDoesNotFallbackToDefaultManifest(t *testing.T) {
-	payload, err := fixtures.ReadShastaFixture("input-52.json")
+	payload, err := fixtures.ReadShastaFixture(shastaFixtureName)
 	require.NoError(t, err)
 
 	var input BatchGuestInput
@@ -136,7 +138,7 @@ func TestShastaDefaultManifest_ForceInclusionUsesLastAnchor(t *testing.T) {
 }
 
 func TestShastaAnchorLinkageDecodesCheckpoint(t *testing.T) {
-	payload, err := fixtures.ReadShastaFixture("input-52.json")
+	payload, err := fixtures.ReadShastaFixture(shastaFixtureName)
 	require.NoError(t, err)
 
 	var input BatchGuestInput
