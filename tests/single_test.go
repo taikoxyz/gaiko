@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -22,9 +21,6 @@ type SingleGuestOutput struct {
 }
 
 func TestSingle(t *testing.T) {
-	if os.Getenv("GAIKO_RUN_SINGLE_FIXTURES") == "" {
-		t.Skip("Single fixtures are currently incompatible with taiko-geth b472cd3; set GAIKO_RUN_SINGLE_FIXTURES=1 to run anyway.")
-	}
 	inputs, err := fixtures.GetSingleInputs()
 	require.NoError(t, err)
 
