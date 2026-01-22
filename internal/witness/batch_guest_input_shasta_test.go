@@ -1,7 +1,6 @@
 package witness
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"math"
 	"math/big"
@@ -35,15 +34,10 @@ func TestShastaManifestMatchesInputBlockParams(t *testing.T) {
 	combined, err := combineBlobData(input.Taiko.DataSources[0].TxDataFromBlob)
 	require.NoError(t, err)
 
-	offset := int(eventData.Proposal.Sources[0].BlobSlice.Offset)
-	require.GreaterOrEqual(t, len(combined), offset+64)
+	start, size, ok := shastaBlobTxSliceParamForSource(eventData.Proposal.Sources[0], combined)
+	require.True(t, ok)
 
-	sizeBytes := combined[offset+32 : offset+64]
-	size := binary.BigEndian.Uint64(sizeBytes[24:])
-	end := offset + 64 + int(size)
-	require.LessOrEqual(t, end, len(combined))
-
-	decoded, err := utils.Decompress(combined[offset+64 : end])
+	decoded, err := utils.Decompress(combined[start : start+size])
 	require.NoError(t, err)
 
 	m, err := decodeShastaDerivationSourceManifest(decoded)

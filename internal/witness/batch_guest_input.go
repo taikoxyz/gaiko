@@ -193,10 +193,12 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 	lastParentBlockTimestamp := g.Inputs[0].ParentHeader.Time
 	lastParentBlockGasLimit := g.Inputs[0].ParentHeader.GasLimit
 	proposalTimestamp := eventData.Proposal.Timestamp
+	forkTimestamp := shastaForkTimestamp(g.Taiko.ChainSpec)
+	isGenesisParent := g.Inputs[0].ParentHeader.Number.Uint64() == 0
 	isFirstShastaProposal := g.Taiko.ChainSpec.activeFork(
 		g.Inputs[0].ParentHeader.Number.Uint64(),
 		g.Inputs[0].ParentHeader.Time,
-	) == SpecID(PacayaHardFork)
+	) == SpecID(PacayaHardFork) || isGenesisParent
 
 	var allBlockTxs []types.Transactions
 	for idx, dataSource := range g.Taiko.DataSources {
@@ -227,21 +229,11 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			if len(combined) == 0 {
 				return nil
 			}
-			offset := int(eventData.Proposal.Sources[idx].BlobSlice.Offset)
-			if offset+64 > len(combined) {
+			start, size, ok := shastaBlobTxSliceParamForSource(eventData.Proposal.Sources[idx], combined)
+			if !ok {
 				return nil
 			}
-			version := combined[offset : offset+32]
-			if version[31] != 1 {
-				log.Warn("unexpected shasta manifest version", "index", idx, "version", version[31])
-			}
-			sizeBytes := combined[offset+32 : offset+64]
-			size := binary.BigEndian.Uint64(sizeBytes[24:])
-			end := offset + 64 + int(size)
-			if end > len(combined) {
-				return nil
-			}
-			payload := combined[offset+64 : end]
+			payload := combined[start : start+size]
 			d, err := utils.Decompress(payload)
 			if err != nil {
 				return nil
@@ -258,40 +250,37 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 			if decodeErr == nil && validateNormalProposalManifest(g, source, g.Taiko.ProverData.LastAnchorBlockNumber) {
 				if !validateShastaBlockBaseFee(g.Inputs, isFirstShastaProposal, g.Taiko.L2GrandparentHeader) {
 					log.Warn("shasta block base fee is invalid, use default manifest")
-					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
+					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
 					coinbase := g.Taiko.BatchProposed.Proposer()
 					anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
-					validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
+					validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit, isGenesisParent)
 				} else {
 					validManifest = source
 				}
 			} else {
 				// Fallback
-				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
+				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
 				coinbase := g.Taiko.BatchProposed.Proposer()
 				anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
-				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
+				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit, isGenesisParent)
 			}
 		} else {
 			// Force inclusion source
-			if decodeErr == nil && validateForceIncProposalManifest(source) {
-				validManifest = source
-				if len(source.Blocks) > 0 {
-					lastParentBlockTimestamp = source.Blocks[0].Timestamp
-					lastParentBlockGasLimit = source.Blocks[0].GasLimit
-				}
+			timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
+			coinbase := g.Taiko.BatchProposed.Proposer()
+			anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
+			forceManifest := g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit, isGenesisParent)
+			if decodeErr == nil && validateForceIncProposalManifest(source) && len(source.Blocks) > 0 {
+				forceManifest.Blocks[0].Transactions = source.Blocks[0].Transactions
 			} else {
-				// Fallback
-				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp)
-				coinbase := g.Taiko.BatchProposed.Proposer()
-				anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
 				if shastaDefaultManifestObserver != nil {
 					shastaDefaultManifestObserver(anchorBlockNumber, true)
 				}
-				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit)
-				if len(validManifest.Blocks) > 0 {
-					lastParentBlockTimestamp = validManifest.Blocks[0].Timestamp
-				}
+			}
+			validManifest = forceManifest
+			if len(validManifest.Blocks) > 0 {
+				lastParentBlockTimestamp = validManifest.Blocks[0].Timestamp
+				lastParentBlockGasLimit = validManifest.Blocks[0].GasLimit
 			}
 		}
 
@@ -347,6 +336,58 @@ func combineBlobData(blobs [][eth.BlobSize]byte) ([]byte, error) {
 		combined = append(combined, data...)
 	}
 	return combined, nil
+}
+
+const shastaBlobDataPrefixSize = 64
+
+func shastaBlobTxSliceParamForSource(
+	source ShastaDerivationSource,
+	combined []byte,
+) (int, int, bool) {
+	if len(source.BlobSlice.BlobHashes) == 0 {
+		return 0, 0, false
+	}
+
+	offset := int(source.BlobSlice.Offset)
+	if offset > eth.BlobSize-shastaBlobDataPrefixSize {
+		return 0, 0, false
+	}
+	if offset+shastaBlobDataPrefixSize > len(combined) {
+		return 0, 0, false
+	}
+
+	version := combined[offset : offset+32]
+	if !isShastaManifestVersion(version) {
+		return 0, 0, false
+	}
+
+	sizeBytes := combined[offset+32 : offset+64]
+	size := binary.BigEndian.Uint64(sizeBytes[24:])
+	start := offset + shastaBlobDataPrefixSize
+	remaining := len(combined) - start
+	if size > uint64(remaining) {
+		return 0, 0, false
+	}
+	end := start + int(size)
+	if end > len(combined) {
+		return 0, 0, false
+	}
+	return start, int(size), true
+}
+
+func isShastaManifestVersion(version []byte) bool {
+	if len(version) != 32 {
+		return false
+	}
+	if version[31] != 1 {
+		return false
+	}
+	for i := 0; i < 31; i++ {
+		if version[i] != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 type legacyDerivationSourceManifest struct {
@@ -816,34 +857,33 @@ func (g *BatchGuestInput) ChainConfig() (*params.ChainConfig, error) {
 }
 
 const (
-	// Gas limit constants aligned with taiko-mono manifest package
-	// See: github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/manifest
-	// MaxBlockGasLimitChangePermyriad is 10 (0.1% = 10/10000), we convert to permillion for backward compatibility
-	shastaBlockGasLimitMaxChange = manifest.MaxBlockGasLimitChangePermyriad * 100 // 10 * 100 = 1000 per million (0.1%)
-	shastaGasLimitDenominator    = 1_000_000
-	// Use manifest constants for min/max block gas limit
-	shastaMaxBlockGasLimitBase = manifest.MaxBlockGasLimit // 100_000_000
-	shastaMinBlockGasLimitBase = manifest.MinBlockGasLimit // 10_000_000
+	// Shasta rule constants synced with raiko.
+	shastaBlockGasLimitMaxChange uint64 = 200
+	shastaGasLimitDenominator    uint64 = 1_000_000
+	shastaMaxBlockGasLimitBase   uint64 = 45_000_000
+	shastaMinBlockGasLimitBase   uint64 = 10_000_000
 
-	shastaBlockTimeTarget             = 2
-	shastaMaxGasTargetTargetPercent   = 95
-	shastaMinBaseFee                  = 5_000_000
-	shastaMaxBaseFee                  = 1_000_000_000
-	shastaDefaultBaseFeeDenominator   = 8
-	shastaDefaultElasticityMultiplier = 2
+	shastaTimestampMaxOffset          uint64 = 12 * 128
+	shastaBlockTimeTarget             uint64 = 2
+	shastaMaxGasTargetTargetPercent   uint64 = 95
+	shastaMinBaseFee                  uint64 = 5_000_000
+	shastaMaxBaseFee                  uint64 = 1_000_000_000
+	shastaDefaultBaseFeeDenominator   uint64 = 8
+	shastaDefaultElasticityMultiplier uint64 = 2
 )
 
 func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
+	proposalTimestamp := g.Taiko.BatchProposed.ProposedAt()
+	forkTimestamp := shastaForkTimestamp(g.Taiko.ChainSpec)
 	for _, input := range g.Inputs {
 		blockTimestamp := input.Block.Time()
-		proposalTimestamp := g.Taiko.BatchProposed.ProposedAt()
 
 		if blockTimestamp > proposalTimestamp {
 			return fmt.Errorf("block timestamp %d exceeds proposal timestamp %d", blockTimestamp, proposalTimestamp)
 		}
 
 		parentTimestamp := input.ParentHeader.Time
-		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp)
+		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp, forkTimestamp)
 
 		if blockTimestamp < lowerBound {
 			return fmt.Errorf("block timestamp %d is less than calculated lower bound %d", blockTimestamp, lowerBound)
@@ -855,26 +895,24 @@ func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
 func validAnchorInNormalProposal(
 	blocks []*manifest.BlockManifest,
 	lastAnchorBlockNumber uint64,
-	proposalBlockNumber uint64,
+	l1OriginBlockNumber uint64,
 ) bool {
-	// NOTE: align with raiko's Shasta rule: the maximum anchor can be `proposalBlockNumber - 1`.
-	// See raiko `valid_anchor_in_normal_proposal` (ANCHOR_MIN_OFFSET = 1).
-	const shastaAnchorMinOffset uint64 = 1
-
-	minAnchor := uint64(0)
-	if proposalBlockNumber > manifest.AnchorMaxOffset {
-		minAnchor = proposalBlockNumber - manifest.AnchorMaxOffset
-	}
-	maxAnchor := uint64(0)
-	if proposalBlockNumber > shastaAnchorMinOffset {
-		maxAnchor = proposalBlockNumber - shastaAnchorMinOffset
-	}
+	minAnchor := saturatingSub(l1OriginBlockNumber, manifest.AnchorMaxOffset)
+	maxAnchor := l1OriginBlockNumber
 
 	hasAnchorGrow := false
 	var prevAnchor uint64
 	prevAnchorSet := false
 	for _, block := range blocks {
 		anchor := block.AnchorBlockNumber
+		if anchor < lastAnchorBlockNumber {
+			log.Error(
+				"anchor below last anchor block number",
+				"anchor", anchor,
+				"lastAnchorBlockNumber", lastAnchorBlockNumber,
+			)
+			return false
+		}
 		if anchor > lastAnchorBlockNumber {
 			hasAnchorGrow = true
 		}
@@ -914,7 +952,9 @@ func validateNormalProposalManifest(
 		)
 		return false
 	}
-	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber, input.Taiko.BatchProposed.BlockNumber()) {
+	proposalBlockNumber := input.Taiko.BatchProposed.BlockNumber()
+	l1OriginBlockNumber := saturatingSub(proposalBlockNumber, 1)
+	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber, l1OriginBlockNumber) {
 		log.Error("valid_anchor_in_proposal failed", "lastAnchorBlockNumber", lastAnchorBlockNumber)
 		return false
 	}
@@ -932,11 +972,6 @@ func validateNormalProposalManifest(
 func validateForceIncProposalManifest(m *manifest.DerivationSourceManifest) bool {
 	if len(m.Blocks) != 1 {
 		log.Error("force inclusion manifest must have exactly 1 block", "count", len(m.Blocks))
-		return false
-	}
-	block := m.Blocks[0]
-	if block.Timestamp != 0 || block.Coinbase != (common.Address{}) || block.AnchorBlockNumber != 0 || block.GasLimit != 0 {
-		log.Error("invalid force inclusion block manifest", "block", block)
 		return false
 	}
 	return true
@@ -966,10 +1001,13 @@ func validateShastaBlockGasLimit(
 		return false
 	}
 	parentGasLimit := blockGuestInputs[0].ParentHeader.GasLimit
-	maxBlockGasLimit := shastaMaxBlockGasLimitBase + taiko.AnchorV3V4GasLimit
-	minBlockGasLimit := shastaMinBlockGasLimitBase + taiko.AnchorV3V4GasLimit
+	if blockGuestInputs[0].ParentHeader.Number.Uint64() != 0 && parentGasLimit >= taiko.AnchorV3V4GasLimit {
+		parentGasLimit -= taiko.AnchorV3V4GasLimit
+	}
+	maxBlockGasLimit := shastaMaxBlockGasLimitBase
+	minBlockGasLimit := shastaMinBlockGasLimitBase
 	for _, manifestBlock := range manifestBlocks {
-		blockGasLimit := manifestBlock.GasLimit + taiko.AnchorV3V4GasLimit
+		blockGasLimit := manifestBlock.GasLimit
 		upperLimit := min(
 			maxBlockGasLimit,
 			parentGasLimit*(shastaGasLimitDenominator+shastaBlockGasLimitMaxChange)/shastaGasLimitDenominator,
@@ -1003,6 +1041,7 @@ func validateShastaManifestBlockTimestamp(
 		return false
 	}
 	proposalTimestamp := batchInput.Taiko.BatchProposed.ProposedAt()
+	forkTimestamp := shastaForkTimestamp(batchInput.Taiko.ChainSpec)
 	parentTimestamp := batchInput.Inputs[0].ParentHeader.Time
 	for _, block := range blocks {
 		blockTimestamp := block.Timestamp
@@ -1014,7 +1053,7 @@ func validateShastaManifestBlockTimestamp(
 			)
 			return false
 		}
-		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp)
+		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp, forkTimestamp)
 		if blockTimestamp < lowerBound {
 			log.Error(
 				"block timestamp below lower bound",
@@ -1028,13 +1067,32 @@ func validateShastaManifestBlockTimestamp(
 	return true
 }
 
-func clampTimestampLowerBound(parentTimestamp uint64, proposalTimestamp uint64) uint64 {
-	lowerBound := parentTimestamp + 1
-	if proposalTimestamp > manifest.TimestampMaxOffset {
-		altLowerBound := proposalTimestamp - manifest.TimestampMaxOffset
+func shastaForkTimestamp(chainSpec *ChainSpec) uint64 {
+	if chainSpec == nil {
+		return 0
+	}
+	for _, fork := range chainSpec.HardForks {
+		if fork.SpecID != SpecID(ShastaHardFork) {
+			continue
+		}
+		if timestamp, ok := fork.Condition.(BlockTimestamp); ok {
+			return uint64(timestamp)
+		}
+		return 0
+	}
+	return 0
+}
+
+func clampTimestampLowerBound(parentTimestamp uint64, proposalTimestamp uint64, shastaForkTimestamp uint64) uint64 {
+	lowerBound := saturatingAdd(parentTimestamp, 1)
+	if proposalTimestamp > shastaTimestampMaxOffset {
+		altLowerBound := proposalTimestamp - shastaTimestampMaxOffset
 		if altLowerBound > lowerBound {
 			lowerBound = altLowerBound
 		}
+	}
+	if shastaForkTimestamp > lowerBound {
+		lowerBound = shastaForkTimestamp
 	}
 	return lowerBound
 }
@@ -1262,8 +1320,9 @@ func (g *BatchGuestInput) createDefaultManifest(
 	coinbase common.Address,
 	anchorBlockNumber uint64,
 	gasLimit uint64,
+	isGenesisParent bool,
 ) *manifest.DerivationSourceManifest {
-	if gasLimit >= taiko.AnchorV3V4GasLimit {
+	if !isGenesisParent && gasLimit >= taiko.AnchorV3V4GasLimit {
 		gasLimit -= taiko.AnchorV3V4GasLimit
 	}
 	return &manifest.DerivationSourceManifest{
