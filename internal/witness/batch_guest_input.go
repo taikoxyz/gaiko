@@ -1,6 +1,7 @@
 package witness
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -338,6 +339,10 @@ func combineBlobData(blobs [][eth.BlobSize]byte) ([]byte, error) {
 	return combined, nil
 }
 
+// shastaProposalMaxBlocks is the maximum number of blocks allowed in a Shasta proposal.
+// Keep this aligned with Raiko's `PROPOSAL_MAX_BLOCKS`.
+const shastaProposalMaxBlocks = 192
+
 const shastaBlobDataPrefixSize = 64
 
 func shastaBlobTxSliceParamForSource(
@@ -395,22 +400,74 @@ type legacyDerivationSourceManifest struct {
 }
 
 func decodeShastaDerivationSourceManifest(data []byte) (*manifest.DerivationSourceManifest, error) {
-	// New format: `DerivationSourceManifest` is encoded as `[proverAuthBytes, blocks]`.
-	var decoded manifest.DerivationSourceManifest
-	if err := rlp.DecodeBytes(data, &decoded); err == nil {
-		return &decoded, nil
+	if len(data) == 0 {
+		return nil, errors.New("empty shasta derivation source manifest")
 	}
 
+	stream := rlp.NewStream(bytes.NewReader(data), 0)
+	if _, err := stream.List(); err != nil {
+		return nil, err
+	}
+
+	// New format: `DerivationSourceManifest` is encoded as `[proverAuthBytes, blocks]`.
 	// Legacy format (used by current fixtures and raiko): `DerivationSourceManifest` is encoded as
 	// `[blocks]`, without `proverAuthBytes`.
-	var legacy legacyDerivationSourceManifest
-	if err := rlp.DecodeBytes(data, &legacy); err != nil {
+	kind, _, err := stream.Kind()
+	if err != nil {
+		return nil, err
+	}
+
+	if kind == rlp.List {
+		blocks, err := decodeShastaBlockManifestsWithLimit(stream)
+		if err != nil {
+			return nil, err
+		}
+		if err := stream.ListEnd(); err != nil {
+			return nil, err
+		}
+		return &manifest.DerivationSourceManifest{
+			ProverAuthBytes: nil,
+			Blocks:          blocks,
+		}, nil
+	}
+
+	var proverAuthBytes []byte
+	if err := stream.Decode(&proverAuthBytes); err != nil {
+		return nil, err
+	}
+	blocks, err := decodeShastaBlockManifestsWithLimit(stream)
+	if err != nil {
+		return nil, err
+	}
+	if err := stream.ListEnd(); err != nil {
 		return nil, err
 	}
 	return &manifest.DerivationSourceManifest{
-		ProverAuthBytes: nil,
-		Blocks:          legacy.Blocks,
+		ProverAuthBytes: proverAuthBytes,
+		Blocks:          blocks,
 	}, nil
+}
+
+func decodeShastaBlockManifestsWithLimit(stream *rlp.Stream) ([]*manifest.BlockManifest, error) {
+	if _, err := stream.List(); err != nil {
+		return nil, err
+	}
+
+	blocks := make([]*manifest.BlockManifest, 0, min(shastaProposalMaxBlocks, 16))
+	for stream.MoreDataInList() {
+		if len(blocks) >= shastaProposalMaxBlocks {
+			return nil, fmt.Errorf("shasta proposal block number exceeds limit %d", shastaProposalMaxBlocks)
+		}
+		var block manifest.BlockManifest
+		if err := stream.Decode(&block); err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, &block)
+	}
+	if err := stream.ListEnd(); err != nil {
+		return nil, err
+	}
+	return blocks, nil
 }
 
 func (g *BatchGuestInput) BlockProposed() BlockProposed {
@@ -944,11 +1001,11 @@ func validateNormalProposalManifest(
 	m *manifest.DerivationSourceManifest,
 	lastAnchorBlockNumber uint64,
 ) bool {
-	if len(m.Blocks) > manifest.ProposalMaxBlocks {
+	if len(m.Blocks) > shastaProposalMaxBlocks {
 		log.Error(
 			"manifest block number exceeds limit",
 			"count", len(m.Blocks),
-			"limit", manifest.ProposalMaxBlocks,
+			"limit", shastaProposalMaxBlocks,
 		)
 		return false
 	}
