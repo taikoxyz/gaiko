@@ -196,10 +196,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 	proposalTimestamp := eventData.Proposal.Timestamp
 	forkTimestamp := shastaForkTimestamp(g.Taiko.ChainSpec)
 	isGenesisParent := g.Inputs[0].ParentHeader.Number.Uint64() == 0
-	isFirstShastaProposal := g.Taiko.ChainSpec.activeFork(
-		g.Inputs[0].ParentHeader.Number.Uint64(),
-		g.Inputs[0].ParentHeader.Time,
-	) == SpecID(PacayaHardFork) || isGenesisParent
+	useInitBaseFee := g.Inputs[0].ParentHeader.Number.Uint64() <= 1
 
 	var allBlockTxs []types.Transactions
 	for idx, dataSource := range g.Taiko.DataSources {
@@ -249,7 +246,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		if idx == len(g.Taiko.DataSources)-1 {
 			// Normal source
 			if decodeErr == nil && validateNormalProposalManifest(g, source, g.Taiko.ProverData.LastAnchorBlockNumber) {
-				if !validateShastaBlockBaseFee(g.Inputs, isFirstShastaProposal, g.Taiko.L2GrandparentHeader) {
+				if !validateShastaBlockBaseFee(g.Inputs, useInitBaseFee, g.Taiko.L2GrandparentHeader) {
 					log.Warn("shasta block base fee is invalid, use default manifest")
 					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
 					coinbase := g.Taiko.BatchProposed.Proposer()
@@ -1231,7 +1228,7 @@ func calcNextShastaBaseFee(
 
 func validateShastaBlockBaseFee(
 	blockGuestInputs []*SingleGuestInput,
-	isFirstShastaProposal bool,
+	useInitBaseFee bool,
 	l2GrandparentHeader *types.Header,
 ) bool {
 	if len(blockGuestInputs) == 0 {
@@ -1241,8 +1238,12 @@ func validateShastaBlockBaseFee(
 	if firstBaseFee == nil {
 		return false
 	}
-	if isFirstShastaProposal {
+	if useInitBaseFee {
 		if firstBaseFee.Uint64() != params.ShastaInitialBaseFee {
+			log.Warn("shasta block base fee is invalid",
+				"expected", params.ShastaInitialBaseFee,
+				"found", firstBaseFee.Uint64(),
+			)
 			return false
 		}
 	} else {
