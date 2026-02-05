@@ -196,7 +196,7 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 	proposalTimestamp := eventData.Proposal.Timestamp
 	forkTimestamp := shastaForkTimestamp(g.Taiko.ChainSpec)
 	isGenesisParent := g.Inputs[0].ParentHeader.Number.Uint64() == 0
-	useInitBaseFee := g.Inputs[0].ParentHeader.Number.Uint64() <= 1
+	useInitBaseFee := isGenesisParent
 
 	var allBlockTxs []types.Transactions
 	for idx, dataSource := range g.Taiko.DataSources {
