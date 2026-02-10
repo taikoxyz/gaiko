@@ -25,6 +25,8 @@ var bytesBufferPool = sync.Pool{
 	},
 }
 
+var emptyProofResponsePayload = mustMarshalEmptyProofResponse()
+
 type Response struct {
 	Status  string          `json:"status"`
 	Message string          `json:"message"`
@@ -55,6 +57,20 @@ func recoverMiddleware(next http.Handler) http.Handler {
 		}()
 		next.ServeHTTP(w, r)
 	})
+}
+
+func mustMarshalEmptyProofResponse() json.RawMessage {
+	payload, err := json.Marshal(&prover.ProofResponse{
+		Proof:           []byte{},
+		Quote:           []byte{},
+		PublicKey:       []byte{},
+		InstanceAddress: common.Address{},
+		Input:           common.Hash{},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("failed to marshal empty proof response: %v", err))
+	}
+	return payload
 }
 
 func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.SGXProver, w http.ResponseWriter, r *http.Request, proveMode ProveMode) {
@@ -96,7 +112,7 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		response = Response{
 			Status:  "error",
 			Message: err.Error(),
-			Proof:   []byte("{}"),
+			Proof:   emptyProofResponsePayload,
 		}
 	} else {
 		log.Debug("Prove finished, get proof: ", "proof", args.ProofWriter.(*bytes.Buffer).String())
