@@ -108,7 +108,7 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	var response Response
 	if err != nil {
-		log.Debug("Prove finished, get error: %s, response: ", "error", err, "proof", args.ProofWriter.(*bytes.Buffer).String())
+		log.Error("Prove finished, get error: %s, response: ", "error", err, "proof", args.ProofWriter.(*bytes.Buffer).String())
 		response = Response{
 			Status:  "error",
 			Message: err.Error(),
