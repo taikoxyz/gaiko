@@ -196,14 +196,15 @@ func (vf *VerifierAddressFork) UnmarshalJSON(data []byte) error {
 type Network string
 
 const (
-	TaikoMainnetNetwork Network = "taiko_mainnet"
-	EthereumNetwork     Network = "ethereum"
-	HoleskyNetwork      Network = "holesky"
-	TaikoDevNetwork     Network = "taiko_dev"
-	PreconfDevNetwork   Network = "preconf_dev"
-	MasayaDevNetwork    Network = "masaya_dev"
-	TaikoHoodiNetwork   Network = "taiko_hoodi"
-	TaikoA7Network      Network = "taiko_a7"
+	TaikoMainnetNetwork    Network = "taiko_mainnet"
+	EthereumNetwork        Network = "ethereum"
+	HoleskyNetwork         Network = "holesky"
+	TaikoDevNetwork        Network = "taiko_dev"
+	PreconfDevNetwork      Network = "preconf_dev"
+	MasayaDevNetwork       Network = "masaya_dev"
+	TaikoHoodiNetwork      Network = "taiko_hoodi"
+	TaikoTransitionNetwork Network = "taiko_transition"
+	TaikoA7Network         Network = "taiko_a7"
 )
 
 //go:generate go run github.com/fjl/gencodec -type ChainSpec -field-override chainSpecMarshaling -out gen_chain_spec.go
@@ -297,6 +298,21 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		chainConfig.PacayaBlock = core.TaikoHoodiPacayaBlock
 		if activeShasta {
 			chainConfig.ShastaTime = &core.HoodiShastaTime
+		} else {
+			chainConfig.ShastaTime = nil
+		}
+		return chainConfig, nil
+	case TaikoTransitionNetwork:
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.STDNetworkID)
+		chainConfig.ChainID = params.STDNetworkID
+		chainConfig.OntakeBlock = core.STDOntakeBlock
+		chainConfig.PacayaBlock = core.STDPacayaBlock
+		if activeShasta {
+			shastaTime := shastaForkTimestamp(c)
+			if shastaTime == 0 {
+				shastaTime = core.STDShastaTime
+			}
+			chainConfig.ShastaTime = &shastaTime
 		} else {
 			chainConfig.ShastaTime = nil
 		}
