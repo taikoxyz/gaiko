@@ -195,6 +195,9 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 	lastParentBlockGasLimit := g.Inputs[0].ParentHeader.GasLimit
 	proposalTimestamp := eventData.Proposal.Timestamp
 	forkTimestamp := shastaForkTimestamp(g.Taiko.ChainSpec)
+	chainID := g.ChainID()
+	timestampMaxOffset := shastaTimestampMaxOffsetForChain(chainID)
+	minBaseFee := shastaMinBaseFeeForChain(chainID)
 	isGenesisParent := g.Inputs[0].ParentHeader.Number.Uint64() == 0
 	useInitBaseFee := isGenesisParent
 
@@ -246,9 +249,14 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 		if idx == len(g.Taiko.DataSources)-1 {
 			// Normal source
 			if decodeErr == nil && validateNormalProposalManifest(g, source, g.Taiko.ProverData.LastAnchorBlockNumber) {
-				if !validateShastaBlockBaseFee(g.Inputs, useInitBaseFee, g.Taiko.L2GrandparentHeader) {
+				if !validateShastaBlockBaseFee(g.Inputs, useInitBaseFee, g.Taiko.L2GrandparentHeader, minBaseFee) {
 					log.Warn("shasta block base fee is invalid, use default manifest")
-					timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
+					timestamp := clampTimestampLowerBound(
+						lastParentBlockTimestamp,
+						proposalTimestamp,
+						forkTimestamp,
+						timestampMaxOffset,
+					)
 					coinbase := g.Taiko.BatchProposed.Proposer()
 					anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
 					validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit, isGenesisParent)
@@ -257,14 +265,24 @@ func (g *BatchGuestInput) yieldShastaGuestInputs(yield func(*Pair) bool) {
 				}
 			} else {
 				// Fallback
-				timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
+				timestamp := clampTimestampLowerBound(
+					lastParentBlockTimestamp,
+					proposalTimestamp,
+					forkTimestamp,
+					timestampMaxOffset,
+				)
 				coinbase := g.Taiko.BatchProposed.Proposer()
 				anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
 				validManifest = g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit, isGenesisParent)
 			}
 		} else {
 			// Force inclusion source
-			timestamp := clampTimestampLowerBound(lastParentBlockTimestamp, proposalTimestamp, forkTimestamp)
+			timestamp := clampTimestampLowerBound(
+				lastParentBlockTimestamp,
+				proposalTimestamp,
+				forkTimestamp,
+				timestampMaxOffset,
+			)
 			coinbase := g.Taiko.BatchProposed.Proposer()
 			anchorBlockNumber := g.Taiko.ProverData.LastAnchorBlockNumber
 			forceManifest := g.createDefaultManifest(timestamp, coinbase, anchorBlockNumber, lastParentBlockGasLimit, isGenesisParent)
@@ -917,18 +935,50 @@ const (
 	shastaMaxBlockGasLimitBase   uint64 = 45_000_000
 	shastaMinBlockGasLimitBase   uint64 = 10_000_000
 
-	shastaTimestampMaxOffset          uint64 = 12 * 128
+	shastaAnchorMaxOffset        uint64 = manifest.AnchorMaxOffset
+	shastaMainnetAnchorMaxOffset uint64 = 512
+
+	shastaHoodiTimestampMaxOffset   uint64 = 12 * shastaAnchorMaxOffset
+	shastaMainnetTimestampMaxOffset uint64 = 12 * shastaMainnetAnchorMaxOffset
+
 	shastaBlockTimeTarget             uint64 = 2
 	shastaMaxGasTargetTargetPercent   uint64 = 95
 	shastaMinBaseFee                  uint64 = 5_000_000
+	shastaMainnetMinBaseFee           uint64 = 10_000_000
 	shastaMaxBaseFee                  uint64 = 1_000_000_000
 	shastaDefaultBaseFeeDenominator   uint64 = 8
 	shastaDefaultElasticityMultiplier uint64 = 2
 )
 
+func isTaikoMainnetChain(chainID uint64) bool {
+	return chainID == params.TaikoMainnetNetworkID.Uint64()
+}
+
+func shastaMinBaseFeeForChain(chainID uint64) uint64 {
+	if isTaikoMainnetChain(chainID) {
+		return shastaMainnetMinBaseFee
+	}
+	return shastaMinBaseFee
+}
+
+func shastaAnchorMaxOffsetForChain(chainID uint64) uint64 {
+	if isTaikoMainnetChain(chainID) {
+		return shastaMainnetAnchorMaxOffset
+	}
+	return shastaAnchorMaxOffset
+}
+
+func shastaTimestampMaxOffsetForChain(chainID uint64) uint64 {
+	if isTaikoMainnetChain(chainID) {
+		return shastaMainnetTimestampMaxOffset
+	}
+	return shastaHoodiTimestampMaxOffset
+}
+
 func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
 	proposalTimestamp := g.Taiko.BatchProposed.ProposedAt()
 	forkTimestamp := shastaForkTimestamp(g.Taiko.ChainSpec)
+	timestampMaxOffset := shastaTimestampMaxOffsetForChain(g.ChainID())
 	for _, input := range g.Inputs {
 		blockTimestamp := input.Block.Time()
 
@@ -937,7 +987,7 @@ func (g *BatchGuestInput) validateShastaBlockTimestamp() error {
 		}
 
 		parentTimestamp := input.ParentHeader.Time
-		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp, forkTimestamp)
+		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp, forkTimestamp, timestampMaxOffset)
 
 		if blockTimestamp < lowerBound {
 			return fmt.Errorf("block timestamp %d is less than calculated lower bound %d", blockTimestamp, lowerBound)
@@ -950,8 +1000,9 @@ func validAnchorInNormalProposal(
 	blocks []*manifest.BlockManifest,
 	lastAnchorBlockNumber uint64,
 	l1OriginBlockNumber uint64,
+	anchorMaxOffset uint64,
 ) bool {
-	minAnchor := saturatingSub(l1OriginBlockNumber, manifest.AnchorMaxOffset)
+	minAnchor := saturatingSub(l1OriginBlockNumber, anchorMaxOffset)
 	maxAnchor := l1OriginBlockNumber
 
 	hasAnchorGrow := false
@@ -1008,7 +1059,8 @@ func validateNormalProposalManifest(
 	}
 	proposalBlockNumber := input.Taiko.BatchProposed.BlockNumber()
 	l1OriginBlockNumber := saturatingSub(proposalBlockNumber, 1)
-	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber, l1OriginBlockNumber) {
+	anchorMaxOffset := shastaAnchorMaxOffsetForChain(input.ChainID())
+	if !validAnchorInNormalProposal(m.Blocks, lastAnchorBlockNumber, l1OriginBlockNumber, anchorMaxOffset) {
 		log.Error("valid_anchor_in_proposal failed", "lastAnchorBlockNumber", lastAnchorBlockNumber)
 		return false
 	}
@@ -1096,6 +1148,7 @@ func validateShastaManifestBlockTimestamp(
 	}
 	proposalTimestamp := batchInput.Taiko.BatchProposed.ProposedAt()
 	forkTimestamp := shastaForkTimestamp(batchInput.Taiko.ChainSpec)
+	timestampMaxOffset := shastaTimestampMaxOffsetForChain(batchInput.ChainID())
 	parentTimestamp := batchInput.Inputs[0].ParentHeader.Time
 	for _, block := range blocks {
 		blockTimestamp := block.Timestamp
@@ -1107,7 +1160,7 @@ func validateShastaManifestBlockTimestamp(
 			)
 			return false
 		}
-		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp, forkTimestamp)
+		lowerBound := clampTimestampLowerBound(parentTimestamp, proposalTimestamp, forkTimestamp, timestampMaxOffset)
 		if blockTimestamp < lowerBound {
 			log.Error(
 				"block timestamp below lower bound",
@@ -1137,10 +1190,15 @@ func shastaForkTimestamp(chainSpec *ChainSpec) uint64 {
 	return 0
 }
 
-func clampTimestampLowerBound(parentTimestamp uint64, proposalTimestamp uint64, shastaForkTimestamp uint64) uint64 {
+func clampTimestampLowerBound(
+	parentTimestamp uint64,
+	proposalTimestamp uint64,
+	shastaForkTimestamp uint64,
+	timestampMaxOffset uint64,
+) uint64 {
 	lowerBound := saturatingAdd(parentTimestamp, 1)
-	if proposalTimestamp > shastaTimestampMaxOffset {
-		altLowerBound := proposalTimestamp - shastaTimestampMaxOffset
+	if proposalTimestamp > timestampMaxOffset {
+		altLowerBound := proposalTimestamp - timestampMaxOffset
 		if altLowerBound > lowerBound {
 			lowerBound = altLowerBound
 		}
@@ -1175,9 +1233,10 @@ func saturatingAdd(a uint64, b uint64) uint64 {
 	return a + b
 }
 
-func clampShastaBaseFee(baseFee uint64) uint64 {
-	if baseFee < shastaMinBaseFee {
-		return shastaMinBaseFee
+func clampShastaBaseFeeWithMin(baseFee uint64, minBaseFee uint64) uint64 {
+	effectiveMinBaseFee := min(minBaseFee, shastaMaxBaseFee)
+	if baseFee < effectiveMinBaseFee {
+		return effectiveMinBaseFee
 	}
 	if baseFee > shastaMaxBaseFee {
 		return shastaMaxBaseFee
@@ -1192,13 +1251,14 @@ func calcNextShastaBaseFee(
 	parentBlockTime uint64,
 	elasticityMultiplier uint64,
 	baseFeeChangeDenominator uint64,
+	minBaseFee uint64,
 ) uint64 {
 	if elasticityMultiplier == 0 {
-		return clampShastaBaseFee(parentBaseFee)
+		return clampShastaBaseFeeWithMin(parentBaseFee, minBaseFee)
 	}
 	parentGasTarget := parentGasLimit / elasticityMultiplier
 	if parentGasTarget == 0 {
-		return clampShastaBaseFee(parentBaseFee)
+		return clampShastaBaseFeeWithMin(parentBaseFee, minBaseFee)
 	}
 
 	adjustedTarget1 := saturatingMul(parentGasTarget, parentBlockTime) / shastaBlockTimeTarget
@@ -1206,30 +1266,31 @@ func calcNextShastaBaseFee(
 	parentAdjustedGasTarget := min(adjustedTarget1, adjustedTarget2)
 
 	if parentGasUsed == parentAdjustedGasTarget {
-		return clampShastaBaseFee(parentBaseFee)
+		return clampShastaBaseFeeWithMin(parentBaseFee, minBaseFee)
 	}
 
 	if parentGasUsed > parentAdjustedGasTarget {
 		gasUsedDelta := parentGasUsed - parentAdjustedGasTarget
 		adjustment := saturatingMul(parentBaseFee, gasUsedDelta) / parentGasTarget / baseFeeChangeDenominator
 		if adjustment < 1 {
-			return clampShastaBaseFee(saturatingAdd(parentBaseFee, 1))
+			return clampShastaBaseFeeWithMin(saturatingAdd(parentBaseFee, 1), minBaseFee)
 		}
-		return clampShastaBaseFee(saturatingAdd(parentBaseFee, adjustment))
+		return clampShastaBaseFeeWithMin(saturatingAdd(parentBaseFee, adjustment), minBaseFee)
 	}
 
 	gasUsedDelta := parentAdjustedGasTarget - parentGasUsed
 	adjustment := saturatingMul(parentBaseFee, gasUsedDelta) / parentGasTarget / baseFeeChangeDenominator
 	if adjustment > parentBaseFee {
-		return clampShastaBaseFee(0)
+		return clampShastaBaseFeeWithMin(0, minBaseFee)
 	}
-	return clampShastaBaseFee(parentBaseFee - adjustment)
+	return clampShastaBaseFeeWithMin(parentBaseFee-adjustment, minBaseFee)
 }
 
 func validateShastaBlockBaseFee(
 	blockGuestInputs []*SingleGuestInput,
 	useInitBaseFee bool,
 	l2GrandparentHeader *types.Header,
+	minBaseFee uint64,
 ) bool {
 	if len(blockGuestInputs) == 0 {
 		return false
@@ -1262,6 +1323,7 @@ func validateShastaBlockBaseFee(
 			parentBlockTime,
 			shastaDefaultElasticityMultiplier,
 			shastaDefaultBaseFeeDenominator,
+			minBaseFee,
 		)
 		if expectedBaseFee != firstBaseFee.Uint64() {
 			return false
@@ -1287,6 +1349,7 @@ func validateShastaBlockBaseFee(
 			parentBlockTime,
 			shastaDefaultElasticityMultiplier,
 			shastaDefaultBaseFeeDenominator,
+			minBaseFee,
 		)
 		if expectedBaseFee != actualBaseFee.Uint64() {
 			return false

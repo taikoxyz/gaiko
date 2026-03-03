@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/require"
 	"github.com/taikoxyz/gaiko/tests/fixtures"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/utils"
@@ -252,7 +253,7 @@ func TestValidateShastaBlockBaseFee_UsesGrandparent(t *testing.T) {
 	input := &SingleGuestInput{Block: block, ParentHeader: parentHeader}
 	grandparent := &types.Header{Time: 0}
 
-	require.True(t, validateShastaBlockBaseFee([]*SingleGuestInput{input}, false, grandparent))
+	require.True(t, validateShastaBlockBaseFee([]*SingleGuestInput{input}, false, grandparent, shastaMinBaseFee))
 }
 
 func TestCalcNextShastaBaseFee_RaikoVector(t *testing.T) {
@@ -263,6 +264,7 @@ func TestCalcNextShastaBaseFee_RaikoVector(t *testing.T) {
 		240,
 		shastaDefaultElasticityMultiplier,
 		shastaDefaultBaseFeeDenominator,
+		shastaMinBaseFee,
 	)
 	require.Equal(t, uint64(5_059_102), result)
 }
@@ -275,6 +277,7 @@ func TestCalcNextShastaBaseFee_SaturatingMul(t *testing.T) {
 		12_597_304_404_566_764_638,
 		shastaDefaultElasticityMultiplier,
 		shastaDefaultBaseFeeDenominator,
+		shastaMinBaseFee,
 	)
 	require.Equal(t, uint64(15_468_160), result)
 }
@@ -287,6 +290,31 @@ func TestCalcNextShastaBaseFee_SaturatingAdd(t *testing.T) {
 		2,
 		shastaDefaultElasticityMultiplier,
 		shastaDefaultBaseFeeDenominator,
+		shastaMinBaseFee,
 	)
 	require.Equal(t, uint64(1_000_000_000), result)
+}
+
+func TestCalcNextShastaBaseFee_MainnetMinBaseFee(t *testing.T) {
+	result := calcNextShastaBaseFee(
+		16_000_000,
+		8_000_000,
+		6_000_000,
+		shastaBlockTimeTarget,
+		shastaDefaultElasticityMultiplier,
+		shastaDefaultBaseFeeDenominator,
+		shastaMainnetMinBaseFee,
+	)
+	require.Equal(t, shastaMainnetMinBaseFee, result)
+}
+
+func TestShastaChainSpecificOffsets(t *testing.T) {
+	mainnetID := params.TaikoMainnetNetworkID.Uint64()
+	otherID := uint64(167001)
+
+	require.Equal(t, shastaMainnetAnchorMaxOffset, shastaAnchorMaxOffsetForChain(mainnetID))
+	require.Equal(t, shastaAnchorMaxOffset, shastaAnchorMaxOffsetForChain(otherID))
+
+	require.Equal(t, shastaMainnetTimestampMaxOffset, shastaTimestampMaxOffsetForChain(mainnetID))
+	require.Equal(t, shastaHoodiTimestampMaxOffset, shastaTimestampMaxOffsetForChain(otherID))
 }
