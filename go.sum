@@ -412,8 +412,6 @@ github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
-github.com/status-im/keycard-go v0.2.0 h1:QDLFswOQu1r5jsycloeQh3bVU8n/NatHHaZobtDnDzA=
-github.com/status-im/keycard-go v0.2.0/go.mod h1:wlp8ZLbsmrF6g6WjugPAx+IzoLrkdf9+mHxBEeo3Hbg=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
@@ -434,8 +432,8 @@ github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d h1:vfofYNRScrDd
 github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d/go.mod h1:RRCYJbIwD5jmqPI9XoAFR0OcDxqUctll6zUj/+B4S48=
 github.com/taikoxyz/optimism v0.0.0-20250904153513-c03e7cc023f2 h1:rB8kA1Hx3dIJbKn0483GQLiDE//MvjSBlNm2gBSEf3U=
 github.com/taikoxyz/optimism v0.0.0-20250904153513-c03e7cc023f2/go.mod h1:V0VCkKtCzuaJH6qcL75SRcbdlakM9LhurMEJUhO6VXA=
-github.com/taikoxyz/taiko-geth v1.18.1-0.20260211121457-a544df98816a h1:aP68c5pGy3vhtUwwOsy75Iu3s1Wp7l/3unOYSQXou8A=
-github.com/taikoxyz/taiko-geth v1.18.1-0.20260211121457-a544df98816a/go.mod h1:1LG2LnMOx2yPRHR/S+xuipXH29vPr6BIH6GElD8N/fo=
+github.com/taikoxyz/taiko-geth v1.18.1-0.20260309064128-569903ff685b h1:HM/fmO8OY8BKmVJGg453zolsznwRSQ9y1RdnSjCjoKE=
+github.com/taikoxyz/taiko-geth v1.18.1-0.20260309064128-569903ff685b/go.mod h1:1LG2LnMOx2yPRHR/S+xuipXH29vPr6BIH6GElD8N/fo=
 github.com/taikoxyz/taiko-mono v0.0.0-20260203160404-a01f51cf6564 h1:Txae7gz3AsCaelW7nlbJwMWUfeRp+mPRdg1jkr+M+wE=
 github.com/taikoxyz/taiko-mono v0.0.0-20260203160404-a01f51cf6564/go.mod h1:P7U5xAuAMRG9uSFbn80oiCBGJrwoxHR994ihPkfh8vs=
 github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e h1:cR8/SYRgyQCt5cNCMniB/ZScMkhI9nk8U5C7SbISXjo=
