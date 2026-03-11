@@ -310,11 +310,18 @@ func TestCalcNextShastaBaseFee_MainnetMinBaseFee(t *testing.T) {
 
 func TestShastaChainSpecificOffsets(t *testing.T) {
 	mainnetID := params.TaikoMainnetNetworkID.Uint64()
+	transitionID := uint64(167014)
 	otherID := uint64(167001)
 
 	require.Equal(t, shastaMainnetAnchorMaxOffset, shastaAnchorMaxOffsetForChain(mainnetID))
+	require.Equal(t, shastaMainnetAnchorMaxOffset, shastaAnchorMaxOffsetForChain(transitionID))
 	require.Equal(t, shastaAnchorMaxOffset, shastaAnchorMaxOffsetForChain(otherID))
 
 	require.Equal(t, shastaMainnetTimestampMaxOffset, shastaTimestampMaxOffsetForChain(mainnetID))
+	require.Equal(t, shastaMainnetTimestampMaxOffset, shastaTimestampMaxOffsetForChain(transitionID))
 	require.Equal(t, shastaHoodiTimestampMaxOffset, shastaTimestampMaxOffsetForChain(otherID))
+
+	require.Equal(t, shastaMainnetMinBaseFee, shastaMinBaseFeeForChain(mainnetID))
+	require.Equal(t, shastaMainnetMinBaseFee, shastaMinBaseFeeForChain(transitionID))
+	require.Equal(t, shastaMinBaseFee, shastaMinBaseFeeForChain(otherID))
 }

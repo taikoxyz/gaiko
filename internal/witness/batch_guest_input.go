@@ -954,22 +954,26 @@ func isTaikoMainnetChain(chainID uint64) bool {
 	return chainID == params.TaikoMainnetNetworkID.Uint64()
 }
 
+func isTaikoMainnetLikeChain(chainID uint64) bool {
+	return isTaikoMainnetChain(chainID) || chainID == 167014
+}
+
 func shastaMinBaseFeeForChain(chainID uint64) uint64 {
-	if isTaikoMainnetChain(chainID) {
+	if isTaikoMainnetLikeChain(chainID) {
 		return shastaMainnetMinBaseFee
 	}
 	return shastaMinBaseFee
 }
 
 func shastaAnchorMaxOffsetForChain(chainID uint64) uint64 {
-	if isTaikoMainnetChain(chainID) {
+	if isTaikoMainnetLikeChain(chainID) {
 		return shastaMainnetAnchorMaxOffset
 	}
 	return shastaAnchorMaxOffset
 }
 
 func shastaTimestampMaxOffsetForChain(chainID uint64) uint64 {
-	if isTaikoMainnetChain(chainID) {
+	if isTaikoMainnetLikeChain(chainID) {
 		return shastaMainnetTimestampMaxOffset
 	}
 	return shastaHoodiTimestampMaxOffset
