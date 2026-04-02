@@ -303,14 +303,14 @@ func (c *ChainSpec) chainConfig(activeShasta bool) (*params.ChainConfig, error) 
 		}
 		return chainConfig, nil
 	case TaikoTransitionNetwork:
-		chainConfig := params.NetworkIDToChainConfigOrDefault(params.STDNetworkID)
-		chainConfig.ChainID = params.STDNetworkID
-		chainConfig.OntakeBlock = core.STDOntakeBlock
-		chainConfig.PacayaBlock = core.STDPacayaBlock
+		chainConfig := params.NetworkIDToChainConfigOrDefault(params.TaikoInternalNetworkID)
+		chainConfig.ChainID = params.TaikoInternalNetworkID
+		chainConfig.OntakeBlock = core.InternalDevnetOntakeBlock
+		chainConfig.PacayaBlock = core.InternalDevnetPacayaBlock
 		if activeShasta {
 			shastaTime := shastaForkTimestamp(c)
 			if shastaTime == 0 {
-				shastaTime = core.STDShastaTime
+				shastaTime = core.InternalShastaTime
 			}
 			chainConfig.ShastaTime = &shastaTime
 		} else {
