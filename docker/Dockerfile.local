@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 FROM ghcr.io/edgelesssys/ego-dev:v1.7.0 AS builder
 WORKDIR /opt/gaiko
 
@@ -12,8 +13,15 @@ RUN ego-go build -o gaiko-ego ./cmd/gaiko
 
 # Sign with our enclave config and private key
 COPY ego/enclave.json .
-COPY docker/enclave-key.pem private.pem
-RUN ego sign && ego bundle gaiko-ego gaiko
+RUN --mount=type=secret,id=enclave_key,target=/run/secrets/enclave-key.pem \
+    set -e; \
+    trap 'rm -f private.pem' EXIT; \
+    if [ -s /run/secrets/enclave-key.pem ]; then \
+        cp /run/secrets/enclave-key.pem private.pem; \
+    else \
+        openssl genrsa -3 -out private.pem 3072; \
+    fi; \
+    ego sign && ego bundle gaiko-ego gaiko
 RUN ego uniqueid gaiko-ego
 RUN ego signerid gaiko-ego
 

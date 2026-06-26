@@ -28,6 +28,11 @@ go.work.sum
 # env file
 .env
 
+# Local signing material
+docker/enclave-key.pem
+private.pem
+public.pem
+
 .vscode/*
 # !.vscode/settings.json
 !.vscode/tasks.json
