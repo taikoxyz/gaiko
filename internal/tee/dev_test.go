@@ -14,14 +14,16 @@ import (
 
 func TestDevProvider(t *testing.T) {
 	p := NewSGXProvider(nil)
-	q, err := p.LoadQuote(nil, common.Address{})
-	require.NoError(t, err)
-	assert.Equal(t, devQuoteV3, q.Bytes())
 	privKey, err := p.LoadPrivateKey(nil)
 	require.NoError(t, err)
 	assert.Equal(t, devPrivKey, privKey)
 
 	newInstance := crypto.PubkeyToAddress(devPrivKey.PublicKey)
+	q, err := p.LoadQuote(nil, newInstance)
+	require.NoError(t, err)
+	assert.Len(t, q.Bytes(), sgxQuoteSize)
+	assert.Equal(t, newInstance.Bytes(), q.Bytes()[sgxQuoteReportDataOffset:sgxQuoteReportDataOffset+common.AddressLength])
+
 	fmt.Printf("Instance address: %#x\n", newInstance)
 	q.Print()
 }
