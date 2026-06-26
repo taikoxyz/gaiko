@@ -31,7 +31,8 @@ In taiko-mono
 ```
 cd packages/protocol
 
-FORK_URL=https://l1rpc.internal.taiko.xyz PRIVATE_KEY=0x... \
+# Use the public Taiko RPC endpoint
+FORK_URL=https://rpc.taiko.xyz PRIVATE_KEY=0x... \
 ./script/layer1/provers/config_dcap_sgx_verifier.sh \
 --qeid /test/automata-attestation/assets/0923/identity.json \
 --tcb /test/layer1/automata-attestation/assets/0225/tcb_00706A800000.json
