@@ -54,3 +54,20 @@ func TestTransitionChainConfig(t *testing.T) {
 		require.Nil(t, chainConfig.ShastaTime)
 	})
 }
+
+func TestVerifyChainSpecRejectsNameMismatch(t *testing.T) {
+	var mainnetSpec *ChainSpec
+	for _, chainSpec := range defaultSupportedChainSpecs {
+		if chainSpec.Name == TaikoMainnetNetwork {
+			mainnetSpec = chainSpec
+			break
+		}
+	}
+	require.NotNil(t, mainnetSpec)
+
+	mismatchedSpec := *mainnetSpec
+	mismatchedSpec.Name = TaikoDevNetwork
+
+	err := defaultSupportedChainSpecs.verifyChainSpec(&mismatchedSpec)
+	require.EqualError(t, err, "unexpected name")
+}
