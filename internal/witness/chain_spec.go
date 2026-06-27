@@ -34,6 +34,9 @@ func (s SupportedChainSpecs) verifyChainSpec(other *ChainSpec) error {
 		if chainSpec.ChainID != other.ChainID {
 			continue
 		}
+		if chainSpec.Name != other.Name {
+			return errors.New("unexpected name")
+		}
 		if chainSpec.MaxSpecID != other.MaxSpecID {
 			return errors.New("unexpected max_spec_id")
 		}
