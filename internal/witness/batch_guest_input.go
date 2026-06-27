@@ -20,6 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taikoxyz/gaiko/pkg/keccak"
+	"github.com/taikoxyz/gaiko/pkg/mpt"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/manifest"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/pacaya"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/utils"
@@ -702,7 +703,16 @@ func (g *BatchGuestInput) Verify(proofType ProofType) error {
 		if _, err := encodeShastaProposal(&eventData.Proposal); err != nil {
 			return err
 		}
-		if err := verifyShastaAnchorLinkage(g.Inputs, g.Taiko.L1AncestorHeaders, eventData.Proposal.OriginBlockHash); err != nil {
+		var lastAnchorBlockNumber uint64
+		if g.Taiko.ProverData != nil {
+			lastAnchorBlockNumber = g.Taiko.ProverData.LastAnchorBlockNumber
+		}
+		if err := verifyShastaAnchorLinkage(
+			g.Inputs,
+			g.Taiko.L1AncestorHeaders,
+			eventData.Proposal.OriginBlockHash,
+			lastAnchorBlockNumber,
+		); err != nil {
 			return err
 		}
 		if g.Taiko.ProverData != nil && g.Taiko.ProverData.Checkpoint != nil && len(g.Inputs) > 0 {
@@ -1368,10 +1378,123 @@ type shastaAnchorParam struct {
 	stateRoot   common.Hash
 }
 
+const shastaSignalServiceCheckpointsSlot = uint64(254)
+
+func shastaSignalServiceAddressFromL2Contract(l2Contract *common.Address) (common.Address, bool) {
+	if l2Contract == nil {
+		return common.Address{}, false
+	}
+	signalService := *l2Contract
+	if signalService[17] != 0x01 || signalService[18] != 0x00 || signalService[19] != 0x01 {
+		return common.Address{}, false
+	}
+	signalService[17] = 0x00
+	signalService[18] = 0x00
+	signalService[19] = 0x05
+	return signalService, true
+}
+
+func shastaCheckpointStorageSlots(blockNumber uint64) (*big.Int, *big.Int) {
+	encoded := make([]byte, 64)
+	new(big.Int).SetUint64(blockNumber).FillBytes(encoded[:32])
+	new(big.Int).SetUint64(shastaSignalServiceCheckpointsSlot).FillBytes(encoded[32:])
+	blockHashSlot := new(big.Int).SetBytes(keccak.Keccak(encoded).Bytes())
+	stateRootSlot := new(big.Int).Add(new(big.Int).Set(blockHashSlot), big.NewInt(1))
+	return blockHashSlot, stateRootSlot
+}
+
+func u256Bytes(value *big.Int) []byte {
+	buf := make([]byte, 32)
+	value.FillBytes(buf)
+	return buf
+}
+
+func readStorageHash(trie *mpt.MptNode, slot *big.Int) (common.Hash, error) {
+	data, err := trie.Get(keccak.Keccak(u256Bytes(slot)).Bytes())
+	if err != nil {
+		return common.Hash{}, err
+	}
+	if data == nil {
+		return common.Hash{}, nil
+	}
+	value := new(big.Int)
+	if err := rlp.DecodeBytes(data, value); err != nil {
+		return common.Hash{}, err
+	}
+	return common.BigToHash(value), nil
+}
+
+func readParentShastaCheckpoint(input *SingleGuestInput, blockNumber uint64) (*ShastaCheckpoint, error) {
+	if input == nil {
+		return nil, errors.New("missing input")
+	}
+	if input.ChainSpec == nil {
+		return nil, errors.New("missing chain spec")
+	}
+	if input.ParentHeader == nil {
+		return nil, errors.New("missing parent header")
+	}
+	if input.ParentStateTrie == nil {
+		return nil, errors.New("missing parent state trie")
+	}
+	signalService, ok := shastaSignalServiceAddressFromL2Contract(input.ChainSpec.L2Contract)
+	if !ok {
+		return nil, errors.New("invalid l2 contract address")
+	}
+	storage := input.ParentStorage[signalService]
+	if storage == nil || storage.Trie == nil {
+		return nil, fmt.Errorf("missing signal service storage for address %#x", signalService)
+	}
+	parentRoot, err := input.ParentStateTrie.Hash()
+	if err != nil {
+		return nil, err
+	}
+	if parentRoot != input.ParentHeader.Root {
+		return nil, fmt.Errorf(
+			"parent state trie root mismatch, expected: %#x, got: %#x",
+			input.ParentHeader.Root,
+			parentRoot,
+		)
+	}
+	account, err := getAccount(input.ParentStateTrie, signalService)
+	if err != nil {
+		return nil, err
+	}
+	storageRoot, err := storage.Trie.Hash()
+	if err != nil {
+		return nil, err
+	}
+	if storageRoot != account.Root {
+		return nil, fmt.Errorf(
+			"signal service storage root mismatch, expected: %#x, got: %#x",
+			account.Root,
+			storageRoot,
+		)
+	}
+	blockHashSlot, stateRootSlot := shastaCheckpointStorageSlots(blockNumber)
+	blockHash, err := readStorageHash(storage.Trie, blockHashSlot)
+	if err != nil {
+		return nil, err
+	}
+	stateRoot, err := readStorageHash(storage.Trie, stateRootSlot)
+	if err != nil {
+		return nil, err
+	}
+	if blockHash == (common.Hash{}) || stateRoot == (common.Hash{}) {
+		return nil, errors.New("missing parent checkpoint")
+	}
+	return &ShastaCheckpoint{
+		BlockNumber: blockNumber,
+		BlockHash:   blockHash,
+		StateRoot:   stateRoot,
+	}, nil
+}
+
 func verifyShastaAnchorLinkage(
 	inputs []*SingleGuestInput,
 	l1AncestorHeaders []*types.Header,
 	expectedParentHash common.Hash,
+	lastAnchorBlockNumber uint64,
 ) error {
 	if len(inputs) == 0 {
 		return errors.New("missing shasta inputs")
@@ -1396,8 +1519,27 @@ func verifyShastaAnchorLinkage(
 		}] = struct{}{}
 	}
 
+	parentCheckpoint, err := readParentShastaCheckpoint(inputs[0], lastAnchorBlockNumber)
+	if err != nil {
+		return fmt.Errorf("missing parent checkpoint: %w", err)
+	}
+
 	if len(l1AncestorHeaders) == 0 {
-		return errors.New("l1 ancestor headers is empty")
+		expected := shastaAnchorParam{
+			blockNumber: parentCheckpoint.BlockNumber,
+			blockHash:   parentCheckpoint.BlockHash,
+			stateRoot:   parentCheckpoint.StateRoot,
+		}
+		for anchorParam := range anchorParamSet {
+			if anchorParam != expected {
+				return fmt.Errorf(
+					"anchor checkpoint mismatch, expected: %+v, got: %+v",
+					expected,
+					anchorParam,
+				)
+			}
+		}
+		return nil
 	}
 
 	l1AncestorSet := make(map[shastaAnchorParam]struct{})

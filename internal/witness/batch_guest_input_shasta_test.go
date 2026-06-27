@@ -11,6 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/require"
+	"github.com/taikoxyz/gaiko/pkg/keccak"
+	"github.com/taikoxyz/gaiko/pkg/mpt"
 	"github.com/taikoxyz/gaiko/tests/fixtures"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/pkg/utils"
 )
@@ -144,11 +146,79 @@ func TestShastaAnchorLinkageDecodesCheckpoint(t *testing.T) {
 	require.True(t, ok)
 	eventData := shastaBlock.EventData()
 	require.NotNil(t, eventData)
+	require.NotNil(t, input.Taiko.ProverData)
+	addShastaParentCheckpointProof(t, input.Inputs[0], &ShastaCheckpoint{
+		BlockNumber: input.Taiko.ProverData.LastAnchorBlockNumber,
+		BlockHash:   common.HexToHash("0x01"),
+		StateRoot:   common.HexToHash("0x02"),
+	})
 
 	require.NoError(t, verifyShastaAnchorLinkage(
 		input.Inputs,
 		input.Taiko.L1AncestorHeaders,
 		eventData.Proposal.OriginBlockHash,
+		input.Taiko.ProverData.LastAnchorBlockNumber,
+	))
+}
+
+func TestShastaStalledAnchorLinkageUsesParentCheckpoint(t *testing.T) {
+	checkpoint := &ShastaCheckpoint{
+		BlockNumber: 25454,
+		BlockHash:   common.HexToHash("0xec6f57e23fc8b180892e7e9027fc91c75620dd39a2f75a2815bca61c5bb8ddab"),
+		StateRoot:   common.HexToHash("0x04cf84a01f4a50695395d4819eddfab9de9acaec5293e3d1f4a38d41ef48e6a8"),
+	}
+	input := makeShastaGuestInputWithParentCheckpoint(t, checkpoint)
+
+	require.NoError(t, verifyShastaAnchorLinkage(
+		[]*SingleGuestInput{input},
+		nil,
+		common.Hash{},
+		checkpoint.BlockNumber,
+	))
+}
+
+func TestShastaStalledAnchorLinkageRejectsMissingParentCheckpoint(t *testing.T) {
+	checkpoint := &ShastaCheckpoint{
+		BlockNumber: 25454,
+		BlockHash:   common.HexToHash("0xec6f57e23fc8b180892e7e9027fc91c75620dd39a2f75a2815bca61c5bb8ddab"),
+		StateRoot:   common.HexToHash("0x04cf84a01f4a50695395d4819eddfab9de9acaec5293e3d1f4a38d41ef48e6a8"),
+	}
+	input := makeShastaGuestInputWithAnchorTx(1, 2, 200, 30_000_000, false)
+	input.Taiko.AnchorTx = makeShastaAnchorTx(checkpoint)
+
+	err := verifyShastaAnchorLinkage([]*SingleGuestInput{input}, nil, common.Hash{}, checkpoint.BlockNumber)
+	require.ErrorContains(t, err, "missing parent checkpoint")
+}
+
+func TestShastaAnchorLinkageRequiresParentCheckpointWithL1Ancestors(t *testing.T) {
+	l1Header := &types.Header{Number: big.NewInt(25455), Root: common.HexToHash("0x1234")}
+	input := makeShastaGuestInputWithAnchorTx(1, 2, 200, 30_000_000, false)
+	input.Taiko.AnchorTx = makeShastaAnchorTx(checkpointFromL1Header(l1Header))
+
+	err := verifyShastaAnchorLinkage(
+		[]*SingleGuestInput{input},
+		[]*types.Header{l1Header},
+		l1Header.Hash(),
+		25454,
+	)
+	require.ErrorContains(t, err, "missing parent checkpoint")
+}
+
+func TestShastaAnchorLinkageAllowsAdvancingCheckpointDifferentFromParent(t *testing.T) {
+	parentCheckpoint := &ShastaCheckpoint{
+		BlockNumber: 25454,
+		BlockHash:   common.HexToHash("0xec6f57e23fc8b180892e7e9027fc91c75620dd39a2f75a2815bca61c5bb8ddab"),
+		StateRoot:   common.HexToHash("0x04cf84a01f4a50695395d4819eddfab9de9acaec5293e3d1f4a38d41ef48e6a8"),
+	}
+	l1Header := &types.Header{Number: big.NewInt(25455), Root: common.HexToHash("0x1234")}
+	input := makeShastaGuestInputWithParentCheckpoint(t, parentCheckpoint)
+	input.Taiko.AnchorTx = makeShastaAnchorTx(checkpointFromL1Header(l1Header))
+
+	require.NoError(t, verifyShastaAnchorLinkage(
+		[]*SingleGuestInput{input},
+		[]*types.Header{l1Header},
+		l1Header.Hash(),
+		parentCheckpoint.BlockNumber,
 	))
 }
 
@@ -209,6 +279,95 @@ func makeShastaGuestInputWithAnchorTx(
 			AnchorTx: anchorTx,
 		},
 	}
+}
+
+func makeShastaAnchorTx(checkpoint *ShastaCheckpoint) *types.Transaction {
+	data := make([]byte, 4+96)
+	new(big.Int).SetUint64(checkpoint.BlockNumber).FillBytes(data[4:36])
+	copy(data[36:68], checkpoint.BlockHash.Bytes())
+	copy(data[68:100], checkpoint.StateRoot.Bytes())
+	return types.NewTx(&types.LegacyTx{Data: data})
+}
+
+func checkpointFromL1Header(header *types.Header) *ShastaCheckpoint {
+	return &ShastaCheckpoint{
+		BlockNumber: header.Number.Uint64(),
+		BlockHash:   header.Hash(),
+		StateRoot:   header.Root,
+	}
+}
+
+func makeShastaGuestInputWithParentCheckpoint(t *testing.T, checkpoint *ShastaCheckpoint) *SingleGuestInput {
+	t.Helper()
+
+	input := makeShastaGuestInputWithAnchorTx(1, 2, 200, 30_000_000, false)
+	input.Taiko.AnchorTx = makeShastaAnchorTx(checkpoint)
+	addShastaParentCheckpointProof(t, input, checkpoint)
+	return input
+}
+
+func addShastaParentCheckpointProof(t *testing.T, input *SingleGuestInput, checkpoint *ShastaCheckpoint) {
+	t.Helper()
+
+	l2Contract := common.HexToAddress("0x1670010000000000000000000000000000010001")
+	if input.ChainSpec == nil {
+		input.ChainSpec = &ChainSpec{}
+	}
+	if _, ok := shastaSignalServiceAddressFromL2Contract(input.ChainSpec.L2Contract); !ok {
+		input.ChainSpec.L2Contract = &l2Contract
+	}
+	signalService, ok := shastaSignalServiceAddressFromL2Contract(input.ChainSpec.L2Contract)
+	require.True(t, ok)
+
+	blockHashSlot, stateRootSlot := testShastaCheckpointStorageSlots(checkpoint.BlockNumber)
+	storageTrie := mpt.New()
+	_, err := storageTrie.InsertRLP(
+		keccak.Keccak(paddedBigIntBytes(blockHashSlot)).Bytes(),
+		new(big.Int).SetBytes(checkpoint.BlockHash.Bytes()),
+	)
+	require.NoError(t, err)
+	_, err = storageTrie.InsertRLP(
+		keccak.Keccak(paddedBigIntBytes(stateRootSlot)).Bytes(),
+		new(big.Int).SetBytes(checkpoint.StateRoot.Bytes()),
+	)
+	require.NoError(t, err)
+	storageRoot, err := storageTrie.Hash()
+	require.NoError(t, err)
+
+	parentStateTrie := mpt.New()
+	_, err = parentStateTrie.InsertRLP(
+		keccak.Keccak(signalService.Bytes()).Bytes(),
+		&types.StateAccount{Root: storageRoot},
+	)
+	require.NoError(t, err)
+	parentRoot, err := parentStateTrie.Hash()
+	require.NoError(t, err)
+	if input.ParentHeader == nil {
+		input.ParentHeader = &types.Header{}
+	}
+	input.ParentHeader.Root = parentRoot
+	input.ParentStateTrie = parentStateTrie
+	input.ParentStorage = map[common.Address]*StorageEntry{
+		signalService: {
+			Trie:  storageTrie,
+			Slots: []*big.Int{blockHashSlot, stateRootSlot},
+		},
+	}
+}
+
+func testShastaCheckpointStorageSlots(blockNumber uint64) (*big.Int, *big.Int) {
+	encoded := make([]byte, 64)
+	new(big.Int).SetUint64(blockNumber).FillBytes(encoded[:32])
+	big.NewInt(254).FillBytes(encoded[32:])
+	blockHashSlot := new(big.Int).SetBytes(keccak.Keccak(encoded).Bytes())
+	stateRootSlot := new(big.Int).Add(new(big.Int).Set(blockHashSlot), big.NewInt(1))
+	return blockHashSlot, stateRootSlot
+}
+
+func paddedBigIntBytes(value *big.Int) []byte {
+	buf := make([]byte, 32)
+	value.FillBytes(buf)
+	return buf
 }
 
 func emptyManifestBlob() [][eth.BlobSize]byte {
