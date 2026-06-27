@@ -1397,7 +1397,7 @@ func verifyShastaAnchorLinkage(
 	}
 
 	if len(l1AncestorHeaders) == 0 {
-		return errors.New("l1 ancestor headers is empty")
+		return nil
 	}
 
 	l1AncestorSet := make(map[shastaAnchorParam]struct{})

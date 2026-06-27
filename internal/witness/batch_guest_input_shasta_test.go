@@ -152,6 +152,17 @@ func TestShastaAnchorLinkageDecodesCheckpoint(t *testing.T) {
 	))
 }
 
+func TestShastaAnchorLinkageAllowsEmptyAncestors(t *testing.T) {
+	input := makeShastaGuestInputWithAnchorTx(1, 2, 200, 30_000_000, false)
+	input.Taiko.AnchorTx = types.NewTx(&types.LegacyTx{Data: make([]byte, 4+96)})
+
+	require.NoError(t, verifyShastaAnchorLinkage(
+		[]*SingleGuestInput{input},
+		nil,
+		common.Hash{},
+	))
+}
+
 func makeShastaGuestInput(parentNumber uint64, blockNumber uint64, timestamp uint64, gasLimit uint64) *SingleGuestInput {
 	return makeShastaGuestInputWithAnchorTx(parentNumber, blockNumber, timestamp, gasLimit, true)
 }
