@@ -1,9 +1,12 @@
+// Package flags provides command-line flags and argument parsing for the Gaiko client software.
 package flags
 
 import (
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -12,9 +15,12 @@ import (
 )
 
 const (
-	defaultGaikoUserConfigSubDir = ".config/raiko"
-	globalCategory               = "GLOBAL"
-	loggingCategory              = "LOGGING"
+	defaultUserConfigDir = ".config/raiko"
+	globalCategory       = "GLOBAL"
+	serverCategory       = "SERVER"
+	proofCategory        = "PROOF"
+	bootstrapCategory    = "BOOTSTRAP"
+	loggingCategory      = "LOGGING"
 )
 
 const (
@@ -42,27 +48,45 @@ var (
 		EnvVars:  []string{"SGX_TYPE"},
 	}
 
+	SGXInstanceIDsFlag = &cli.StringFlag{
+		Name:     "sgx-instance-ids",
+		Usage:    "SGX Instance IDs mapping in JSON format, e.g. '{\"PACAYA\":1,\"SHASTA\":2}'",
+		Category: serverCategory,
+		Value:    "{}",
+	}
+
+	HTTPListenPortFlag = &cli.StringFlag{
+		Name:     "port",
+		Usage:    "Port for the server to listen on",
+		Category: serverCategory,
+		Value:    "8080",
+	}
+
 	SGXInstanceIDFlag = &cli.Uint64Flag{
-		Name:  "sgx-instance-id",
-		Usage: "SGX Instance ID for one-(batch-)shot operation",
+		Name:     "sgx-instance-id",
+		Usage:    "SGX Instance ID for one-(batch-)shot operation",
+		Category: proofCategory,
 	}
 
 	WitnessFlag = &cli.StringFlag{
-		Name:  "witness",
-		Usage: "`stdin` or file name of where to find the witness data to use.",
-		Value: stdinSelector,
+		Name:     "witness",
+		Usage:    "`stdin` or file name of where to find the witness data to use.",
+		Value:    stdinSelector,
+		Category: proofCategory,
 	}
 
 	ProofFlag = &cli.StringFlag{
-		Name:  "proof",
-		Usage: "`stdout` or file name of where to write the proof data.",
-		Value: stdoutSelector,
+		Name:     "proof",
+		Usage:    "`stdout` or file name of where to write the proof data.",
+		Value:    stdoutSelector,
+		Category: proofCategory,
 	}
 
 	BootstrapFlag = &cli.StringFlag{
-		Name:  "bootstrap",
-		Usage: "`stdout` or file name of where to write the bootstrap data.",
-		Value: stdoutSelector,
+		Name:     "bootstrap",
+		Usage:    "`stdout` or file name of where to write the bootstrap data.",
+		Value:    stdoutSelector,
+		Category: bootstrapCategory,
 	}
 
 	// Optional flags used by all client software.
@@ -87,8 +111,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	GlobalSecretDirFlag.Value = filepath.Join(home, defaultGaikoUserConfigSubDir, "secrets")
-	GlobalConfigDirFlag.Value = filepath.Join(home, defaultGaikoUserConfigSubDir, "config")
+	GlobalSecretDirFlag.Value = filepath.Join(home, defaultUserConfigDir, "secrets")
+	GlobalConfigDirFlag.Value = filepath.Join(home, defaultUserConfigDir, "config")
 }
 
 const (
@@ -104,6 +128,21 @@ var GlobalFlags = []cli.Flag{
 	LogJSONFlag,
 }
 
+var ServerFlags = []cli.Flag{
+	SGXInstanceIDsFlag,
+	HTTPListenPortFlag,
+}
+
+var ProofFlags = []cli.Flag{
+	SGXInstanceIDFlag,
+	WitnessFlag,
+	ProofFlag,
+}
+
+var BootstrapFlags = []cli.Flag{
+	BootstrapFlag,
+}
+
 type Arguments struct {
 	SecretDir string
 	ConfigDir string
@@ -112,6 +151,7 @@ type Arguments struct {
 	// if SGXType is "debug", specify the SGX instance address with custom private key
 	SGXInstance     common.Address
 	SGXInstanceID   uint32
+	SGXInstanceIDs  map[string]uint32
 	WitnessReader   io.Reader
 	ProofWriter     io.Writer
 	BootstrapWriter io.Writer
@@ -120,6 +160,15 @@ type Arguments struct {
 func (args *Arguments) Copy() *Arguments {
 	argsCopy := *args
 	return &argsCopy
+}
+
+// UpdateSGXInstanceID updates the SGXInstanceID field based on the provided hardFork name
+func (args *Arguments) UpdateSGXInstanceID(hardFork string) {
+	if args.SGXInstanceID != 0 {
+		return
+	}
+	hardFork = strings.ToUpper(hardFork)
+	args.SGXInstanceID = args.SGXInstanceIDs[hardFork]
 }
 
 func NewArguments(cli *cli.Context) *Arguments {
@@ -156,12 +205,23 @@ func NewArguments(cli *cli.Context) *Arguments {
 			panic(err)
 		}
 	}
+
+	// Parse SGX Instance IDs from JSON
+	sgxInstanceIDsStr := cli.String(SGXInstanceIDsFlag.Name)
+	sgxInstanceIDs := make(map[string]uint32)
+	if sgxInstanceIDsStr != "" && sgxInstanceIDsStr != "{}" {
+		if err := json.Unmarshal([]byte(sgxInstanceIDsStr), &sgxInstanceIDs); err != nil {
+			panic(err)
+		}
+	}
+
 	return &Arguments{
 		SecretDir:       secretDir,
 		ConfigDir:       configDir,
 		SGXType:         cli.String(GlobalSGXTypeFlag.Name),
 		ProofType:       witness.SGXGethProofType,
 		SGXInstanceID:   uint32(cli.Uint64(SGXInstanceIDFlag.Name)),
+		SGXInstanceIDs:  sgxInstanceIDs,
 		WitnessReader:   witnessReader,
 		ProofWriter:     proofWriter,
 		BootstrapWriter: bootstrapWriter,
@@ -170,9 +230,7 @@ func NewArguments(cli *cli.Context) *Arguments {
 
 // InitLogger initializes the root logger with the command line flags.
 func InitLogger(c *cli.Context) error {
-	var (
-		slogVerbosity = log.FromLegacyLevel(c.Int(VerbosityFlag.Name))
-	)
+	slogVerbosity := log.FromLegacyLevel(c.Int(VerbosityFlag.Name))
 	if c.Bool(LogJSONFlag.Name) {
 		glogger := log.NewGlogHandler(log.NewGlogHandler(log.JSONHandler(os.Stdout)))
 		glogger.Verbosity(slogVerbosity)

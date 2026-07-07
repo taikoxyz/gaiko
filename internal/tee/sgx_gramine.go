@@ -13,13 +13,12 @@ import (
 )
 
 const (
-	attestationQuoteDeviceFile          = "/dev/attestation/quote"
-	attestationTypeDeviceFile           = "/dev/attestation/attestation_type"
+	attestationQuoteDeviceFile = "/dev/attestation/quote"
+	// attestationTypeDeviceFile           = "/dev/attestation/attestation_type"
 	attestationUserReportDataDeviceFile = "/dev/attestation/user_report_data"
 )
 
-type SGXGramineProvider struct {
-}
+type SGXGramineProvider struct{}
 
 var _ Provider = (*SGXGramineProvider)(nil)
 
@@ -53,7 +52,7 @@ func (p *SGXGramineProvider) SaveBootstrap(args *flags.Arguments, b *BootstrapDa
 func saveAttestationUserReportData(pubKey common.Address) error {
 	extendedPubkey := make([]byte, 64)
 	copy(extendedPubkey, pubKey.Bytes())
-	userReportDataFile, err := os.OpenFile(attestationUserReportDataDeviceFile, os.O_WRONLY, 0666)
+	userReportDataFile, err := os.OpenFile(attestationUserReportDataDeviceFile, os.O_WRONLY, 0o666)
 	if err != nil {
 		return err
 	}
@@ -85,8 +84,8 @@ func isReadOnly(fileInfo os.FileInfo) bool {
 	// Get file mode (permissions)
 	mode := fileInfo.Mode()
 	// Check owner permissions (bits 8-6: rwx)
-	ownerRead := mode&0400 != 0  // 0400 is read permission for owner (r--------)
-	ownerWrite := mode&0200 != 0 // 0200 is write permission for owner (-w-------)
+	ownerRead := mode&0o400 != 0  // 0400 is read permission for owner (r--------)
+	ownerWrite := mode&0o200 != 0 // 0200 is write permission for owner (-w-------)
 	// Read-only means readable but not writable
 	return ownerRead && !ownerWrite
 }

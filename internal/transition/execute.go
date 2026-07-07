@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/holiman/uint256"
 	"github.com/taikoxyz/gaiko/internal/flags"
 	"github.com/taikoxyz/gaiko/internal/witness"
@@ -27,14 +28,14 @@ import (
 func ExecuteAndVerify(
 	ctx context.Context,
 	args *flags.Arguments,
-	input witness.WitnessInput,
+	guestInput witness.GuestInput,
 ) error {
-	chainConfig, err := input.ChainConfig()
+	chainConfig, err := guestInput.ChainConfig()
 	if err != nil {
 		return err
 	}
 	eg, ctx := errgroup.WithContext(ctx)
-	for pair := range input.GuestInputs() {
+	for pair := range guestInput.GuestInputs() {
 		pair := pair // https://go.dev/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
 			return executeWitness(ctx, pair, chainConfig)
@@ -49,26 +50,28 @@ func executeWitness(
 	chainConfig *params.ChainConfig,
 ) error {
 	g := pair.Input
-	// txs := pair.Txs
 	wit, err := g.NewWitness()
 	if err != nil {
 		return err
 	}
-	// FIXME: this is a workaround for the stateless witness
-	// block := g.Block.WithBody(types.Body{
-	// 	Transactions: txs,
-	// 	Uncles:       g.Block.Uncles(),
-	// 	Withdrawals:  g.Block.Withdrawals(),
-	// })
 	expectedRoot := g.Block.Root()
 	expectedReceiptRoot := g.Block.ReceiptHash()
+
+	// Prefer the tx list embedded in the block body, since it must match the
+	// header's tx root/receipt root. Some witness inputs may also provide a
+	// derived tx list (pair.Txs); only use it if it matches the header.
+	txs := g.Block.Transactions()
+	if types.DeriveSha(txs, trie.NewStackTrie(nil)) != g.Block.TxHash() &&
+		types.DeriveSha(pair.Txs, trie.NewStackTrie(nil)) == g.Block.TxHash() {
+		txs = pair.Txs
+	}
 
 	newHeader := types.CopyHeader(g.Block.Header())
 	// clear the fields that are not needed for the stateless witness
 	newHeader.Root = common.Hash{}
 	newHeader.ReceiptHash = common.Hash{}
 	block := types.NewBlockWithHeader(newHeader).WithBody(types.Body{
-		Transactions: g.Block.Transactions(),
+		Transactions: txs,
 		Uncles:       g.Block.Uncles(),
 		Withdrawals:  g.Block.Withdrawals(),
 	})
@@ -76,20 +79,20 @@ func executeWitness(
 	if err != nil {
 		return err
 	}
-	if expectedRoot != stateRoot {
-		return fmt.Errorf(
-			"block %d state root mismatch: expected %#x, got %#x",
-			g.Block.NumberU64(),
-			expectedRoot,
-			stateRoot,
-		)
-	}
 	if expectedReceiptRoot != receiptRoot {
 		return fmt.Errorf(
 			"block %d receipt root mismatch: expected %#x, got %#x",
 			g.Block.NumberU64(),
 			expectedReceiptRoot,
 			receiptRoot,
+		)
+	}
+	if expectedRoot != stateRoot {
+		return fmt.Errorf(
+			"block %d state root mismatch: expected %#x, got %#x",
+			g.Block.NumberU64(),
+			expectedRoot,
+			stateRoot,
 		)
 	}
 	return nil
@@ -101,16 +104,22 @@ func executeAndVerify(
 	pair *witness.Pair,
 	chainConfig *params.ChainConfig,
 ) error {
-	g := pair.Input
-	txs := pair.Txs
-	preState, err := newPreState(g)
+	return executeAndVerifyTxs(pair.Input, pair.Txs, chainConfig)
+}
+
+func executeAndVerifyTxs(
+	guestInput *witness.SingleGuestInput,
+	txs types.Transactions,
+	chainConfig *params.ChainConfig,
+) error {
+	preState, err := newPreState(guestInput)
 	if err != nil {
 		return err
 	}
 	stateDB, err := apply(
 		vm.Config{},
 		preState.stateDB,
-		g.Block,
+		guestInput.Block,
 		txs,
 		preState.getHash,
 		chainConfig,
@@ -125,14 +134,14 @@ func executeAndVerify(
 		if !ok {
 			// Account is deleted
 			key := keccak.Keccak(addr.Bytes())
-			if _, err := g.ParentStateTrie.Delete(key.Bytes()); err != nil {
+			if _, err = guestInput.ParentStateTrie.Delete(key.Bytes()); err != nil {
 				return err
 			}
 		}
 	}
 
 	for addr, acc := range collector {
-		entry, ok := g.ParentStorage[addr]
+		entry, ok := guestInput.ParentStorage[addr]
 		if !ok {
 			return fmt.Errorf("account not found for address: %#x", addr)
 		}
@@ -144,11 +153,11 @@ func executeAndVerify(
 		for slot, value := range acc.Storage {
 			key := keccak.Keccak(slot.Bytes())
 			if value == (common.Hash{}) {
-				if _, err := entry.Trie.Delete(key.Bytes()); err != nil {
+				if _, err = entry.Trie.Delete(key.Bytes()); err != nil {
 					return err
 				}
 			} else {
-				if err := updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
+				if err = updateStorage(entry.Trie, slot.Bytes(), value.Bytes()); err != nil {
 					return err
 				}
 			}
@@ -164,19 +173,19 @@ func executeAndVerify(
 			CodeHash: keccak.Keccak(acc.Code).Bytes(),
 		}
 
-		if err := updateAccount(g.ParentStateTrie, addr, stateAcc); err != nil {
+		if err := updateAccount(guestInput.ParentStateTrie, addr, stateAcc); err != nil {
 			return err
 		}
 	}
-	expected := g.Block.Root()
-	actual, err := g.ParentStateTrie.Hash()
+	expected := guestInput.Block.Root()
+	actual, err := guestInput.ParentStateTrie.Hash()
 	if err != nil {
 		return err
 	}
 	if expected != actual {
 		return fmt.Errorf(
 			"block %d root mismatch: expected %#x, got %#x",
-			g.Block.NumberU64(),
+			guestInput.Block.NumberU64(),
 			expected,
 			actual,
 		)

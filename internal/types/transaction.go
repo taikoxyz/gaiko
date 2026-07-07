@@ -217,8 +217,6 @@ type txEip1559Marshaling struct {
 }
 
 //go:generate go run github.com/fjl/gencodec -type TxEip4844 -field-override txEip4844Marshaling -out gen_tx_eip4844.go
-
-// TODO: unsupported in l2
 type TxEip4844 struct {
 	ChainID              *big.Int       `json:"chain_id"                 gencodec:"required"`
 	Nonce                uint64         `json:"nonce"                    gencodec:"required"`

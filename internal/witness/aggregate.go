@@ -10,3 +10,8 @@ type RawProof struct {
 type RawAggregationGuestInput struct {
 	Proofs []*RawProof `json:"proofs"`
 }
+
+type ShastaRawAggregationGuestInput struct {
+	Proofs            []*RawProof      `json:"proofs"`
+	ProofCarryDataVec []ProofCarryData `json:"proof_carry_data_vec"`
+}

@@ -11,20 +11,42 @@ import (
 )
 
 type PublicInput struct {
-	transition     any
-	block_metadata BlockMetadataFork
-	verifier       common.Address
-	prover         common.Address
-	sgxInstance    common.Address
-	chainID        uint64
+	transition    any
+	blockMetadata BlockMetadata
+	blockProposed BlockProposed
+	verifier      common.Address
+	prover        common.Address
+	sgxInstance   common.Address
+	chainID       uint64
 }
 
 func (p *PublicInput) Hash() (common.Hash, error) {
+	// Shasta uses a different hash calculation
+	if p.blockProposed.IsShasta() {
+		var transitionInput TransitionInputData
+		switch value := p.transition.(type) {
+		case TransitionInputData:
+			transitionInput = value
+		case *TransitionInputData:
+			if value == nil {
+				return common.Hash{}, fmt.Errorf("shasta transition is nil")
+			}
+			transitionInput = *value
+		default:
+			return common.Hash{}, fmt.Errorf("shasta transition must be TransitionInputData, got %T", p.transition)
+		}
+		return HashShastaSubproofInput(&ProofCarryData{
+			ChainID:         p.chainID,
+			Verifier:        p.verifier,
+			TransitionInput: transitionInput,
+		}), nil
+	}
+
 	var (
 		data []byte
 		err  error
 	)
-	metaHash := p.block_metadata.Hash()
+	metaHash := p.blockMetadata.Hash()
 	switch transition := p.transition.(type) {
 	case *ontake.TaikoDataTransition:
 		data, err = publicInputsV1Type.Pack(
@@ -56,7 +78,7 @@ func (p *PublicInput) Hash() (common.Hash, error) {
 }
 
 func NewPublicInput(
-	input WitnessInput,
+	input GuestInput,
 	proofType ProofType,
 	sgxType string,
 	sgxInstance common.Address,
@@ -69,31 +91,34 @@ func NewPublicInput(
 		}
 	}
 
-	meta, err := input.BlockMetadataFork()
+	meta, err := input.BlockMetadata()
 	if err != nil {
 		return nil, err
 	}
 
+	// Check if this is Shasta
+
 	pi := &PublicInput{
-		transition:     input.Transition(),
-		block_metadata: meta,
-		verifier:       verifier,
-		prover:         input.Prover(),
-		sgxInstance:    sgxInstance,
-		chainID:        input.ChainID(),
+		transition:    input.Transition(),
+		blockMetadata: meta,
+		blockProposed: input.BlockProposed(),
+		verifier:      verifier,
+		prover:        input.Prover(),
+		sgxInstance:   sgxInstance,
+		chainID:       input.ChainID(),
 	}
 
-	if input.IsTaiko() && input.BlockProposedFork().BlockMetadataFork() != nil {
+	if input.IsTaiko() && input.BlockProposed().BlockMetadata() != nil {
 		got, err := meta.ABIEncode()
 		if err != nil {
 			return nil, err
 		}
-		want, err := input.BlockProposedFork().BlockMetadataFork().ABIEncode()
+		want, err := input.BlockProposed().BlockMetadata().ABIEncode()
 		if err != nil {
 			return nil, err
 		}
 		if !slices.Equal(got, want) {
-			return nil, fmt.Errorf("block hash mismatch, expected: %#x, got: %#x", want, got)
+			return nil, fmt.Errorf("metadata hash mismatch, expected: %#x, got: %#x", want, got)
 		}
 	}
 	return pi, nil

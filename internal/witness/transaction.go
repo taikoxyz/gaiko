@@ -14,7 +14,6 @@ func decompressTxList(
 	blobUsed bool,
 ) types.Transactions {
 	return txListDecompressor.NewTxListDecompressor(
-		blockMaxGasLimit,
 		maxBytesPerTxList,
 	).TryDecompress(
 		txListBytes,

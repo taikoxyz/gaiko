@@ -25,10 +25,7 @@ var bytesBufferPool = sync.Pool{
 	},
 }
 
-type ProveData struct {
-	ProveMode string `json:"prove_mode"` // block, batch, aggregation
-	Input     []byte `json:"input,omitempty"`
-}
+var emptyProofResponsePayload = mustMarshalEmptyProofResponse()
 
 type Response struct {
 	Status  string          `json:"status"`
@@ -39,14 +36,15 @@ type Response struct {
 type ProveMode string
 
 const (
-	Unknown       ProveMode = "unknown"
-	OntakeBlock   ProveMode = "block"
-	PacayaBatch   ProveMode = "batch"
-	Aggregation   ProveMode = "aggregate"
-	Bootstrap     ProveMode = "bootstrap"
-	StatusCheck   ProveMode = "check"
-	TestHeartBeat ProveMode = "heartbeat"
-	HeklaBlock    ProveMode = "hekla" // deprecated
+	Unknown         ProveMode = "unknown"
+	OntakeBlock     ProveMode = "block"
+	PacayaBatch     ProveMode = "batch"
+	Aggregation     ProveMode = "aggregate"
+	ShastaAggregate ProveMode = "shasta-aggregate"
+	Bootstrap       ProveMode = "bootstrap"
+	StatusCheck     ProveMode = "check"
+	TestHeartBeat   ProveMode = "heartbeat"
+	HeklaBlock      ProveMode = "hekla" // deprecated
 )
 
 func recoverMiddleware(next http.Handler) http.Handler {
@@ -59,6 +57,20 @@ func recoverMiddleware(next http.Handler) http.Handler {
 		}()
 		next.ServeHTTP(w, r)
 	})
+}
+
+func mustMarshalEmptyProofResponse() json.RawMessage {
+	payload, err := json.Marshal(&prover.ProofResponse{
+		Proof:           []byte{},
+		Quote:           []byte{},
+		PublicKey:       []byte{},
+		InstanceAddress: common.Address{},
+		Input:           common.Hash{},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("failed to marshal empty proof response: %v", err))
+	}
+	return payload
 }
 
 func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.SGXProver, w http.ResponseWriter, r *http.Request, proveMode ProveMode) {
@@ -83,6 +95,8 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 		err = batchOneshot(ctx, sgxProver, args)
 	case Aggregation:
 		err = aggregate(ctx, sgxProver, args)
+	case ShastaAggregate:
+		err = shastaAggregate(ctx, sgxProver, args)
 	case Bootstrap:
 		err = bootstrap(ctx, sgxProver, args)
 	case StatusCheck:
@@ -94,11 +108,11 @@ func proveHandler(ctx context.Context, args *flags.Arguments, sgxProver *prover.
 
 	var response Response
 	if err != nil {
-		log.Debug("Prove finished, get error: %s, response: ", "error", err, "proof", args.ProofWriter.(*bytes.Buffer).String())
+		log.Error("Prove finished, get error: %s, response: ", "error", err, "proof", args.ProofWriter.(*bytes.Buffer).String())
 		response = Response{
 			Status:  "error",
 			Message: err.Error(),
-			Proof:   []byte("{}"),
+			Proof:   emptyProofResponsePayload,
 		}
 	} else {
 		log.Debug("Prove finished, get proof: ", "proof", args.ProofWriter.(*bytes.Buffer).String())

@@ -2,9 +2,15 @@ package witness
 
 import (
 	"errors"
+	"fmt"
+	"math/big"
+	"reflect"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/encoding"
+	"github.com/taikoxyz/taiko-mono/packages/taiko-client/bindings/shasta"
 )
 
 var (
@@ -66,6 +72,7 @@ var (
 	blockProposedEvent            = encoding.TaikoL1ABI.Events["BlockProposed"]
 	blockProposedV2Event          = encoding.TaikoL1ABI.Events["BlockProposedV2"]
 	anchorV3Method                = encoding.TaikoAnchorABI.Methods["anchorV3"]
+	shastaAnchorV4Method          abi.Method
 )
 
 func init() {
@@ -89,6 +96,12 @@ func init() {
 		panic(err)
 	}
 	blockMetadataV2ComponentsArgs = abi.Arguments{arg}
+
+	shastaAnchorABI, err := abi.JSON(strings.NewReader(shasta.ShastaAnchorABI))
+	if err != nil {
+		panic(err)
+	}
+	shastaAnchorV4Method = shastaAnchorABI.Methods["anchorV4"]
 }
 
 // ABIEncoder is an interface for solidity structs encoding
@@ -119,7 +132,7 @@ function anchorV3(
 	bytes32[] calldata _signalSlots
 )
 */
-func decodeAnchorV3Args_signalSlots(input []byte) ([][32]byte, error) {
+func decodeAnchorV3ArgsSignalSlots(input []byte) ([][32]byte, error) {
 	args := map[string]any{}
 	err := anchorV3Method.Inputs.UnpackIntoMap(args, input)
 	if err != nil {
@@ -130,4 +143,122 @@ func decodeAnchorV3Args_signalSlots(input []byte) ([][32]byte, error) {
 		return nil, errors.New("signalSlots not found")
 	}
 	return signalSlots, nil
+}
+
+func decodeShastaAnchorCheckpoint(input []byte) (*ShastaCheckpoint, error) {
+	// L2 Shasta anchor transaction (Anchor.anchorV4) encodes a single checkpoint struct:
+	// (uint48 blockNumber, bytes32 blockHash, bytes32 stateRoot) -> 3 static 32-byte words.
+	// This path avoids relying on the L1 ShastaAnchor ABI which includes dynamic fields.
+	if len(input) == 96 {
+		blockNumber := new(big.Int).SetBytes(input[:32])
+		if blockNumber.BitLen() > 48 {
+			return nil, fmt.Errorf("invalid shasta checkpoint block number: %#x", blockNumber)
+		}
+		return &ShastaCheckpoint{
+			BlockNumber: blockNumber.Uint64(),
+			BlockHash:   common.BytesToHash(input[32:64]),
+			StateRoot:   common.BytesToHash(input[64:96]),
+		}, nil
+	}
+
+	if shastaAnchorV4Method.Name == "" {
+		return nil, errors.New("shasta anchor ABI not initialized")
+	}
+	args := map[string]any{}
+	if err := shastaAnchorV4Method.Inputs.UnpackIntoMap(args, input); err != nil {
+		return nil, err
+	}
+
+	var param any
+	if value, ok := args["_blockParams"]; ok {
+		param = value
+	} else if value, ok := args["_checkpoint"]; ok {
+		param = value
+	} else {
+		return nil, errors.New("shasta anchor params not found")
+	}
+
+	return shastaCheckpointFromTuple(param)
+}
+
+func shastaCheckpointFromTuple(value any) (*ShastaCheckpoint, error) {
+	rv := reflect.ValueOf(value)
+	if rv.Kind() == reflect.Pointer {
+		if rv.IsNil() {
+			return nil, errors.New("nil shasta anchor param")
+		}
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		return nil, errors.New("unexpected shasta anchor param type")
+	}
+
+	numberField := rv.FieldByName("AnchorBlockNumber")
+	if !numberField.IsValid() {
+		numberField = rv.FieldByName("BlockNumber")
+	}
+	hashField := rv.FieldByName("AnchorBlockHash")
+	if !hashField.IsValid() {
+		hashField = rv.FieldByName("BlockHash")
+	}
+	stateField := rv.FieldByName("AnchorStateRoot")
+	if !stateField.IsValid() {
+		stateField = rv.FieldByName("StateRoot")
+	}
+
+	if !numberField.IsValid() || !hashField.IsValid() || !stateField.IsValid() {
+		return nil, errors.New("invalid shasta anchor param fields")
+	}
+
+	var blockNumber uint64
+	switch v := numberField.Interface().(type) {
+	case *big.Int:
+		blockNumber = v.Uint64()
+	case uint64:
+		blockNumber = v
+	case uint32:
+		blockNumber = uint64(v)
+	default:
+		if numberField.Kind() == reflect.Uint64 {
+			blockNumber = numberField.Uint()
+		} else {
+			return nil, errors.New("unsupported block number type")
+		}
+	}
+
+	blockHash, err := toCommonHash(hashField)
+	if err != nil {
+		return nil, err
+	}
+	stateRoot, err := toCommonHash(stateField)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ShastaCheckpoint{
+		BlockNumber: blockNumber,
+		BlockHash:   blockHash,
+		StateRoot:   stateRoot,
+	}, nil
+}
+
+func toCommonHash(value reflect.Value) (common.Hash, error) {
+	if !value.IsValid() {
+		return common.Hash{}, errors.New("invalid hash value")
+	}
+	switch v := value.Interface().(type) {
+	case [32]byte:
+		return common.BytesToHash(v[:]), nil
+	case common.Hash:
+		return v, nil
+	default:
+		if value.Kind() == reflect.Array && value.Len() == 32 && value.Type().Elem().Kind() == reflect.Uint8 {
+			var out [32]byte
+			for i := 0; i < 32; i++ {
+				out[i] = byte(value.Index(i).Uint())
+			}
+			return common.BytesToHash(out[:]), nil
+		}
+		return common.Hash{}, errors.New("unsupported hash type")
+	}
 }
